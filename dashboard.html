@@ -495,6 +495,35 @@
 </div>
 
 <script>
+// Guarda una lectura localmente si no hay red
+function saveLocal(type, data) {
+  const existing = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
+  existing.push({ type, data, timestamp: Date.now() });
+  localStorage.setItem('aquality_sync', JSON.stringify(existing));
+  console.log("Dato guardado localmente (Modo Offline)");
+}
+
+// Intenta sincronizar todo lo guardado cuando vuelve el internet
+async function syncData() {
+  const pending = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
+  if (pending.length === 0) return;
+
+  console.log(`Sincronizando ${pending.length} registros pendientes...`);
+  
+  for (const item of pending) {
+    const r = await api('POST', item.type === 'lectura' ? '/lecturas/' : '/inventario/movimientos', item.data);
+    if (r.ok) {
+      // Si se subió con éxito, lo quitamos de la lista
+      const current = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
+      current.shift(); 
+      localStorage.setItem('aquality_sync', JSON.stringify(current));
+    }
+  }
+}
+
+// Escuchar cuando el internet regresa
+window.addEventListener('online', syncData);
+
 const API = 'http://127.0.0.1:8000';
 let currentUser = null;
 
@@ -625,15 +654,18 @@ async function registrarLectura() {
     oxigeno:     parseFloat(document.getElementById('lec-o2').value),
     observacion: document.getElementById('lec-obs').value || null,
   };
-  if (!body.estanque_id || isNaN(body.temperatura) || isNaN(body.ph) || isNaN(body.oxigeno)) {
-    showMsg('lec-ok','lec-err', false, 'Completá todos los campos obligatorios.');
-    return;
-  }
   const r = await api('POST', '/lecturas/', body);
-  showMsg('lec-ok', 'lec-err', r.ok, r.data.detail || JSON.stringify(r.data));
+
+  if (r.ok) {
+    showMsg('lec-ok', 'lec-err', true, 'Enviado a la nube.');
+  } else {
+    // AQUÍ ESTÁ EL TRUCO HÍBRIDO
+    saveLocal('lectura', body);
+    showMsg('lec-ok', 'lec-err', true, 'Modo offline: Guardado en el dispositivo.');
+  }
+  
   if (r.ok) cargarAlertas();
 }
-
 async function cargarAlertas() {
   const r = await api('GET', '/lecturas/alertas');
   const el = document.getElementById('alertas-lista');
@@ -787,6 +819,10 @@ async function cargarUsuarios() {
         <td style="font-size:12px;color:var(--muted);">${u.creado_en?.slice(0,10) || '—'}</td>
       </tr>`).join('')}
     </tbody></table>`;
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
 }
 </script>
 </body>

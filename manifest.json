@@ -1,0 +1,15 @@
+{
+  "name": "Aquality Piscicultura",
+  "short_name": "Aquality",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#0D9E75",
+  "theme_color": "#0D9E75",
+  "icons": [
+    {
+      "src": "icono.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
