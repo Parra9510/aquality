@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AQUALITY – Panel de Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:    #0D9E75;
+    --teal-l:  #E1F5EE;
+    --teal-d:  #085041;
+    --amber:   #D97706;
+    --amber-l: #FEF3C7;
+    --red:     #DC2626;
+    --red-l:   #FEE2E2;
+    --blue:    #2563EB;
+    --blue-l:  #EFF6FF;
+    --ink:     #0F1C17;
+    --ink-2:   #2D4A3E;
+    --muted:   #6B8F7E;
+    --line:    #D1E8DF;
+    --bg:      #F4FAF7;
+    --white:   #FFFFFF;
+    --card:    #FFFFFF;
+    --mono:    'Space Mono', monospace;
+    --sans:    'DM Sans', sans-serif;
+    --radius:  12px;
+    --shadow:  0 2px 12px rgba(13,158,117,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--teal-d);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px),
+                      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px);
+  }
+  .login-box {
+    background: var(--white); border-radius: 20px; padding: 48px 40px;
+    width: 380px; box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  }
+  .login-logo { font-family: var(--mono); font-size: 22px; color: var(--teal); font-weight: 700; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .field input {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
+    border-radius: 8px; font-family: var(--sans); font-size: 14px; color: var(--ink);
+    background: var(--bg); outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--teal); background: var(--white); }
+  .btn-primary {
+    width: 100%; padding: 12px; background: var(--teal); color: white;
+    border: none; border-radius: 8px; font-family: var(--sans); font-size: 15px;
+    font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--teal-d); }
+  .btn-primary:active { transform: scale(0.98); }
+  .login-err { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh; width: 220px;
+    background: var(--teal-d); padding: 28px 0; display: flex; flex-direction: column;
+    z-index: 100;
+  }
+  .sidebar-logo { font-family: var(--mono); font-size: 18px; color: white; font-weight: 700; padding: 0 24px 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo span { color: #5DCAA5; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 24px;
+    color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer;
+    transition: all 0.15s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active { color: white; background: rgba(255,255,255,0.1); border-left-color: #5DCAA5; }
+  .nav-icon { font-size: 18px; }
+  .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .user-pill { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #1D9E75; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; font-family: var(--mono); }
+  .user-name { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
+  .btn-logout { margin-top: 10px; width: 100%; padding: 8px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
+  .btn-logout:hover { background: rgba(255,255,255,0.15); color: white; }
+
+  .main { margin-left: 220px; padding: 32px 36px; }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-title { font-size: 24px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+  /* ── CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 22px;
+    border: 1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink); }
+  .stat-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 6px; font-weight: 600; }
+  .badge-ok  { background: var(--teal-l); color: var(--teal-d); }
+  .badge-warn { background: var(--amber-l); color: var(--amber); }
+  .badge-err { background: var(--red-l); color: var(--red); }
+
+  .card {
+    background: var(--card); border-radius: var(--radius); padding: 24px;
+    border: 1px solid var(--line); box-shadow: var(--shadow); margin-bottom: 20px;
+  }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-field label { font-size: 12px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-field input, .form-field select, .form-field textarea {
+    padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 8px;
+    font-family: var(--sans); font-size: 14px; color: var(--ink);
+    background: var(--bg); outline: none; transition: border-color 0.2s;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--teal); background: white; }
+  .form-field.full { grid-column: 1 / -1; }
+  .btn-submit {
+    margin-top: 16px; padding: 10px 24px; background: var(--teal); color: white;
+    border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-submit:hover { background: var(--teal-d); }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-danger { background: var(--red); }
+  .btn-danger:hover { background: #b91c1c; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--line); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+
+  .chip { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+  .chip-green { background: var(--teal-l); color: var(--teal-d); }
+  .chip-red   { background: var(--red-l);  color: var(--red); }
+  .chip-amber { background: var(--amber-l); color: var(--amber); }
+  .chip-blue  { background: var(--blue-l);  color: var(--blue); }
+
+  .msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+  .msg-ok  { background: var(--teal-l); color: var(--teal-d); }
+  .msg-err { background: var(--red-l);  color: var(--red); }
+
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+
+  /* ── ALERTA WIDGET ── */
+  .alert-box { background: var(--red-l); border: 1px solid #FCA5A5; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; display: none; }
+  .alert-box strong { color: var(--red); font-size: 13px; }
+  .alert-box p { color: #7F1D1D; font-size: 12px; margin-top: 4px; }
+
+  /* param bars */
+  .param-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .param-name { font-size: 12px; font-weight: 600; color: var(--muted); width: 100px; text-transform: uppercase; }
+  .bar-track { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+  .bar-ok   { background: var(--teal); }
+  .bar-warn { background: var(--amber); }
+  .bar-err  { background: var(--red); }
+  .param-val { font-family: var(--mono); font-size: 13px; color: var(--ink); width: 60px; text-align: right; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">AQU<span>◆</span>LITY</div>
+    <div class="login-sub">Sistema Integral de Optimización Acuícola</div>
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="usuario@aquality.co">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Ingresar al sistema</button>
+    <div class="login-err" id="login-err">Credenciales incorrectas. Intentá de nuevo.</div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">AQU<span>◆</span>LITY</div>
+    <div style="padding-top:16px;">
+      <div class="nav-item active" onclick="goTo('dashboard')"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="goTo('lecturas')"><span class="nav-icon">◉</span> Monitoreo Hídrico</div>
+      <div class="nav-item" onclick="goTo('inventario')"><span class="nav-icon">◫</span> Inventario</div>
+      <div class="nav-item" onclick="goTo('personal')"><span class="nav-icon">◎</span> Personal</div>
+      <div class="nav-item" onclick="goTo('usuarios')"><span class="nav-icon">◐</span> Usuarios</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="user-avatar">VP</div>
+        <div class="user-name" id="user-name-display">Usuario</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Panel de control</div>
+      <div class="page-sub">Resumen del sistema AQUALITY en tiempo real</div>
+
+      <div class="alert-box" id="alertas-box">
+        <strong>⚠ Alertas activas detectadas</strong>
+        <p id="alertas-txt"></p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Usuarios registrados</div>
+          <div class="stat-value" id="stat-usuarios">—</div>
+          <div class="stat-badge badge-ok">Sistema</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Insumos en stock</div>
+          <div class="stat-value" id="stat-insumos">—</div>
+          <div class="stat-badge badge-ok">Inventario</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Personal activo</div>
+          <div class="stat-value" id="stat-personal">—</div>
+          <div class="stat-badge badge-ok">Planta</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Alertas hídricas</div>
+          <div class="stat-value" id="stat-alertas">—</div>
+          <div class="stat-badge badge-err" id="stat-alertas-badge">Revisar</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Clima en Santa Rosa de Cabal <span style="font-size:12px;color:var(--muted);font-weight:400;">Open-Meteo API</span></div>
+          <div id="clima-widget"><div class="empty">Cargando datos climáticos...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Parámetros seguros — Trucha arcoíris</div>
+          <div style="margin-top:8px;">
+            <div class="param-row">
+              <div class="param-name">Temperatura</div>
+              <div class="bar-track"><div class="bar-fill bar-ok" style="width:60%"></div></div>
+              <div class="param-val">10–18°C</div>
+            </div>
+            <div class="param-row">
+              <div class="param-name">pH</div>
+              <div class="bar-track"><div class="bar-fill bar-ok" style="width:75%"></div></div>
+              <div class="param-val">6.5–8.5</div>
+            </div>
+            <div class="param-row">
+              <div class="param-name">Oxígeno</div>
+              <div class="bar-track"><div class="bar-fill bar-ok" style="width:55%"></div></div>
+              <div class="param-val">7–12 mg/L</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;font-size:12px;color:var(--muted);line-height:1.7;">
+            Valores fuera de estos rangos generan alertas automáticas en el sistema. El monitoreo continuo reduce la mortalidad operativa.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LECTURAS -->
+    <div class="page" id="page-lecturas">
+      <div class="page-title">Monitoreo Hídrico</div>
+      <div class="page-sub">Registro de variables fisicoquímicas del agua por estanque</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Nueva lectura</div>
+          <div class="form-grid cols3">
+            <div class="form-field">
+              <label>ID Estanque</label>
+              <input type="number" id="lec-estanque" placeholder="1" min="1">
+            </div>
+            <div class="form-field">
+              <label>Temperatura (°C)</label>
+              <input type="number" id="lec-temp" placeholder="14.0" step="0.1">
+            </div>
+            <div class="form-field">
+              <label>pH</label>
+              <input type="number" id="lec-ph" placeholder="7.2" step="0.1">
+            </div>
+            <div class="form-field">
+              <label>Oxígeno (mg/L)</label>
+              <input type="number" id="lec-o2" placeholder="9.0" step="0.1">
+            </div>
+            <div class="form-field full">
+              <label>Observación (opcional)</label>
+              <input type="text" id="lec-obs" placeholder="Sin novedad">
+            </div>
+          </div>
+          <button class="btn-submit" onclick="registrarLectura()">Registrar lectura</button>
+          <div class="msg msg-ok" id="lec-ok">✓ Lectura registrada correctamente.</div>
+          <div class="msg msg-err" id="lec-err"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Alertas activas <span id="alertas-count" style="font-size:12px;font-weight:400;color:var(--muted);">—</span></div>
+          <div id="alertas-lista"><div class="empty">Sin alertas activas</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Consultar lecturas por estanque
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" id="estanque-buscar" placeholder="ID estanque" style="padding:6px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;width:110px;outline:none;">
+            <button class="btn-submit" style="margin:0;padding:8px 16px;" onclick="buscarLecturas()">Buscar</button>
+          </div>
+        </div>
+        <div id="lecturas-tabla"><div class="empty">Ingresá un ID de estanque para ver sus lecturas</div></div>
+      </div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="page" id="page-inventario">
+      <div class="page-title">Inventario</div>
+      <div class="page-sub">Gestión de insumos y alimentos de la piscifactoría</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Nuevo insumo</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nombre</label>
+              <input type="text" id="ins-nombre" placeholder="Alimento pelletizado">
+            </div>
+            <div class="form-field">
+              <label>Unidad de medida</label>
+              <select id="ins-unidad">
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="unidad">unidad</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Stock mínimo</label>
+              <input type="number" id="ins-minimo" placeholder="10" min="0">
+            </div>
+            <div class="form-field">
+              <label>Descripción</label>
+              <input type="text" id="ins-desc" placeholder="Opcional">
+            </div>
+          </div>
+          <button class="btn-submit" onclick="crearInsumo()">Crear insumo</button>
+          <div class="msg msg-ok" id="ins-ok">✓ Insumo creado.</div>
+          <div class="msg msg-err" id="ins-err"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Registrar movimiento de stock</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>ID Insumo</label>
+              <input type="number" id="mov-insumo" placeholder="1">
+            </div>
+            <div class="form-field">
+              <label>Tipo</label>
+              <select id="mov-tipo">
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+                <option value="ajuste">Ajuste</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Cantidad</label>
+              <input type="number" id="mov-cantidad" placeholder="50" min="0.1" step="0.1">
+            </div>
+            <div class="form-field">
+              <label>Motivo</label>
+              <input type="text" id="mov-motivo" placeholder="Compra semanal">
+            </div>
+          </div>
+          <button class="btn-submit" onclick="registrarMovimiento()">Registrar movimiento</button>
+          <div class="msg msg-ok" id="mov-ok">✓ Movimiento registrado.</div>
+          <div class="msg msg-err" id="mov-err"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Inventario actual <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarInsumos()">↻ Actualizar</button></div>
+        <div id="insumos-tabla"><div class="empty">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- PERSONAL -->
+    <div class="page" id="page-personal">
+      <div class="page-title">Personal</div>
+      <div class="page-sub">Administración de colaboradores de la unidad productiva</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Registrar colaborador</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Cédula</label>
+              <input type="text" id="per-cedula" placeholder="1234567890">
+            </div>
+            <div class="form-field">
+              <label>Nombre completo</label>
+              <input type="text" id="per-nombre" placeholder="Juan García">
+            </div>
+            <div class="form-field">
+              <label>Cargo</label>
+              <input type="text" id="per-cargo" placeholder="Técnico acuícola">
+            </div>
+            <div class="form-field">
+              <label>Teléfono</label>
+              <input type="text" id="per-tel" placeholder="3001234567">
+            </div>
+            <div class="form-field full">
+              <label>Fecha de ingreso</label>
+              <input type="date" id="per-fecha">
+            </div>
+          </div>
+          <button class="btn-submit" onclick="crearPersonal()">Registrar colaborador</button>
+          <div class="msg msg-ok" id="per-ok">✓ Colaborador registrado.</div>
+          <div class="msg msg-err" id="per-err"></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:200px;">
+          <div style="font-size:48px;margin-bottom:12px;">◎</div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink);">Gestión de personal</div>
+          <div style="font-size:13px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;">Registrá a los colaboradores de la piscifactoría para llevar un control de la planta de personal activa.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Colaboradores registrados <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarPersonal()">↻ Actualizar</button></div>
+        <div id="personal-tabla"><div class="empty">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="page" id="page-usuarios">
+      <div class="page-title">Usuarios del sistema</div>
+      <div class="page-sub">Registro y administración de accesos a AQUALITY</div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Registrar nuevo usuario</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Nombre</label>
+              <input type="text" id="usr-nombre" placeholder="Ana López">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input type="email" id="usr-email" placeholder="ana@aquality.co">
+            </div>
+            <div class="form-field">
+              <label>Contraseña</label>
+              <input type="password" id="usr-pass" placeholder="mínimo 6 caracteres">
+            </div>
+            <div class="form-field">
+              <label>Rol</label>
+              <select id="usr-rol">
+                <option value="operario">Operario</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="administrador">Administrador</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-submit" onclick="crearUsuario()">Registrar usuario</button>
+          <div class="msg msg-ok" id="usr-ok">✓ Usuario registrado.</div>
+          <div class="msg msg-err" id="usr-err"></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+          <div style="font-size:48px;margin-bottom:12px;">◐</div>
+          <div style="font-size:15px;font-weight:600;">Roles del sistema</div>
+          <div style="margin-top:14px;width:100%;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span style="font-weight:600;">Administrador</span><span style="color:var(--muted);">Acceso total</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span style="font-weight:600;">Supervisor</span><span style="color:var(--muted);">Lectura y escritura</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;"><span style="font-weight:600;">Operario</span><span style="color:var(--muted);">Solo registro</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Usuarios registrados <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarUsuarios()">↻ Actualizar</button></div>
+        <div id="usuarios-tabla"><div class="empty">Cargando...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+let currentUser = null;
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    const data = await r.json();
+    return { ok: r.ok, status: r.status, data };
+  } catch(e) {
+    return { ok: false, data: { detail: 'Sin conexión con el servidor. ¿Está corriendo uvicorn?' } };
+  }
+}
+
+function showMsg(okId, errId, ok, msg) {
+  const elOk = document.getElementById(okId);
+  const elErr = document.getElementById(errId);
+  elOk.style.display = 'none'; elErr.style.display = 'none';
+  if (ok) { elOk.style.display = 'block'; }
+  else { elErr.textContent = '✗ ' + msg; elErr.style.display = 'block'; }
+  setTimeout(() => { elOk.style.display = 'none'; elErr.style.display = 'none'; }, 4000);
+}
+
+// ── AUTH ───────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  if (!email || !pass) return;
+  const r = await api('POST', '/usuarios/login', { email, password: pass });
+  if (r.ok) {
+    currentUser = r.data.usuario;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const initials = currentUser.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('user-name-display').textContent = currentUser.nombre;
+    loadDashboard();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+// ── NAVEGACIÓN ─────────────────────────────────────────────────────────────
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (page === 'inventario') cargarInsumos();
+  if (page === 'personal')   cargarPersonal();
+  if (page === 'usuarios')   cargarUsuarios();
+  if (page === 'lecturas')   cargarAlertas();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [usuarios, insumos, personal, alertas, clima] = await Promise.all([
+    api('GET', '/usuarios/'),
+    api('GET', '/inventario/insumos'),
+    api('GET', '/personal/'),
+    api('GET', '/lecturas/alertas'),
+    api('GET', '/lecturas/clima/actual'),
+  ]);
+
+  if (usuarios.ok) document.getElementById('stat-usuarios').textContent = usuarios.data.length;
+  if (insumos.ok)  document.getElementById('stat-insumos').textContent  = insumos.data.length;
+  if (personal.ok) document.getElementById('stat-personal').textContent = personal.data.filter(p=>p.activo).length;
+
+  if (alertas.ok) {
+    const n = alertas.data.length;
+    document.getElementById('stat-alertas').textContent = n;
+    if (n > 0) {
+      document.getElementById('alertas-box').style.display = 'block';
+      document.getElementById('alertas-txt').textContent = `${n} lectura(s) con parámetros fuera del rango seguro para trucha arcoíris.`;
+      document.getElementById('stat-alertas-badge').className = 'stat-badge badge-err';
+    } else {
+      document.getElementById('stat-alertas-badge').className = 'stat-badge badge-ok';
+      document.getElementById('stat-alertas-badge').textContent = 'Normal';
+    }
+  }
+
+  const cw = document.getElementById('clima-widget');
+  if (clima.ok) {
+    const d = clima.data;
+    cw.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:8px;">
+          <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--teal);">${d.temperatura_ambiente_c ?? '—'}°</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Temperatura</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:8px;">
+          <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--blue);">${d.humedad_relativa_pct ?? '—'}%</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Humedad</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px;">
+          <div style="font-size:20px;font-family:var(--mono);font-weight:700;color:var(--ink);">${d.precipitacion_mm ?? 0} mm</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Precipitación</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px;">
+          <div style="font-size:20px;font-family:var(--mono);font-weight:700;color:var(--ink);">${d.temperatura_agua_estimada_c ?? '—'}°</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Agua estimada</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;">Actualizado: ${d.hora_lectura ?? ''}</div>`;
+  } else {
+    cw.innerHTML = `<div class="empty">No se pudo conectar a la API de clima.</div>`;
+  }
+}
+
+// ── LECTURAS ───────────────────────────────────────────────────────────────
+async function registrarLectura() {
+  const body = {
+    estanque_id: parseInt(document.getElementById('lec-estanque').value),
+    usuario_id:  currentUser.id,
+    temperatura: parseFloat(document.getElementById('lec-temp').value),
+    ph:          parseFloat(document.getElementById('lec-ph').value),
+    oxigeno:     parseFloat(document.getElementById('lec-o2').value),
+    observacion: document.getElementById('lec-obs').value || null,
+  };
+  if (!body.estanque_id || isNaN(body.temperatura) || isNaN(body.ph) || isNaN(body.oxigeno)) {
+    showMsg('lec-ok','lec-err', false, 'Completá todos los campos obligatorios.');
+    return;
+  }
+  const r = await api('POST', '/lecturas/', body);
+  showMsg('lec-ok', 'lec-err', r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) cargarAlertas();
+}
+
+async function cargarAlertas() {
+  const r = await api('GET', '/lecturas/alertas');
+  const el = document.getElementById('alertas-lista');
+  const cnt = document.getElementById('alertas-count');
+  if (!r.ok || r.data.length === 0) {
+    el.innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
+    cnt.textContent = '(0)';
+    return;
+  }
+  cnt.textContent = `(${r.data.length})`;
+  el.innerHTML = r.data.slice(0,5).map(l => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;">
+      <div style="display:flex;justify-content:space-between;">
+        <strong>Estanque #${l.estanque_id}</strong>
+        <span class="chip chip-red">⚠ Alerta</span>
+      </div>
+      <div style="color:var(--muted);margin-top:4px;">T: ${l.temperatura}°C · pH: ${l.ph} · O₂: ${l.oxigeno} mg/L</div>
+    </div>`).join('');
+}
+
+async function buscarLecturas() {
+  const id = document.getElementById('estanque-buscar').value;
+  if (!id) return;
+  const r = await api('GET', `/lecturas/estanque/${id}?limite=20`);
+  const el = document.getElementById('lecturas-tabla');
+  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin lecturas para este estanque.</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>Oxígeno</th><th>Estado</th><th>Observación</th></tr></thead>
+    <tbody>${r.data.map(l => `
+      <tr>
+        <td style="font-family:var(--mono);font-size:12px;">${l.registrado_en?.slice(0,16).replace('T',' ')}</td>
+        <td>${l.temperatura}°C</td>
+        <td>${l.ph}</td>
+        <td>${l.oxigeno} mg/L</td>
+        <td><span class="chip ${l.alerta ? 'chip-red':'chip-green'}">${l.alerta ? '⚠ Alerta':'✓ Normal'}</span></td>
+        <td style="color:var(--muted);">${l.observacion || '—'}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── INVENTARIO ─────────────────────────────────────────────────────────────
+async function crearInsumo() {
+  const body = {
+    nombre:        document.getElementById('ins-nombre').value.trim(),
+    unidad_medida: document.getElementById('ins-unidad').value,
+    stock_minimo:  parseFloat(document.getElementById('ins-minimo').value) || 10,
+    descripcion:   document.getElementById('ins-desc').value || null,
+  };
+  if (!body.nombre) { showMsg('ins-ok','ins-err',false,'El nombre es obligatorio.'); return; }
+  const r = await api('POST', '/inventario/insumos', body);
+  showMsg('ins-ok','ins-err', r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) { cargarInsumos(); document.getElementById('ins-nombre').value = ''; }
+}
+
+async function registrarMovimiento() {
+  const body = {
+    insumo_id:  parseInt(document.getElementById('mov-insumo').value),
+    usuario_id: currentUser.id,
+    tipo:       document.getElementById('mov-tipo').value,
+    cantidad:   parseFloat(document.getElementById('mov-cantidad').value),
+    motivo:     document.getElementById('mov-motivo').value || null,
+  };
+  if (!body.insumo_id || isNaN(body.cantidad)) { showMsg('mov-ok','mov-err',false,'Completá todos los campos.'); return; }
+  const r = await api('POST', '/inventario/movimientos', body);
+  showMsg('mov-ok','mov-err', r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) cargarInsumos();
+}
+
+async function cargarInsumos() {
+  const r = await api('GET', '/inventario/insumos');
+  const el = document.getElementById('insumos-tabla');
+  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin insumos registrados.</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
+    <tbody>${r.data.map(i => `
+      <tr>
+        <td style="font-family:var(--mono);">${i.id}</td>
+        <td><strong>${i.nombre}</strong>${i.descripcion ? `<div style="font-size:11px;color:var(--muted);">${i.descripcion}</div>` : ''}</td>
+        <td style="font-family:var(--mono);font-weight:700;">${i.stock_actual}</td>
+        <td style="color:var(--muted);">${i.stock_minimo}</td>
+        <td>${i.unidad_medida}</td>
+        <td><span class="chip ${i.requiere_reabastecimiento ? 'chip-red':'chip-green'}">${i.requiere_reabastecimiento ? '⚠ Reabastecer':'✓ OK'}</span></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── PERSONAL ───────────────────────────────────────────────────────────────
+async function crearPersonal() {
+  const body = {
+    cedula:        document.getElementById('per-cedula').value.trim(),
+    nombre:        document.getElementById('per-nombre').value.trim(),
+    cargo:         document.getElementById('per-cargo').value.trim(),
+    fecha_ingreso: document.getElementById('per-fecha').value,
+    telefono:      document.getElementById('per-tel').value || null,
+  };
+  if (!body.cedula || !body.nombre || !body.cargo || !body.fecha_ingreso) {
+    showMsg('per-ok','per-err',false,'Completá todos los campos obligatorios.'); return;
+  }
+  const r = await api('POST', '/personal/', body);
+  showMsg('per-ok','per-err', r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) cargarPersonal();
+}
+
+async function cargarPersonal() {
+  const r = await api('GET', '/personal/');
+  const el = document.getElementById('personal-tabla');
+  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin colaboradores registrados.</div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días laborados</th><th>Estado</th></tr></thead>
+    <tbody>${r.data.map(p => `
+      <tr>
+        <td style="font-family:var(--mono);">${p.cedula}</td>
+        <td><strong>${p.nombre}</strong></td>
+        <td>${p.cargo}</td>
+        <td style="color:var(--muted);">${p.telefono || '—'}</td>
+        <td style="font-family:var(--mono);">${p.dias_laborados}</td>
+        <td><span class="chip ${p.activo ? 'chip-green':'chip-red'}">${p.activo ? 'Activo':'Inactivo'}</span></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── USUARIOS ───────────────────────────────────────────────────────────────
+async function crearUsuario() {
+  const body = {
+    nombre:   document.getElementById('usr-nombre').value.trim(),
+    email:    document.getElementById('usr-email').value.trim(),
+    password: document.getElementById('usr-pass').value,
+    rol:      document.getElementById('usr-rol').value,
+  };
+  if (!body.nombre || !body.email || !body.password) {
+    showMsg('usr-ok','usr-err',false,'Completá todos los campos.'); return;
+  }
+  const r = await api('POST', '/usuarios/', body);
+  showMsg('usr-ok','usr-err', r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) cargarUsuarios();
+}
+
+async function cargarUsuarios() {
+  const r = await api('GET', '/usuarios/');
+  const el = document.getElementById('usuarios-tabla');
+  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin usuarios registrados.</div>'; return; }
+  const colores = { administrador: 'chip-red', supervisor: 'chip-amber', operario: 'chip-blue' };
+  el.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
+    <tbody>${r.data.map(u => `
+      <tr>
+        <td style="font-family:var(--mono);">${u.id}</td>
+        <td><strong>${u.nombre}</strong></td>
+        <td style="color:var(--muted);">${u.email}</td>
+        <td><span class="chip ${colores[u.rol] || 'chip-blue'}">${u.rol}</span></td>
+        <td style="font-size:12px;color:var(--muted);">${u.creado_en?.slice(0,10) || '—'}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+</script>
+</body>
+</html>
