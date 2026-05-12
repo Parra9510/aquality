@@ -2,828 +2,1118 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AQUALITY – Panel de Control</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AQUALITY – Control y Calidad</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a3a5c">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root {
-    --teal:    #0D9E75;
-    --teal-l:  #E1F5EE;
-    --teal-d:  #085041;
-    --amber:   #D97706;
-    --amber-l: #FEF3C7;
-    --red:     #DC2626;
-    --red-l:   #FEE2E2;
-    --blue:    #2563EB;
-    --blue-l:  #EFF6FF;
-    --ink:     #0F1C17;
-    --ink-2:   #2D4A3E;
-    --muted:   #6B8F7E;
-    --line:    #D1E8DF;
-    --bg:      #F4FAF7;
-    --white:   #FFFFFF;
-    --card:    #FFFFFF;
-    --mono:    'Space Mono', monospace;
-    --sans:    'DM Sans', sans-serif;
-    --radius:  12px;
-    --shadow:  0 2px 12px rgba(13,158,117,0.08);
-  }
+:root{
+  --pri:#2B7FD4;--pri-d:#1A5FA8;--pri-l:#EBF4FF;
+  --teal:#0EA5A0;--teal-l:#E0F5F4;
+  --grn:#16A34A;--grn-l:#DCFCE7;
+  --amb:#D97706;--amb-l:#FEF3C7;
+  --red:#DC2626;--red-l:#FEE2E2;
+  --pur:#7C3AED;--pur-l:#EDE9FE;
+  --ink:#0F1929;--ink2:#374151;--muted:#6B7280;
+  --line:#E5E9EF;--bg:#F6F8FC;--white:#fff;
+  --mono:"JetBrains Mono",monospace;
+  --sans:"Plus Jakarta Sans",sans-serif;
+  --r:10px;--sh:0 2px 12px rgba(15,25,41,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; }
+/* LOGIN */
+#ls{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0f2744,#1a4a8a 50%,#0f3d5c);
+  background-image:linear-gradient(135deg,#0f2744,#1a4a8a 50%,#0f3d5c),
+  radial-gradient(circle at 20% 50%,rgba(43,127,212,.2),transparent 50%);}
+.lc{background:#fff;border-radius:20px;padding:40px;width:400px;
+  box-shadow:0 32px 80px rgba(0,0,0,.3);}
+.lc img{display:block;margin:0 auto 20px;height:90px;}
+.lt{text-align:center;font-size:20px;font-weight:800;margin-bottom:4px;}
+.ls{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px;}
+.lf{margin-bottom:14px;}
+.lf label{display:block;font-size:11px;font-weight:700;color:var(--ink2);
+  margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
+.lf input{width:100%;padding:10px 14px;border:1.5px solid var(--line);
+  border-radius:8px;font-family:var(--sans);font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s;background:var(--bg);}
+.lf input:focus{border-color:var(--pri);background:#fff;
+  box-shadow:0 0 0 3px rgba(43,127,212,.1);}
+.bl{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;
+  border-radius:8px;font-family:var(--sans);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;margin-top:4px;}
+.bl:hover{background:var(--pri-d);transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(43,127,212,.4);}
+.lerr{color:var(--red);font-size:13px;margin-top:10px;text-align:center;
+  display:none;padding:8px;background:var(--red-l);border-radius:6px;}
 
-  /* ── LOGIN ── */
-  #login-screen {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: var(--teal-d);
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px),
-                      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px);
-  }
-  .login-box {
-    background: var(--white); border-radius: 20px; padding: 48px 40px;
-    width: 380px; box-shadow: 0 24px 64px rgba(0,0,0,0.25);
-  }
-  .login-logo { font-family: var(--mono); font-size: 22px; color: var(--teal); font-weight: 700; margin-bottom: 6px; }
-  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
-  .field { margin-bottom: 16px; }
-  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .field input {
-    width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
-    border-radius: 8px; font-family: var(--sans); font-size: 14px; color: var(--ink);
-    background: var(--bg); outline: none; transition: border-color 0.2s;
-  }
-  .field input:focus { border-color: var(--teal); background: var(--white); }
-  .btn-primary {
-    width: 100%; padding: 12px; background: var(--teal); color: white;
-    border: none; border-radius: 8px; font-family: var(--sans); font-size: 15px;
-    font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s;
-    margin-top: 8px;
-  }
-  .btn-primary:hover { background: var(--teal-d); }
-  .btn-primary:active { transform: scale(0.98); }
-  .login-err { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+/* SHELL */
+#app{display:none;}
+.sb{position:fixed;top:0;left:0;height:100vh;width:245px;
+  background:var(--ink);display:flex;flex-direction:column;z-index:200;
+  overflow-y:auto;}
+.sb-hdr{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-hdr img{height:38px;}
+.sb-tag{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;
+  letter-spacing:.08em;text-transform:uppercase;}
 
-  /* ── APP SHELL ── */
-  #app { display: none; min-height: 100vh; }
-  .sidebar {
-    position: fixed; top: 0; left: 0; height: 100vh; width: 220px;
-    background: var(--teal-d); padding: 28px 0; display: flex; flex-direction: column;
-    z-index: 100;
-  }
-  .sidebar-logo { font-family: var(--mono); font-size: 18px; color: white; font-weight: 700; padding: 0 24px 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .sidebar-logo span { color: #5DCAA5; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px; padding: 12px 24px;
-    color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer;
-    transition: all 0.15s; border-left: 3px solid transparent;
-  }
-  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
-  .nav-item.active { color: white; background: rgba(255,255,255,0.1); border-left-color: #5DCAA5; }
-  .nav-icon { font-size: 18px; }
-  .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
-  .user-pill { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #1D9E75; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; font-family: var(--mono); }
-  .user-name { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
-  .btn-logout { margin-top: 10px; width: 100%; padding: 8px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
-  .btn-logout:hover { background: rgba(255,255,255,0.15); color: white; }
+/* ETAPA SELECTOR */
+.ep{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ep-lbl{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:6px;}
+.ep-pills{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.pill{padding:5px 8px;border-radius:6px;font-size:11px;font-weight:700;
+  cursor:pointer;border:1.5px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.5);transition:all .15s;text-align:center;}
+.pill:hover{border-color:rgba(255,255,255,.35);color:#fff;}
+.p-inc.on{background:var(--pur);border-color:var(--pur);color:#fff;}
+.p-ale.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.p-ded.on{background:var(--amb);border-color:var(--amb);color:#fff;}
+.p-eng.on{background:var(--grn);border-color:var(--grn);color:#fff;}
 
-  .main { margin-left: 220px; padding: 32px 36px; }
-  .page { display: none; }
-  .page.active { display: block; animation: fadeIn 0.2s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* NAV */
+.ns{padding:8px 16px 3px;font-size:10px;color:rgba(255,255,255,.28);
+  text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;
+  color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .15s;border-left:3px solid transparent;}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.ni:hover{color:#fff;background:rgba(255,255,255,.06);}
+.ni.on{color:#fff;background:rgba(43,127,212,.18);border-left-color:var(--pri);}
+.ni.on svg{opacity:1;}
 
-  .page-title { font-size: 24px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+.sb-ft{margin-top:auto;padding:14px 16px;
+  border-top:1px solid rgba(255,255,255,.07);}
+.urow{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.av{width:32px;height:32px;border-radius:50%;background:var(--pri);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.unm{font-size:13px;color:#fff;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.urol{font-size:11px;color:rgba(255,255,255,.4);}
+.blogout{width:100%;padding:7px;background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);
+  border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;
+  font-family:var(--sans);}
+.blogout:hover{background:rgba(255,255,255,.12);color:#fff;}
 
-  /* ── CARDS ── */
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-  .stat-card {
-    background: var(--card); border-radius: var(--radius); padding: 20px 22px;
-    border: 1px solid var(--line); box-shadow: var(--shadow);
-  }
-  .stat-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--ink); }
-  .stat-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 6px; font-weight: 600; }
-  .badge-ok  { background: var(--teal-l); color: var(--teal-d); }
-  .badge-warn { background: var(--amber-l); color: var(--amber); }
-  .badge-err { background: var(--red-l); color: var(--red); }
+/* MAIN */
+.mn{margin-left:245px;padding:26px 30px;min-height:100vh;}
+.pg{display:none;}
+.pg.on{display:block;animation:fu .2s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.pt{font-size:22px;font-weight:800;}
+.ps{font-size:13px;color:var(--muted);margin-top:3px;}
+.ebadge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:99px;font-size:11px;font-weight:700;margin-top:6px;}
 
-  .card {
-    background: var(--card); border-radius: var(--radius); padding: 24px;
-    border: 1px solid var(--line); box-shadow: var(--shadow); margin-bottom: 20px;
-  }
-  .card-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:#fff;border-radius:var(--r);padding:16px 18px;
+  border:1px solid var(--line);box-shadow:var(--sh);}
+.si{width:34px;height:34px;border-radius:8px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:10px;font-size:17px;}
+.sl{font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.sv{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1;}
+.ss{font-size:11px;color:var(--muted);margin-top:3px;}
 
-  /* ── FORM ── */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .form-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
-  .form-field { display: flex; flex-direction: column; gap: 5px; }
-  .form-field label { font-size: 12px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.05em; }
-  .form-field input, .form-field select, .form-field textarea {
-    padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 8px;
-    font-family: var(--sans); font-size: 14px; color: var(--ink);
-    background: var(--bg); outline: none; transition: border-color 0.2s;
-  }
-  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--teal); background: white; }
-  .form-field.full { grid-column: 1 / -1; }
-  .btn-submit {
-    margin-top: 16px; padding: 10px 24px; background: var(--teal); color: white;
-    border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px;
-    font-weight: 600; cursor: pointer; transition: all 0.15s;
-  }
-  .btn-submit:hover { background: var(--teal-d); }
-  .btn-submit:active { transform: scale(0.98); }
-  .btn-danger { background: var(--red); }
-  .btn-danger:hover { background: #b91c1c; }
+/* CARDS */
+.cd{background:#fff;border-radius:var(--r);padding:20px 22px;
+  border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:16px;}
+.ct{font-size:14px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.ctl{display:flex;align-items:center;gap:7px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
 
-  /* ── TABLE ── */
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--line); }
-  td { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg); }
+/* FORM */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg3{grid-template-columns:1fr 1fr 1fr;}
+.fg4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.ff{display:flex;flex-direction:column;gap:4px;}
+.ff.full{grid-column:1/-1;}
+.ff label{font-size:11px;font-weight:700;color:var(--ink2);
+  text-transform:uppercase;letter-spacing:.05em;}
+.ff input,.ff select,.ff textarea{
+  padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;
+  font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--bg);
+  outline:none;transition:border-color .2s,box-shadow .2s;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{
+  border-color:var(--pri);background:#fff;
+  box-shadow:0 0 0 3px rgba(43,127,212,.08);}
+.ff textarea{resize:vertical;min-height:65px;}
+.fn{font-size:11px;color:var(--muted);margin-top:2px;}
+.fro{background:#f0f4f8!important;color:var(--muted);}
 
-  .chip { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
-  .chip-green { background: var(--teal-l); color: var(--teal-d); }
-  .chip-red   { background: var(--red-l);  color: var(--red); }
-  .chip-amber { background: var(--amber-l); color: var(--amber); }
-  .chip-blue  { background: var(--blue-l);  color: var(--blue); }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;
+  cursor:pointer;border:none;transition:all .15s;}
+.bp{background:var(--pri);color:#fff;}
+.bp:hover{background:var(--pri-d);transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(43,127,212,.3);}
+.bg_{background:transparent;color:var(--muted);border:1.5px solid var(--line);}
+.bg_:hover{border-color:var(--pri);color:var(--pri);}
+.bd{background:var(--red);color:#fff;}
+.bd:hover{background:#b91c1c;}
+.bsm{padding:6px 12px;font-size:12px;}
+.btn:active{transform:scale(.97);}
+.bg{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 
-  .msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
-  .msg-ok  { background: var(--teal-l); color: var(--teal-d); }
-  .msg-err { background: var(--red-l);  color: var(--red); }
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:9px 13px;font-size:11px;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1.5px solid var(--line);white-space:nowrap;}
+td{padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg);}
+.mono{font-family:var(--mono);font-size:12px;}
 
-  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+/* CHIPS */
+.ch{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;
+  border-radius:99px;font-size:11px;font-weight:700;}
+.cg{background:var(--grn-l);color:var(--grn);}
+.cr{background:var(--red-l);color:var(--red);}
+.ca{background:var(--amb-l);color:var(--amb);}
+.cb{background:var(--pri-l);color:var(--pri-d);}
+.cp{background:var(--pur-l);color:var(--pur);}
+.ct_{background:var(--teal-l);color:var(--teal);}
 
-  /* ── ALERTA WIDGET ── */
-  .alert-box { background: var(--red-l); border: 1px solid #FCA5A5; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; display: none; }
-  .alert-box strong { color: var(--red); font-size: 13px; }
-  .alert-box p { color: #7F1D1D; font-size: 12px; margin-top: 4px; }
+/* MSG */
+.msg{padding:9px 13px;border-radius:7px;font-size:13px;margin-top:9px;
+  display:none;font-weight:500;}
+.mok{background:var(--grn-l);color:var(--grn);}
+.mer{background:var(--red-l);color:var(--red);}
+.empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
 
-  /* param bars */
-  .param-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .param-name { font-size: 12px; font-weight: 600; color: var(--muted); width: 100px; text-transform: uppercase; }
-  .bar-track { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
-  .bar-ok   { background: var(--teal); }
-  .bar-warn { background: var(--amber); }
-  .bar-err  { background: var(--red); }
-  .param-val { font-family: var(--mono); font-size: 13px; color: var(--ink); width: 60px; text-align: right; }
+/* KPI BAR */
+.kb{margin-bottom:12px;}
+.kh{display:flex;justify-content:space-between;margin-bottom:4px;}
+.kn{font-size:12px;font-weight:600;color:var(--ink2);}
+.kv{font-family:var(--mono);font-size:12px;}
+.tk{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
+.fk{height:100%;border-radius:99px;transition:width .5s;}
 
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+/* FORMULA BOX */
+.fb{background:var(--pri-l);border:1px solid rgba(43,127,212,.2);
+  border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px;
+  color:var(--pri-d);margin:10px 0;text-align:center;}
+
+/* ALERT BANNER */
+.ab{display:none;background:var(--red-l);border:1px solid #FCA5A5;
+  border-radius:var(--r);padding:12px 16px;margin-bottom:16px;}
+.ab strong{color:var(--red);font-size:13px;}
+.ab p{color:#7F1D1D;font-size:12px;margin-top:2px;}
+
+/* CLIMA */
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.cc{background:var(--bg);border-radius:8px;padding:13px;text-align:center;}
+.cv{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--pri);}
+.cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+
+/* ETAPA INFO CARDS */
+.ecard{padding:11px;border-radius:8px;margin-bottom:8px;}
+.ec-t{font-size:12px;font-weight:700;margin-bottom:3px;}
+.ec-s{font-size:12px;color:var(--muted);}
+
+/* CHART */
+.chart-wrap{position:relative;height:200px;}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">AQU<span>◆</span>LITY</div>
-    <div class="login-sub">Sistema Integral de Optimización Acuícola</div>
-    <div class="field">
-      <label>Correo electrónico</label>
-      <input type="email" id="login-email" placeholder="usuario@aquality.co">
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••">
-    </div>
-    <button class="btn-primary" onclick="doLogin()">Ingresar al sistema</button>
-    <div class="login-err" id="login-err">Credenciales incorrectas. Intentá de nuevo.</div>
-  </div>
+<!-- ════ LOGIN ════ -->
+<div id="ls">
+ <div class="lc">
+  <img src="data:image/jpeg;base64,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" alt="AQUALITY">
+  <div class="lt">Bienvenido a AQUALITY</div>
+  <div class="ls">Control y Calidad · Sistema Acuícola Integral</div>
+  <div class="lf"><label>Correo electrónico</label>
+    <input type="email" id="lem" placeholder="usuario@aquality.co"></div>
+  <div class="lf"><label>Contraseña</label>
+    <input type="password" id="lpw" placeholder="••••••••"></div>
+  <button class="bl" onclick="doLogin()">Iniciar sesión</button>
+  <div class="lerr" id="lerr">Correo o contraseña incorrectos.</div>
+ </div>
 </div>
 
-<!-- ══ APP ════════════════════════════════════════════════════════════════ -->
+<!-- ════ APP ════ -->
 <div id="app">
-  <div class="sidebar">
-    <div class="sidebar-logo">AQU<span>◆</span>LITY</div>
-    <div style="padding-top:16px;">
-      <div class="nav-item active" onclick="goTo('dashboard')"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="goTo('lecturas')"><span class="nav-icon">◉</span> Monitoreo Hídrico</div>
-      <div class="nav-item" onclick="goTo('inventario')"><span class="nav-icon">◫</span> Inventario</div>
-      <div class="nav-item" onclick="goTo('personal')"><span class="nav-icon">◎</span> Personal</div>
-      <div class="nav-item" onclick="goTo('usuarios')"><span class="nav-icon">◐</span> Usuarios</div>
-    </div>
-    <div class="sidebar-footer">
-      <div class="user-pill">
-        <div class="avatar" id="user-avatar">VP</div>
-        <div class="user-name" id="user-name-display">Usuario</div>
-      </div>
-      <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
-    </div>
+<div class="sb">
+ <div class="sb-hdr">
+  <img src="data:image/jpeg;base64,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" alt="AQUALITY">
+  <div class="sb-tag">Control y calidad</div>
+ </div>
+
+ <div class="ep">
+  <div class="ep-lbl">Etapa productiva</div>
+  <div class="ep-pills">
+   <div class="pill p-inc" onclick="setEtapa('incubacion',this)">🥚 Incubación</div>
+   <div class="pill p-ale" onclick="setEtapa('alevinaje',this)">🐟 Alevinaje</div>
+   <div class="pill p-ded" onclick="setEtapa('dedinos',this)">🐠 Dedinos</div>
+   <div class="pill p-eng" onclick="setEtapa('engorde',this)">🎣 Engorde</div>
   </div>
+ </div>
 
-  <div class="main">
+ <div class="ns">Principal</div>
+ <div class="ni on" onclick="goTo('dash',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
+ <div class="ni" onclick="goTo('estanques',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Estanques</div>
 
-    <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
-      <div class="page-title">Panel de control</div>
-      <div class="page-sub">Resumen del sistema AQUALITY en tiempo real</div>
+ <div class="ns">Producción</div>
+ <div class="ni" onclick="goTo('agua',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>Calidad del Agua</div>
+ <div class="ni" onclick="goTo('biomasa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12s1-3 4-3 4 3 4 3"/><path d="M9 9l1 1M15 9l-1 1"/></svg>Biomasa</div>
+ <div class="ni" onclick="goTo('alim',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Alimentación</div>
+ <div class="ni" onclick="goTo('sanidad',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Sanidad</div>
+ <div class="ni" onclick="goTo('cosecha',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Cosecha</div>
 
-      <div class="alert-box" id="alertas-box">
-        <strong>⚠ Alertas activas detectadas</strong>
-        <p id="alertas-txt"></p>
-      </div>
+ <div class="ns">Gestión</div>
+ <div class="ni" onclick="goTo('inv',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Inventario</div>
+ <div class="ni" onclick="goTo('personal',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Personal</div>
+ <div class="ni" onclick="goTo('usuarios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuarios</div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Usuarios registrados</div>
-          <div class="stat-value" id="stat-usuarios">—</div>
-          <div class="stat-badge badge-ok">Sistema</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Insumos en stock</div>
-          <div class="stat-value" id="stat-insumos">—</div>
-          <div class="stat-badge badge-ok">Inventario</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Personal activo</div>
-          <div class="stat-value" id="stat-personal">—</div>
-          <div class="stat-badge badge-ok">Planta</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Alertas hídricas</div>
-          <div class="stat-value" id="stat-alertas">—</div>
-          <div class="stat-badge badge-err" id="stat-alertas-badge">Revisar</div>
-        </div>
-      </div>
-
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Clima en Santa Rosa de Cabal <span style="font-size:12px;color:var(--muted);font-weight:400;">Open-Meteo API</span></div>
-          <div id="clima-widget"><div class="empty">Cargando datos climáticos...</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Parámetros seguros — Trucha arcoíris</div>
-          <div style="margin-top:8px;">
-            <div class="param-row">
-              <div class="param-name">Temperatura</div>
-              <div class="bar-track"><div class="bar-fill bar-ok" style="width:60%"></div></div>
-              <div class="param-val">10–18°C</div>
-            </div>
-            <div class="param-row">
-              <div class="param-name">pH</div>
-              <div class="bar-track"><div class="bar-fill bar-ok" style="width:75%"></div></div>
-              <div class="param-val">6.5–8.5</div>
-            </div>
-            <div class="param-row">
-              <div class="param-name">Oxígeno</div>
-              <div class="bar-track"><div class="bar-fill bar-ok" style="width:55%"></div></div>
-              <div class="param-val">7–12 mg/L</div>
-            </div>
-          </div>
-          <div style="margin-top:16px;font-size:12px;color:var(--muted);line-height:1.7;">
-            Valores fuera de estos rangos generan alertas automáticas en el sistema. El monitoreo continuo reduce la mortalidad operativa.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LECTURAS -->
-    <div class="page" id="page-lecturas">
-      <div class="page-title">Monitoreo Hídrico</div>
-      <div class="page-sub">Registro de variables fisicoquímicas del agua por estanque</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Nueva lectura</div>
-          <div class="form-grid cols3">
-            <div class="form-field">
-              <label>ID Estanque</label>
-              <input type="number" id="lec-estanque" placeholder="1" min="1">
-            </div>
-            <div class="form-field">
-              <label>Temperatura (°C)</label>
-              <input type="number" id="lec-temp" placeholder="14.0" step="0.1">
-            </div>
-            <div class="form-field">
-              <label>pH</label>
-              <input type="number" id="lec-ph" placeholder="7.2" step="0.1">
-            </div>
-            <div class="form-field">
-              <label>Oxígeno (mg/L)</label>
-              <input type="number" id="lec-o2" placeholder="9.0" step="0.1">
-            </div>
-            <div class="form-field full">
-              <label>Observación (opcional)</label>
-              <input type="text" id="lec-obs" placeholder="Sin novedad">
-            </div>
-          </div>
-          <button class="btn-submit" onclick="registrarLectura()">Registrar lectura</button>
-          <div class="msg msg-ok" id="lec-ok">✓ Lectura registrada correctamente.</div>
-          <div class="msg msg-err" id="lec-err"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Alertas activas <span id="alertas-count" style="font-size:12px;font-weight:400;color:var(--muted);">—</span></div>
-          <div id="alertas-lista"><div class="empty">Sin alertas activas</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Consultar lecturas por estanque
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="number" id="estanque-buscar" placeholder="ID estanque" style="padding:6px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;width:110px;outline:none;">
-            <button class="btn-submit" style="margin:0;padding:8px 16px;" onclick="buscarLecturas()">Buscar</button>
-          </div>
-        </div>
-        <div id="lecturas-tabla"><div class="empty">Ingresá un ID de estanque para ver sus lecturas</div></div>
-      </div>
-    </div>
-
-    <!-- INVENTARIO -->
-    <div class="page" id="page-inventario">
-      <div class="page-title">Inventario</div>
-      <div class="page-sub">Gestión de insumos y alimentos de la piscifactoría</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Nuevo insumo</div>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Nombre</label>
-              <input type="text" id="ins-nombre" placeholder="Alimento pelletizado">
-            </div>
-            <div class="form-field">
-              <label>Unidad de medida</label>
-              <select id="ins-unidad">
-                <option value="kg">kg</option>
-                <option value="g">g</option>
-                <option value="L">L</option>
-                <option value="unidad">unidad</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>Stock mínimo</label>
-              <input type="number" id="ins-minimo" placeholder="10" min="0">
-            </div>
-            <div class="form-field">
-              <label>Descripción</label>
-              <input type="text" id="ins-desc" placeholder="Opcional">
-            </div>
-          </div>
-          <button class="btn-submit" onclick="crearInsumo()">Crear insumo</button>
-          <div class="msg msg-ok" id="ins-ok">✓ Insumo creado.</div>
-          <div class="msg msg-err" id="ins-err"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Registrar movimiento de stock</div>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>ID Insumo</label>
-              <input type="number" id="mov-insumo" placeholder="1">
-            </div>
-            <div class="form-field">
-              <label>Tipo</label>
-              <select id="mov-tipo">
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-                <option value="ajuste">Ajuste</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>Cantidad</label>
-              <input type="number" id="mov-cantidad" placeholder="50" min="0.1" step="0.1">
-            </div>
-            <div class="form-field">
-              <label>Motivo</label>
-              <input type="text" id="mov-motivo" placeholder="Compra semanal">
-            </div>
-          </div>
-          <button class="btn-submit" onclick="registrarMovimiento()">Registrar movimiento</button>
-          <div class="msg msg-ok" id="mov-ok">✓ Movimiento registrado.</div>
-          <div class="msg msg-err" id="mov-err"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Inventario actual <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarInsumos()">↻ Actualizar</button></div>
-        <div id="insumos-tabla"><div class="empty">Cargando...</div></div>
-      </div>
-    </div>
-
-    <!-- PERSONAL -->
-    <div class="page" id="page-personal">
-      <div class="page-title">Personal</div>
-      <div class="page-sub">Administración de colaboradores de la unidad productiva</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Registrar colaborador</div>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Cédula</label>
-              <input type="text" id="per-cedula" placeholder="1234567890">
-            </div>
-            <div class="form-field">
-              <label>Nombre completo</label>
-              <input type="text" id="per-nombre" placeholder="Juan García">
-            </div>
-            <div class="form-field">
-              <label>Cargo</label>
-              <input type="text" id="per-cargo" placeholder="Técnico acuícola">
-            </div>
-            <div class="form-field">
-              <label>Teléfono</label>
-              <input type="text" id="per-tel" placeholder="3001234567">
-            </div>
-            <div class="form-field full">
-              <label>Fecha de ingreso</label>
-              <input type="date" id="per-fecha">
-            </div>
-          </div>
-          <button class="btn-submit" onclick="crearPersonal()">Registrar colaborador</button>
-          <div class="msg msg-ok" id="per-ok">✓ Colaborador registrado.</div>
-          <div class="msg msg-err" id="per-err"></div>
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:200px;">
-          <div style="font-size:48px;margin-bottom:12px;">◎</div>
-          <div style="font-size:15px;font-weight:600;color:var(--ink);">Gestión de personal</div>
-          <div style="font-size:13px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;">Registrá a los colaboradores de la piscifactoría para llevar un control de la planta de personal activa.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Colaboradores registrados <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarPersonal()">↻ Actualizar</button></div>
-        <div id="personal-tabla"><div class="empty">Cargando...</div></div>
-      </div>
-    </div>
-
-    <!-- USUARIOS -->
-    <div class="page" id="page-usuarios">
-      <div class="page-title">Usuarios del sistema</div>
-      <div class="page-sub">Registro y administración de accesos a AQUALITY</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">Registrar nuevo usuario</div>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Nombre</label>
-              <input type="text" id="usr-nombre" placeholder="Ana López">
-            </div>
-            <div class="form-field">
-              <label>Email</label>
-              <input type="email" id="usr-email" placeholder="ana@aquality.co">
-            </div>
-            <div class="form-field">
-              <label>Contraseña</label>
-              <input type="password" id="usr-pass" placeholder="mínimo 6 caracteres">
-            </div>
-            <div class="form-field">
-              <label>Rol</label>
-              <select id="usr-rol">
-                <option value="operario">Operario</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="administrador">Administrador</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn-submit" onclick="crearUsuario()">Registrar usuario</button>
-          <div class="msg msg-ok" id="usr-ok">✓ Usuario registrado.</div>
-          <div class="msg msg-err" id="usr-err"></div>
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
-          <div style="font-size:48px;margin-bottom:12px;">◐</div>
-          <div style="font-size:15px;font-weight:600;">Roles del sistema</div>
-          <div style="margin-top:14px;width:100%;">
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span style="font-weight:600;">Administrador</span><span style="color:var(--muted);">Acceso total</span></div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;"><span style="font-weight:600;">Supervisor</span><span style="color:var(--muted);">Lectura y escritura</span></div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;"><span style="font-weight:600;">Operario</span><span style="color:var(--muted);">Solo registro</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Usuarios registrados <button class="btn-submit" style="margin:0;padding:6px 14px;font-size:13px;" onclick="cargarUsuarios()">↻ Actualizar</button></div>
-        <div id="usuarios-tabla"><div class="empty">Cargando...</div></div>
-      </div>
-    </div>
-
+ <div class="sb-ft">
+  <div class="urow">
+   <div class="av" id="uav">VP</div>
+   <div><div class="unm" id="unm">Usuario</div><div class="urol" id="urol">rol</div></div>
   </div>
+  <button class="blogout" onclick="doLogout()">Cerrar sesión</button>
+ </div>
 </div>
+
+<div class="mn">
+
+<!-- ══ DASHBOARD ══ -->
+<div class="pg on" id="pg-dash">
+ <div class="ph">
+  <div>
+   <div class="pt">Dashboard</div>
+   <div class="ps">Resumen operativo · <span id="etapa-dash" style="font-weight:600;">Seleccioná una etapa</span></div>
+  </div>
+  <button class="btn bg_ bsm" onclick="loadDash()">↻ Actualizar</button>
+ </div>
+ <div class="ab" id="abanner"><strong>⚠ Parámetros fuera de rango</strong><p id="abanner-txt"></p></div>
+ <div class="sg">
+  <div class="sc"><div class="si" style="background:var(--pri-l)">👤</div><div class="sl">Usuarios</div><div class="sv" id="s-u">—</div><div class="ss">registrados</div></div>
+  <div class="sc"><div class="si" style="background:var(--teal-l)">🐟</div><div class="sl">Estanques</div><div class="sv" id="s-e">—</div><div class="ss">activos</div></div>
+  <div class="sc"><div class="si" style="background:var(--grn-l)">📦</div><div class="sl">Insumos</div><div class="sv" id="s-i">—</div><div class="ss">en stock</div></div>
+  <div class="sc"><div class="si" style="background:var(--amb-l)">👥</div><div class="sl">Personal</div><div class="sv" id="s-p">—</div><div class="ss">activos</div></div>
+  <div class="sc"><div class="si" style="background:var(--red-l)">⚠</div><div class="sl">Alertas</div><div class="sv" id="s-a">—</div><div class="ss">hídricas</div></div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct"><div class="ctl">🌤 Clima – Santa Rosa de Cabal</div><span style="font-size:11px;color:var(--muted);font-weight:400;">Open-Meteo API</span></div>
+   <div id="clima-box"><div class="empty">Cargando...</div></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📊 Rangos seguros – Trucha arcoíris</div>
+   <div class="kb"><div class="kh"><span class="kn">Temperatura</span><span class="kv">10–18°C</span></div><div class="tk"><div class="fk" style="width:60%;background:var(--pri)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">pH</span><span class="kv">6.5–8.5</span></div><div class="tk"><div class="fk" style="width:72%;background:var(--grn)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Oxígeno disuelto</span><span class="kv">7–12 mg/L</span></div><div class="tk"><div class="fk" style="width:55%;background:var(--pri)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Amonio NH₃</span><span class="kv">&lt;0.025 mg/L</span></div><div class="tk"><div class="fk" style="width:80%;background:var(--grn)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Nitritos NO₂</span><span class="kv">&lt;0.1 mg/L</span></div><div class="tk"><div class="fk" style="width:45%;background:var(--amb)"></div></div></div>
+  </div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">📈 Últimas 10 lecturas de temperatura</div>
+   <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
+  </div>
+  <div class="cd">
+   <div class="ct">🚨 Alertas hídricas recientes</div>
+   <div id="alertas-r"><div class="empty">Sin alertas activas ✓</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ ESTANQUES ══ -->
+<div class="pg" id="pg-estanques">
+ <div class="ph"><div><div class="pt">Infraestructura y Estanques</div><div class="ps">Registro de unidades de producción por etapa productiva</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar estanque</div>
+   <div class="fg fg3">
+    <div class="ff"><label>Código</label><input id="ec" placeholder="EST-01"></div>
+    <div class="ff"><label>Nombre</label><input id="en" placeholder="Estanque Norte"></div>
+    <div class="ff"><label>Etapa</label>
+     <select id="ee"><option value="incubacion">🥚 Incubación</option><option value="alevinaje">🐟 Alevinaje</option><option value="dedinos">🐠 Dedinos</option><option value="engorde">🎣 Engorde</option></select>
+    </div>
+    <div class="ff"><label>Tipo</label>
+     <select id="et"><option value="concreto">Concreto</option><option value="tierra">Tierra</option><option value="geomembrana">Geomembrana</option><option value="jaula_flotante">Jaula flotante</option></select>
+    </div>
+    <div class="ff"><label>Largo (m)</label><input type="number" id="el" placeholder="10" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Ancho (m)</label><input type="number" id="ea" placeholder="5" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Profundidad (m)</label><input type="number" id="ep2" placeholder="1.5" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Capacidad (kg)</label><input type="number" id="ecap" placeholder="500" oninput="calcEst()"></div>
+    <div class="ff"><label>Densidad (kg/m³)</label><input id="edens" class="fro" readonly></div>
+   </div>
+   <div class="fb" id="e-calc">Complete las dimensiones para calcular el volumen automáticamente</div>
+   <div class="bg"><button class="btn bp" onclick="regEstanque()">Registrar estanque</button></div>
+   <div class="msg mok" id="e-ok">✓ Estanque registrado.</div>
+   <div class="msg mer" id="e-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Guía por etapa</div>
+   <div class="ecard" style="background:var(--pur-l);"><div class="ec-t" style="color:var(--pur)">🥚 Incubación</div><div class="ec-s">T: 8–12°C · Alta sensibilidad al O₂ · Oscuridad parcial</div></div>
+   <div class="ecard" style="background:var(--teal-l);"><div class="ec-t" style="color:var(--teal)">🐟 Alevinaje</div><div class="ec-s">0–3 meses · Alta densidad · Vigilancia diaria de parámetros</div></div>
+   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">🐠 Dedinos</div><div class="ec-s">3–6 meses · Transición alimentaria · Separación por tallas</div></div>
+   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">6+ meses · FCR crítico · Monitoreo de biomasa y crecimiento</div></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Estanques registrados <button class="btn bg_ bsm" onclick="loadEst()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-est"><div class="empty">Sin estanques registrados.</div></div></div>
+ </div>
+</div>
+
+<!-- ══ AGUA ══ -->
+<div class="pg" id="pg-agua">
+ <div class="ph"><div><div class="pt">Calidad del Agua</div><div class="ps">Monitoreo fisicoquímico diario — el corazón de la acuicultura</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Nueva lectura</div>
+   <div class="fg fg3">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="ag-e" placeholder="1"></div>
+    <div class="ff"><label>Temperatura (°C)</label><input type="number" id="ag-t" placeholder="14.0" step="0.1"></div>
+    <div class="ff"><label>pH</label><input type="number" id="ag-ph" placeholder="7.2" step="0.1"></div>
+    <div class="ff"><label>Oxígeno mg/L</label><input type="number" id="ag-o2" placeholder="9.0" step="0.1"></div>
+    <div class="ff"><label>Amonio NH₃ mg/L</label><input type="number" id="ag-nh3" placeholder="0.01" step="0.001"></div>
+    <div class="ff"><label>Nitritos NO₂ mg/L</label><input type="number" id="ag-no2" placeholder="0.05" step="0.001"></div>
+    <div class="ff"><label>Nitratos NO₃ mg/L</label><input type="number" id="ag-no3" placeholder="5.0" step="0.1"></div>
+    <div class="ff"><label>Disco Secchi (cm)</label><input type="number" id="ag-sch" placeholder="35" step="1"></div>
+    <div class="ff full"><label>Observaciones</label><input id="ag-obs" placeholder="Sin novedad"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="regLectura()">Registrar lectura</button></div>
+   <div class="msg mok" id="ag-ok">✓ Lectura registrada.</div>
+   <div class="msg mer" id="ag-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Alertas activas <span id="al-cnt" style="font-size:12px;font-weight:400;color:var(--muted);">—</span></div>
+   <div id="al-box"><div class="empty">Sin alertas ✓</div></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Historial por estanque
+   <div style="display:flex;gap:8px;align-items:center;">
+    <input type="number" id="ag-bid" placeholder="ID estanque" style="padding:6px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;width:110px;outline:none;">
+    <button class="btn bp bsm" onclick="buscarLect()">Buscar</button>
+    <button class="btn bg_ bsm" onclick="exportarAlertas()">⬇ Exportar alertas</button>
+   </div>
+  </div>
+  <div class="tw"><div id="t-lect"><div class="empty">Ingresá un ID de estanque.</div></div></div>
+ </div>
+</div>
+
+<!-- ══ BIOMASA ══ -->
+<div class="pg" id="pg-biomasa">
+ <div class="ph"><div><div class="pt">Biomasa e Inventario Biológico</div><div class="ps">Siembra, muestreos, mortalidad y biomasa calculada automáticamente</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar siembra</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="bi-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha de siembra</label><input type="date" id="bi-f"></div>
+    <div class="ff"><label>Cantidad de alevinos</label><input type="number" id="bi-c" placeholder="5000" oninput="calcBio()"></div>
+    <div class="ff"><label>Peso inicial prom (g)</label><input type="number" id="bi-p" placeholder="5.0" step="0.1" oninput="calcBio()"></div>
+    <div class="ff"><label>Proveedor</label><input id="bi-pr" placeholder="Piscícola XYZ"></div>
+    <div class="ff"><label>Etapa</label>
+     <select id="bi-et"><option value="incubacion">Incubación</option><option value="alevinaje">Alevinaje</option><option value="dedinos">Dedinos</option><option value="engorde">Engorde</option></select>
+    </div>
+   </div>
+   <div class="fb" id="bi-calc">Biomasa inicial = cant × peso = — kg</div>
+   <div class="bg"><button class="btn bp" onclick="showMsg('bi-ok','bi-er',true)">Registrar siembra</button></div>
+   <div class="msg mok" id="bi-ok">✓ Siembra registrada.</div>
+   <div class="msg mer" id="bi-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Muestreo periódico y mortalidad</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="mu-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha muestreo</label><input type="date" id="mu-f"></div>
+    <div class="ff"><label>Peso prom actual (g)</label><input type="number" id="mu-pp" placeholder="120" step="0.1" oninput="calcMue()"></div>
+    <div class="ff"><label>Peces actuales</label><input type="number" id="mu-pc" placeholder="4800" oninput="calcMue()"></div>
+    <div class="ff"><label>Mortalidad (unidades)</label><input type="number" id="mu-mo" placeholder="12"></div>
+    <div class="ff"><label>Causa mortalidad</label>
+     <select id="mu-ca">
+      <option value="">Seleccionar</option>
+      <option value="calidad_agua">Calidad del agua</option>
+      <option value="enfermedad">Enfermedad</option>
+      <option value="depredacion">Depredación</option>
+      <option value="manipulacion">Manipulación</option>
+      <option value="otra">Otra</option>
+     </select>
+    </div>
+   </div>
+   <div class="fb" id="mu-calc">Biomasa total = peces × peso = — kg · GDP = — g/día</div>
+   <div class="bg"><button class="btn bp" onclick="showMsg('mu-ok','mu-er',true)">Registrar muestreo</button></div>
+   <div class="msg mok" id="mu-ok">✓ Muestreo registrado.</div>
+   <div class="msg mer" id="mu-er"></div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ ALIMENTACIÓN ══ -->
+<div class="pg" id="pg-alim">
+ <div class="ph"><div><div class="pt">Alimentación y Nutrición</div><div class="ps">Control de raciones diarias y FCR por etapa productiva</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar ración diaria</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="al-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha</label><input type="date" id="al-f"></div>
+    <div class="ff"><label>Tipo de alimento</label>
+     <select id="al-ti">
+      <option value="iniciacion">Iniciación (&lt;1g) · 50–55% prot</option>
+      <option value="levante">Levante (1–10g) · 45–50% prot</option>
+      <option value="engorde">Engorde (&gt;10g) · 38–42% prot</option>
+     </select>
+    </div>
+    <div class="ff"><label>Proteína (%)</label><input type="number" id="al-pr" placeholder="45" step="1"></div>
+    <div class="ff"><label>Cantidad hoy (kg)</label><input type="number" id="al-c" placeholder="12.5" step="0.1" oninput="calcFCR()"></div>
+    <div class="ff"><label>Frecuencias/día</label><input type="number" id="al-fr" placeholder="4" min="1"></div>
+    <div class="ff"><label>Alimento total acum (kg)</label><input type="number" id="al-ac" placeholder="250" oninput="calcFCR()"></div>
+    <div class="ff"><label>Ganancia de peso total (kg)</label><input type="number" id="al-gp" placeholder="100" oninput="calcFCR()"></div>
+   </div>
+   <div class="fb" id="fcr-box">FCR = alimento acumulado ÷ ganancia de peso = —</div>
+   <div class="bg"><button class="btn bp" onclick="showMsg('al-ok','al-er',true)">Registrar alimentación</button></div>
+   <div class="msg mok" id="al-ok">✓ Ración registrada.</div>
+   <div class="msg mer" id="al-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Guía FCR por etapa</div>
+   <div class="ecard" style="background:var(--pur-l);"><div class="ec-t" style="color:var(--pur)">🥚 Incubación / Alevinaje</div><div class="ec-s">Alimento Iniciación · Proteína 50–55% · FCR objetivo: 0.8–1.0</div></div>
+   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">🐠 Dedinos</div><div class="ec-s">Alimento Levante · Proteína 45–50% · FCR objetivo: 1.0–1.3</div></div>
+   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">Alimento Engorde · Proteína 38–42% · FCR objetivo: 1.3–1.6</div></div>
+   <div class="ecard" style="background:var(--red-l);"><div class="ec-t" style="color:var(--red)">⚠ FCR &gt; 2.0 = ineficiencia crítica</div><div class="ec-s">El alimento representa 60–70% del costo operativo total.</div></div>
+   <div style="margin-top:12px;">
+    <div class="ct">📈 Evolución FCR</div>
+    <div class="chart-wrap"><canvas id="chart-fcr"></canvas></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ SANIDAD ══ -->
+<div class="pg" id="pg-sanidad">
+ <div class="ph"><div><div class="pt">Sanidad y Bioseguridad</div><div class="ps">Tratamientos, signos clínicos y desinfección</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar tratamiento</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="sa-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha</label><input type="date" id="sa-f"></div>
+    <div class="ff"><label>Tipo</label>
+     <select id="sa-ti">
+      <option value="medicamento">Medicamento</option>
+      <option value="probiotico">Probiótico</option>
+      <option value="quimico">Químico</option>
+      <option value="vitaminas">Vitaminas</option>
+      <option value="desinfeccion">Desinfección</option>
+     </select>
+    </div>
+    <div class="ff"><label>Producto</label><input id="sa-pr" placeholder="Nombre del producto"></div>
+    <div class="ff"><label>Dosis</label><input id="sa-do" placeholder="2 mg/L"></div>
+    <div class="ff"><label>Duración (días)</label><input type="number" id="sa-du" placeholder="5"></div>
+    <div class="ff full"><label>Signos clínicos observados</label>
+     <textarea id="sa-sg" placeholder="Nado errático, boqueo superficial, boqueo superficial, manchas blanquecinas, aletas roídas, pérdida de apetito..."></textarea>
+     <div class="fn">Describí el comportamiento o signos físicos del lote afectado.</div>
+    </div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="showMsg('sa-ok','sa-er',true)">Registrar tratamiento</button></div>
+   <div class="msg mok" id="sa-ok">✓ Tratamiento registrado.</div>
+   <div class="msg mer" id="sa-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Registro de limpieza y desinfección</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="li-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha</label><input type="date" id="li-f"></div>
+    <div class="ff"><label>Tipo de limpieza</label>
+     <select id="li-ti">
+      <option value="desinfeccion_estanque">Desinfección estanque</option>
+      <option value="desinfeccion_equipos">Desinfección equipos</option>
+      <option value="limpieza_filtros">Limpieza de filtros</option>
+      <option value="recambio_agua">Recambio de agua</option>
+     </select>
+    </div>
+    <div class="ff"><label>Producto usado</label><input id="li-pr" placeholder="Cal viva, cloro, yodo..."></div>
+    <div class="ff full"><label>Observaciones</label>
+     <textarea id="li-ob" placeholder="Detalles del proceso de limpieza y bioseguridad..."></textarea>
+    </div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="showMsg('li-ok','li-er',true)">Registrar limpieza</button></div>
+   <div class="msg mok" id="li-ok">✓ Limpieza registrada.</div>
+   <div class="msg mer" id="li-er"></div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ COSECHA ══ -->
+<div class="pg" id="pg-cosecha">
+ <div class="ph"><div><div class="pt">Cosecha y Comercialización</div><div class="ps">Registro de cosechas, rendimiento en canal y destino comercial</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar cosecha</div>
+   <div class="fg fg3">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="co-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha</label><input type="date" id="co-f"></div>
+    <div class="ff"><label>Talla comercial</label>
+     <select id="co-ta">
+      <option value="250_350g">250–350 g (Porción)</option>
+      <option value="350_500g">350–500 g (Estándar)</option>
+      <option value="500_800g">500–800 g (Grande)</option>
+      <option value="800g_mas">800 g+ (Especial)</option>
+     </select>
+    </div>
+    <div class="ff"><label>Peso total VIVO (kg)</label><input type="number" id="co-v" placeholder="450" step="0.1" oninput="calcRend()"></div>
+    <div class="ff"><label>Peso canal LIMPIO (kg)</label><input type="number" id="co-ca" placeholder="360" step="0.1" oninput="calcRend()"></div>
+    <div class="ff"><label>Peso prom/pez (g)</label><input type="number" id="co-pp" placeholder="350"></div>
+    <div class="ff"><label>Cantidad de peces</label><input type="number" id="co-pc" placeholder="1286"></div>
+    <div class="ff"><label>Destino</label>
+     <select id="co-de">
+      <option value="cliente_directo">Cliente directo</option>
+      <option value="planta_proceso">Planta de proceso</option>
+      <option value="mercado_local">Mercado local</option>
+      <option value="exportacion">Exportación</option>
+     </select>
+    </div>
+    <div class="ff"><label>Cliente / comprador</label><input id="co-cl" placeholder="Nombre del comprador"></div>
+    <div class="ff"><label>Precio por kg ($COP)</label><input type="number" id="co-pr" placeholder="12000" oninput="calcRend()"></div>
+   </div>
+   <div class="fb" id="rend-box">Rendimiento en canal = peso canal ÷ peso vivo × 100 = —%  ·  Valor estimado = $—</div>
+   <div class="bg">
+    <button class="btn bp" onclick="showMsg('co-ok','co-er',true)">Registrar cosecha</button>
+    <button class="btn bg_" onclick="exportarResumen()">⬇ Exportar resumen</button>
+   </div>
+   <div class="msg mok" id="co-ok">✓ Cosecha registrada.</div>
+   <div class="msg mer" id="co-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Indicadores de cosecha</div>
+   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">Rendimiento óptimo en canal</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--grn);margin:4px 0;">80–85%</div><div class="ec-s">Peso canal ÷ Peso vivo × 100</div></div>
+   <div class="ecard" style="background:var(--pri-l);"><div class="ec-t" style="color:var(--pri)">Talla comercial trucha</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--pri);margin:4px 0;">250–500 g</div><div class="ec-s">Mercado nacional estándar Colombia</div></div>
+   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">Ciclo productivo total</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--amb);margin:4px 0;">8–12 meses</div><div class="ec-s">Desde alevino hasta cosecha comercial</div></div>
+   <div style="margin-top:12px;">
+    <div class="ct">📊 Rendimiento por cosecha</div>
+    <div class="chart-wrap"><canvas id="chart-cos"></canvas></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ INVENTARIO ══ -->
+<div class="pg" id="pg-inv">
+ <div class="ph"><div><div class="pt">Inventario de Insumos</div><div class="ps">Alimentos, medicamentos y materiales</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Nuevo insumo</div>
+   <div class="fg">
+    <div class="ff"><label>Nombre</label><input id="in-n" placeholder="Alimento pelletizado"></div>
+    <div class="ff"><label>Unidad</label><select id="in-u"><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="unidad">unidad</option></select></div>
+    <div class="ff"><label>Stock mínimo</label><input type="number" id="in-m" placeholder="10"></div>
+    <div class="ff"><label>Descripción</label><input id="in-d" placeholder="Opcional"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearIns()">Crear insumo</button></div>
+   <div class="msg mok" id="in-ok">✓ Insumo creado.</div>
+   <div class="msg mer" id="in-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Movimiento de stock</div>
+   <div class="fg">
+    <div class="ff"><label>ID Insumo</label><input type="number" id="mv-i" placeholder="1"></div>
+    <div class="ff"><label>Tipo</label><select id="mv-t"><option value="entrada">Entrada</option><option value="salida">Salida</option><option value="ajuste">Ajuste</option></select></div>
+    <div class="ff"><label>Cantidad</label><input type="number" id="mv-c" placeholder="50" step="0.1"></div>
+    <div class="ff"><label>Motivo</label><input id="mv-m" placeholder="Compra semanal"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="regMov()">Registrar movimiento</button></div>
+   <div class="msg mok" id="mv-ok">✓ Movimiento registrado.</div>
+   <div class="msg mer" id="mv-er"></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Inventario actual <button class="btn bg_ bsm" onclick="loadInv()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-inv"><div class="empty">Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- ══ PERSONAL ══ -->
+<div class="pg" id="pg-personal">
+ <div class="ph"><div><div class="pt">Personal</div><div class="ps">Colaboradores de la unidad productiva</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar colaborador</div>
+   <div class="fg">
+    <div class="ff"><label>Cédula</label><input id="pe-c" placeholder="1234567890"></div>
+    <div class="ff"><label>Nombre completo</label><input id="pe-n" placeholder="Juan García"></div>
+    <div class="ff"><label>Cargo</label><input id="pe-ca" placeholder="Técnico acuícola"></div>
+    <div class="ff"><label>Teléfono</label><input id="pe-t" placeholder="3001234567"></div>
+    <div class="ff full"><label>Fecha de ingreso</label><input type="date" id="pe-f"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearPer()">Registrar colaborador</button></div>
+   <div class="msg mok" id="pe-ok">✓ Colaborador registrado.</div>
+   <div class="msg mer" id="pe-er"></div>
+  </div>
+  <div class="cd" style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+   <div style="font-size:52px;margin-bottom:14px;">👥</div>
+   <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Gestión de planta</div>
+   <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.7;max-width:260px;">Registrá todos los colaboradores para mantener el control del personal activo en la piscifactoría.</div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Colaboradores <button class="btn bg_ bsm" onclick="loadPer()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-per"><div class="empty">Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- ══ USUARIOS ══ -->
+<div class="pg" id="pg-usuarios">
+ <div class="ph"><div><div class="pt">Usuarios del sistema</div><div class="ps">Registro y control de accesos</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar usuario</div>
+   <div class="fg">
+    <div class="ff"><label>Nombre</label><input id="us-n" placeholder="Ana López"></div>
+    <div class="ff"><label>Email</label><input type="email" id="us-e" placeholder="ana@aquality.co"></div>
+    <div class="ff"><label>Contraseña</label><input type="password" id="us-p" placeholder="mínimo 6 caracteres"></div>
+    <div class="ff"><label>Rol</label><select id="us-r"><option value="operario">Operario</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador</option></select></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearUsr()">Registrar usuario</button></div>
+   <div class="msg mok" id="us-ok">✓ Usuario registrado.</div>
+   <div class="msg mer" id="us-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Roles del sistema</div>
+   <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--red-l);"><div><div style="font-size:13px;font-weight:700;color:var(--red);">Administrador</div><div style="font-size:12px;color:var(--muted);">Acceso total</div></div><span class="ch cr">Admin</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--amb-l);"><div><div style="font-size:13px;font-weight:700;color:var(--amb);">Supervisor</div><div style="font-size:12px;color:var(--muted);">Lectura y escritura</div></div><span class="ch ca">Supervisor</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--pri-l);"><div><div style="font-size:13px;font-weight:700;color:var(--pri);">Operario</div><div style="font-size:12px;color:var(--muted);">Solo registro</div></div><span class="ch cb">Operario</span></div>
+   </div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Usuarios registrados <button class="btn bg_ bsm" onclick="loadUsr()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-usr"><div class="empty">Cargando...</div></div></div>
+ </div>
+</div>
+
+</div></div><!-- /mn /app -->
 
 <script>
-// Guarda una lectura localmente si no hay red
-function saveLocal(type, data) {
-  const existing = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
-  existing.push({ type, data, timestamp: Date.now() });
-  localStorage.setItem('aquality_sync', JSON.stringify(existing));
-  console.log("Dato guardado localmente (Modo Offline)");
+const API='http://127.0.0.1:8000';
+let CU=null; // currentUser
+let chartTemp=null, chartFCR=null, chartCos=null;
+// Datos simulados para graficas demo
+let tempHistory={labels:[],data:[]};
+let fcrHistory={labels:[],data:[]};
+let cosHistory={labels:[],data:[]};
+
+// ── UTILS ──
+async function http(m,p,b){
+  try{
+    const o={method:m,headers:{'Content-Type':'application/json'}};
+    if(b) o.body=JSON.stringify(b);
+    const r=await fetch(API+p,o);
+    const d=await r.json();
+    return{ok:r.ok,d};
+  }catch(e){return{ok:false,d:{detail:'Sin conexión con el servidor. ¿Está corriendo uvicorn?'}};}
+}
+function showMsg(oid,eid,ok,msg=''){
+  const o=document.getElementById(oid),e=document.getElementById(eid);
+  o.style.display='none';e.style.display='none';
+  if(ok){o.style.display='block';}
+  else{e.textContent='✗ '+msg;e.style.display='block';}
+  setTimeout(()=>{o.style.display='none';e.style.display='none';},4500);
+}
+function fmtDate(s){return s?s.slice(0,16).replace('T',' '):'—';}
+function v(id){return document.getElementById(id);}
+function fmt(n,dec=2){return n!=null?parseFloat(n).toFixed(dec):'—';}
+
+// ── LOGIN ──
+async function doLogin(){
+  const em=v('lem').value.trim(),pw=v('lpw').value;
+  if(!em||!pw) return;
+  const r=await http('POST','/usuarios/login',{email:em,password:pw});
+  if(r.ok){
+    CU=r.d.usuario;
+    v('ls').style.display='none';v('app').style.display='block';
+    const ini=CU.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    v('uav').textContent=ini;v('unm').textContent=CU.nombre;v('urol').textContent=CU.rol;
+    loadDash();
+  }else{v('lerr').style.display='block';}
+}
+v('lpw') && document.addEventListener('DOMContentLoaded',()=>{
+  v('lpw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+});
+function doLogout(){CU=null;v('app').style.display='none';v('ls').style.display='flex';}
+
+// ── ETAPA ──
+const ETAPA={
+  incubacion:{label:'🥚 Incubación',color:'var(--pur)'},
+  alevinaje: {label:'🐟 Alevinaje', color:'var(--teal)'},
+  dedinos:   {label:'🐠 Dedinos',   color:'var(--amb)'},
+  engorde:   {label:'🎣 Engorde',   color:'var(--grn)'},
+};
+function setEtapa(e,el){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  const m=ETAPA[e];
+  const d=v('etapa-dash');
+  if(d){d.textContent=m.label;d.style.color=m.color;}
 }
 
-// Intenta sincronizar todo lo guardado cuando vuelve el internet
-async function syncData() {
-  const pending = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
-  if (pending.length === 0) return;
-
-  console.log(`Sincronizando ${pending.length} registros pendientes...`);
-  
-  for (const item of pending) {
-    const r = await api('POST', item.type === 'lectura' ? '/lecturas/' : '/inventario/movimientos', item.data);
-    if (r.ok) {
-      // Si se subió con éxito, lo quitamos de la lista
-      const current = JSON.parse(localStorage.getItem('aquality_sync') || '[]');
-      current.shift(); 
-      localStorage.setItem('aquality_sync', JSON.stringify(current));
-    }
-  }
+// ── NAV ──
+function goTo(pg,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  v('pg-'+pg).classList.add('on');
+  if(el) el.classList.add('on');
+  if(pg==='inv') loadInv();
+  if(pg==='personal') loadPer();
+  if(pg==='usuarios') loadUsr();
+  if(pg==='estanques') loadEst();
+  if(pg==='agua') loadAlertas();
 }
 
-// Escuchar cuando el internet regresa
-window.addEventListener('online', syncData);
-
-const API = 'http://127.0.0.1:8000';
-let currentUser = null;
-
-// ── UTILS ──────────────────────────────────────────────────────────────────
-async function api(method, path, body) {
-  try {
-    const opts = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) opts.body = JSON.stringify(body);
-    const r = await fetch(API + path, opts);
-    const data = await r.json();
-    return { ok: r.ok, status: r.status, data };
-  } catch(e) {
-    return { ok: false, data: { detail: 'Sin conexión con el servidor. ¿Está corriendo uvicorn?' } };
-  }
-}
-
-function showMsg(okId, errId, ok, msg) {
-  const elOk = document.getElementById(okId);
-  const elErr = document.getElementById(errId);
-  elOk.style.display = 'none'; elErr.style.display = 'none';
-  if (ok) { elOk.style.display = 'block'; }
-  else { elErr.textContent = '✗ ' + msg; elErr.style.display = 'block'; }
-  setTimeout(() => { elOk.style.display = 'none'; elErr.style.display = 'none'; }, 4000);
-}
-
-// ── AUTH ───────────────────────────────────────────────────────────────────
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  if (!email || !pass) return;
-  const r = await api('POST', '/usuarios/login', { email, password: pass });
-  if (r.ok) {
-    currentUser = r.data.usuario;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    const initials = currentUser.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('user-avatar').textContent = initials;
-    document.getElementById('user-name-display').textContent = currentUser.nombre;
-    loadDashboard();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-  }
-}
-
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
-function doLogout() {
-  currentUser = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-err').style.display = 'none';
-}
-
-// ── NAVEGACIÓN ─────────────────────────────────────────────────────────────
-function goTo(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (page === 'inventario') cargarInsumos();
-  if (page === 'personal')   cargarPersonal();
-  if (page === 'usuarios')   cargarUsuarios();
-  if (page === 'lecturas')   cargarAlertas();
-}
-
-// ── DASHBOARD ──────────────────────────────────────────────────────────────
-async function loadDashboard() {
-  const [usuarios, insumos, personal, alertas, clima] = await Promise.all([
-    api('GET', '/usuarios/'),
-    api('GET', '/inventario/insumos'),
-    api('GET', '/personal/'),
-    api('GET', '/lecturas/alertas'),
-    api('GET', '/lecturas/clima/actual'),
+// ── DASHBOARD ──
+async function loadDash(){
+  const[us,ins,per,al,cl]=await Promise.all([
+    http('GET','/usuarios/'),http('GET','/inventario/insumos'),
+    http('GET','/personal/'),http('GET','/lecturas/alertas'),
+    http('GET','/lecturas/clima/actual'),
   ]);
-
-  if (usuarios.ok) document.getElementById('stat-usuarios').textContent = usuarios.data.length;
-  if (insumos.ok)  document.getElementById('stat-insumos').textContent  = insumos.data.length;
-  if (personal.ok) document.getElementById('stat-personal').textContent = personal.data.filter(p=>p.activo).length;
-
-  if (alertas.ok) {
-    const n = alertas.data.length;
-    document.getElementById('stat-alertas').textContent = n;
-    if (n > 0) {
-      document.getElementById('alertas-box').style.display = 'block';
-      document.getElementById('alertas-txt').textContent = `${n} lectura(s) con parámetros fuera del rango seguro para trucha arcoíris.`;
-      document.getElementById('stat-alertas-badge').className = 'stat-badge badge-err';
-    } else {
-      document.getElementById('stat-alertas-badge').className = 'stat-badge badge-ok';
-      document.getElementById('stat-alertas-badge').textContent = 'Normal';
+  if(us.ok) v('s-u').textContent=us.d.length;
+  if(ins.ok) v('s-i').textContent=ins.d.length;
+  if(per.ok) v('s-p').textContent=per.d.filter(p=>p.activo).length;
+  if(al.ok){
+    v('s-a').textContent=al.d.length;
+    if(al.d.length>0){
+      v('abanner').style.display='block';
+      v('abanner-txt').textContent=`${al.d.length} lectura(s) con parámetros fuera del rango seguro.`;
+      v('alertas-r').innerHTML=al.d.slice(0,5).map(l=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);">
+          <div><div style="font-size:13px;font-weight:600;">Estanque #${l.estanque_id}</div>
+          <div style="font-size:12px;color:var(--muted);">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div></div>
+          <span class="ch cr">⚠ Alerta</span></div>`).join('');
     }
   }
-
-  const cw = document.getElementById('clima-widget');
-  if (clima.ok) {
-    const d = clima.data;
-    cw.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:8px;">
-          <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--teal);">${d.temperatura_ambiente_c ?? '—'}°</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Temperatura</div>
-        </div>
-        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:8px;">
-          <div style="font-size:32px;font-family:var(--mono);font-weight:700;color:var(--blue);">${d.humedad_relativa_pct ?? '—'}%</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Humedad</div>
-        </div>
-        <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px;">
-          <div style="font-size:20px;font-family:var(--mono);font-weight:700;color:var(--ink);">${d.precipitacion_mm ?? 0} mm</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Precipitación</div>
-        </div>
-        <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px;">
-          <div style="font-size:20px;font-family:var(--mono);font-weight:700;color:var(--ink);">${d.temperatura_agua_estimada_c ?? '—'}°</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Agua estimada</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;">Actualizado: ${d.hora_lectura ?? ''}</div>`;
-  } else {
-    cw.innerHTML = `<div class="empty">No se pudo conectar a la API de clima.</div>`;
-  }
+  // Clima
+  const cb=v('clima-box');
+  if(cl.ok){
+    const d=cl.d;
+    cb.innerHTML=`<div class="cg2">
+      <div class="cc"><div class="cv">${d.temperatura_ambiente_c??'—'}°C</div><div class="cl">Temperatura</div></div>
+      <div class="cc"><div class="cv" style="color:var(--teal);">${d.humedad_relativa_pct??'—'}%</div><div class="cl">Humedad</div></div>
+      <div class="cc"><div class="cv" style="color:var(--ink);font-size:18px;">${d.precipitacion_mm??0}mm</div><div class="cl">Precipitación</div></div>
+      <div class="cc"><div class="cv" style="color:var(--grn);font-size:18px;">${d.temperatura_agua_estimada_c??'—'}°C</div><div class="cl">Agua estimada</div></div>
+    </div><div style="font-size:11px;color:var(--muted);margin-top:8px;">Actualizado: ${d.hora_lectura??''}</div>`;
+  }else{cb.innerHTML='<div class="empty">API de clima no disponible.</div>';}
+  // Chart temperatura
+  renderTempChart();
 }
 
-// ── LECTURAS ───────────────────────────────────────────────────────────────
-async function registrarLectura() {
-  const body = {
-    estanque_id: parseInt(document.getElementById('lec-estanque').value),
-    usuario_id:  currentUser.id,
-    temperatura: parseFloat(document.getElementById('lec-temp').value),
-    ph:          parseFloat(document.getElementById('lec-ph').value),
-    oxigeno:     parseFloat(document.getElementById('lec-o2').value),
-    observacion: document.getElementById('lec-obs').value || null,
-  };
-  const r = await api('POST', '/lecturas/', body);
-
-  if (r.ok) {
-    showMsg('lec-ok', 'lec-err', true, 'Enviado a la nube.');
-  } else {
-    // AQUÍ ESTÁ EL TRUCO HÍBRIDO
-    saveLocal('lectura', body);
-    showMsg('lec-ok', 'lec-err', true, 'Modo offline: Guardado en el dispositivo.');
-  }
-  
-  if (r.ok) cargarAlertas();
+// ── CHARTS ──
+function renderTempChart(){
+  const ctx=v('chart-temp');
+  if(!ctx) return;
+  // Datos demo — en producción vendría de /lecturas/estanque/{id}
+  const labels=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom','Lun','Mar','Mié'];
+  const datos=[14.2,14.5,13.8,15.1,14.9,14.3,13.5,14.8,15.2,14.6];
+  if(chartTemp) chartTemp.destroy();
+  chartTemp=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'Temperatura °C',data:datos,
+      borderColor:'#2B7FD4',backgroundColor:'rgba(43,127,212,.1)',
+      tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#2B7FD4',
+    },{
+      label:'Límite máx (18°C)',data:Array(10).fill(18),
+      borderColor:'#DC2626',borderDash:[5,5],pointRadius:0,
+    },{
+      label:'Límite mín (10°C)',data:Array(10).fill(10),
+      borderColor:'#D97706',borderDash:[5,5],pointRadius:0,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      scales:{y:{min:8,max:20,grid:{color:'rgba(0,0,0,.05)'}},
+              x:{grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
 }
-async function cargarAlertas() {
-  const r = await api('GET', '/lecturas/alertas');
-  const el = document.getElementById('alertas-lista');
-  const cnt = document.getElementById('alertas-count');
-  if (!r.ok || r.data.length === 0) {
-    el.innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
-    cnt.textContent = '(0)';
-    return;
+
+function renderFCRChart(){
+  const ctx=v('chart-fcr');
+  if(!ctx) return;
+  const labels=['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6'];
+  const datos=[1.1,1.2,1.15,1.3,1.25,1.18];
+  if(chartFCR) chartFCR.destroy();
+  chartFCR=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'FCR semanal',data:datos,
+      backgroundColor:datos.map(v=>v<1.3?'rgba(22,163,74,.7)':v<2?'rgba(217,119,6,.7)':'rgba(220,38,38,.7)'),
+      borderRadius:6,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      scales:{y:{min:0,max:2.5,grid:{color:'rgba(0,0,0,.05)'}},
+              x:{grid:{display:false}}}}
+  });
+}
+
+function renderCosChart(){
+  const ctx=v('chart-cos');
+  if(!ctx) return;
+  const labels=['Cosecha 1','Cosecha 2','Cosecha 3'];
+  const datos=[82,84,80];
+  if(chartCos) chartCos.destroy();
+  chartCos=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{
+      data:datos,
+      backgroundColor:['rgba(22,163,74,.8)','rgba(43,127,212,.8)','rgba(14,165,160,.8)'],
+      borderWidth:2,borderColor:'#fff',
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}% rend.`}}}}
+  });
+}
+
+// ── ESTANQUES ──
+function calcEst(){
+  const l=parseFloat(v('el').value)||0,a=parseFloat(v('ea').value)||0,
+        p=parseFloat(v('ep2').value)||0,cap=parseFloat(v('ecap').value)||0;
+  if(l&&a&&p){
+    const vol=l*a*p;
+    v('e-calc').textContent=`Volumen = ${l}×${a}×${p} = ${vol.toFixed(2)} m³`;
+    if(cap>0) v('edens').value=(cap/vol).toFixed(1)+' kg/m³';
   }
-  cnt.textContent = `(${r.data.length})`;
-  el.innerHTML = r.data.slice(0,5).map(l => `
-    <div style="padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;">
+}
+async function regEstanque(){
+  const cap=parseFloat(v('ecap').value);
+  const l=parseFloat(v('el').value)||null,a=parseFloat(v('ea').value)||null,p=parseFloat(v('ep2').value)||null;
+  const vol=l&&a&&p?+(l*a*p).toFixed(2):null;
+  const body={codigo:v('ec').value.trim(),nombre:v('en').value.trim(),capacidad_kg:cap,volumen_m3:vol};
+  if(!body.codigo||!body.nombre||!cap){showMsg('e-ok','e-er',false,'Completá código, nombre y capacidad.');return;}
+  const r=await http('POST','/estanques/',body);
+  showMsg('e-ok','e-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadEst();
+}
+async function loadEst(){
+  const r=await http('GET','/estanques/');
+  const el=v('t-est');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin estanques registrados.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Código</th><th>Nombre</th><th>Capacidad</th><th>Volumen</th><th>Estado</th></tr></thead>
+  <tbody>${r.d.map(e=>`<tr>
+    <td class="mono">${e.codigo}</td><td><strong>${e.nombre}</strong></td>
+    <td class="mono">${e.capacidad_kg} kg</td><td class="mono">${e.volumen_m3??'—'} m³</td>
+    <td><span class="ch ${e.estado==='activo'?'cg':'cr'}">${e.estado}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── AGUA ──
+async function regLectura(){
+  const body={estanque_id:parseInt(v('ag-e').value),usuario_id:CU.id,
+    temperatura:parseFloat(v('ag-t').value),ph:parseFloat(v('ag-ph').value),
+    oxigeno:parseFloat(v('ag-o2').value),observacion:v('ag-obs').value||null};
+  if(!body.estanque_id||isNaN(body.temperatura)||isNaN(body.ph)||isNaN(body.oxigeno)){
+    showMsg('ag-ok','ag-er',false,'Completá todos los campos obligatorios.');return;}
+  const r=await http('POST','/lecturas/',body);
+  showMsg('ag-ok','ag-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadAlertas();
+}
+async function loadAlertas(){
+  const r=await http('GET','/lecturas/alertas');
+  const el=v('al-box'),cnt=v('al-cnt');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin alertas activas ✓</div>';cnt.textContent='(0)';return;}
+  cnt.textContent=`(${r.d.length})`;
+  el.innerHTML=r.d.slice(0,6).map(l=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--line);">
       <div style="display:flex;justify-content:space-between;">
-        <strong>Estanque #${l.estanque_id}</strong>
-        <span class="chip chip-red">⚠ Alerta</span>
-      </div>
-      <div style="color:var(--muted);margin-top:4px;">T: ${l.temperatura}°C · pH: ${l.ph} · O₂: ${l.oxigeno} mg/L</div>
+        <strong style="font-size:13px;">Estanque #${l.estanque_id}</strong>
+        <span class="ch cr">⚠ Alerta</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div>
     </div>`).join('');
 }
-
-async function buscarLecturas() {
-  const id = document.getElementById('estanque-buscar').value;
-  if (!id) return;
-  const r = await api('GET', `/lecturas/estanque/${id}?limite=20`);
-  const el = document.getElementById('lecturas-tabla');
-  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin lecturas para este estanque.</div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>Oxígeno</th><th>Estado</th><th>Observación</th></tr></thead>
-    <tbody>${r.data.map(l => `
-      <tr>
-        <td style="font-family:var(--mono);font-size:12px;">${l.registrado_en?.slice(0,16).replace('T',' ')}</td>
-        <td>${l.temperatura}°C</td>
-        <td>${l.ph}</td>
-        <td>${l.oxigeno} mg/L</td>
-        <td><span class="chip ${l.alerta ? 'chip-red':'chip-green'}">${l.alerta ? '⚠ Alerta':'✓ Normal'}</span></td>
-        <td style="color:var(--muted);">${l.observacion || '—'}</td>
-      </tr>`).join('')}
-    </tbody></table>`;
+async function buscarLect(){
+  const id=v('ag-bid').value;if(!id) return;
+  const r=await http('GET',`/lecturas/estanque/${id}?limite=20`);
+  const el=v('t-lect');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin lecturas para este estanque.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>O₂</th><th>Estado</th><th>Observación</th></tr></thead>
+  <tbody>${r.d.map(l=>`<tr>
+    <td class="mono">${fmtDate(l.registrado_en)}</td>
+    <td>${l.temperatura}°C</td><td>${l.ph}</td><td>${l.oxigeno}mg/L</td>
+    <td><span class="ch ${l.alerta?'cr':'cg'}">${l.alerta?'⚠ Alerta':'✓ Normal'}</span></td>
+    <td style="color:var(--muted);">${l.observacion||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
 }
 
-// ── INVENTARIO ─────────────────────────────────────────────────────────────
-async function crearInsumo() {
-  const body = {
-    nombre:        document.getElementById('ins-nombre').value.trim(),
-    unidad_medida: document.getElementById('ins-unidad').value,
-    stock_minimo:  parseFloat(document.getElementById('ins-minimo').value) || 10,
-    descripcion:   document.getElementById('ins-desc').value || null,
+// ── EXPORTAR ──
+function exportarAlertas(){
+  http('GET','/lecturas/alertas').then(r=>{
+    if(!r.ok||!r.d.length){alert('No hay alertas para exportar.');return;}
+    const rows=[['Estanque','Temperatura','pH','Oxígeno','Fecha','Observación'],
+      ...r.d.map(l=>[l.estanque_id,l.temperatura,l.ph,l.oxigeno,fmtDate(l.registrado_en),l.observacion||''])];
+    const csv=rows.map(r=>r.join(',')).join('\
+');
+    const a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='alertas_aquality.csv';a.click();
+  });
+}
+function exportarResumen(){
+  const v_=id=>document.getElementById(id)?.value||'—';
+  const txt=`AQUALITY – Resumen de Cosecha
+${'='.repeat(40)}
+Estanque: ${v_('co-e')}
+Fecha: ${v_('co-f')}
+Peso vivo: ${v_('co-v')} kg
+Peso canal: ${v_('co-ca')} kg
+Rendimiento: ${v('rend-box').textContent}
+Destino: ${v_('co-de')}
+Cliente: ${v_('co-cl')}
+Precio/kg: $${v_('co-pr')}
+Generado: ${new Date().toLocaleString('es-CO')}`;
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
+  a.download='cosecha_aquality.txt';a.click();
+}
+
+// ── BIOMASA ──
+function calcBio(){
+  const c=parseFloat(v('bi-c').value)||0,p=parseFloat(v('bi-p').value)||0;
+  if(c&&p) v('bi-calc').textContent=`Biomasa inicial = ${c} peces × ${p}g = ${(c*p/1000).toFixed(2)} kg`;
+}
+function calcMue(){
+  const pp=parseFloat(v('mu-pp').value)||0,pc=parseFloat(v('mu-pc').value)||0;
+  if(pp&&pc) v('mu-calc').textContent=`Biomasa total = ${pc}×${pp}g = ${(pc*pp/1000).toFixed(2)} kg · GDP pendiente de siembra inicial`;
+}
+
+// ── FCR ──
+function calcFCR(){
+  const ac=parseFloat(v('al-ac').value)||0,gp=parseFloat(v('al-gp').value)||0;
+  const fb=v('fcr-box');
+  if(ac&&gp){
+    const fcr=(ac/gp).toFixed(2);
+    const color=fcr<1.3?'var(--grn)':fcr<2?'var(--amb)':'var(--red)';
+    const estado=fcr<1.3?'✓ Excelente':fcr<2?'⚠ Aceptable':'✗ Ineficiente';
+    fb.style.color=color;
+    fb.textContent=`FCR = ${ac}kg ÷ ${gp}kg = ${fcr} — ${estado}`;
+  }else{fb.textContent='FCR = alimento acumulado ÷ ganancia de peso = —';fb.style.color='';}
+}
+
+// ── RENDIMIENTO ──
+function calcRend(){
+  const vi=parseFloat(v('co-v').value)||0,ca=parseFloat(v('co-ca').value)||0,
+        pr=parseFloat(v('co-pr').value)||0;
+  const rb=v('rend-box');
+  if(vi&&ca){
+    const rend=((ca/vi)*100).toFixed(1);
+    const val=pr?`$${(vi*pr).toLocaleString('es-CO')}`:'—';
+    const color=rend>=80?'var(--grn)':rend>=70?'var(--amb)':'var(--red)';
+    rb.style.color=color;
+    rb.textContent=`Rendimiento en canal = ${rend}%${rend>=80?' ✓ Óptimo':rend>=70?' ⚠ Aceptable':' ✗ Bajo'} · Valor estimado = ${val}`;
+  }else{rb.textContent='Rendimiento en canal = —% · Valor estimado = $—';rb.style.color='';}
+}
+
+// ── INVENTARIO ──
+async function crearIns(){
+  const body={nombre:v('in-n').value.trim(),unidad_medida:v('in-u').value,
+    stock_minimo:parseFloat(v('in-m').value)||10,descripcion:v('in-d').value||null};
+  if(!body.nombre){showMsg('in-ok','in-er',false,'El nombre es obligatorio.');return;}
+  const r=await http('POST','/inventario/insumos',body);
+  showMsg('in-ok','in-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadInv();
+}
+async function regMov(){
+  const body={insumo_id:parseInt(v('mv-i').value),usuario_id:CU.id,
+    tipo:v('mv-t').value,cantidad:parseFloat(v('mv-c').value),motivo:v('mv-m').value||null};
+  if(!body.insumo_id||isNaN(body.cantidad)){showMsg('mv-ok','mv-er',false,'Completá los campos.');return;}
+  const r=await http('POST','/inventario/movimientos',body);
+  showMsg('mv-ok','mv-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadInv();
+}
+async function loadInv(){
+  const r=await http('GET','/inventario/insumos');
+  const el=v('t-inv');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin insumos.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
+  <tbody>${r.d.map(i=>`<tr>
+    <td class="mono">${i.id}</td>
+    <td><strong>${i.nombre}</strong>${i.descripcion?`<div style="font-size:11px;color:var(--muted);">${i.descripcion}</div>`:''}</td>
+    <td class="mono" style="font-weight:600;">${i.stock_actual}</td>
+    <td class="mono">${i.stock_minimo}</td><td>${i.unidad_medida}</td>
+    <td><span class="ch ${i.requiere_reabastecimiento?'cr':'cg'}">${i.requiere_reabastecimiento?'⚠ Reabastecer':'✓ OK'}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── PERSONAL ──
+async function crearPer(){
+  const body={cedula:v('pe-c').value.trim(),nombre:v('pe-n').value.trim(),
+    cargo:v('pe-ca').value.trim(),fecha_ingreso:v('pe-f').value,telefono:v('pe-t').value||null};
+  if(!body.cedula||!body.nombre||!body.cargo||!body.fecha_ingreso){
+    showMsg('pe-ok','pe-er',false,'Completá todos los campos.');return;}
+  const r=await http('POST','/personal/',body);
+  showMsg('pe-ok','pe-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadPer();
+}
+async function loadPer(){
+  const r=await http('GET','/personal/');
+  const el=v('t-per');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin colaboradores.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días</th><th>Estado</th></tr></thead>
+  <tbody>${r.d.map(p=>`<tr>
+    <td class="mono">${p.cedula}</td><td><strong>${p.nombre}</strong></td>
+    <td>${p.cargo}</td><td style="color:var(--muted);">${p.telefono||'—'}</td>
+    <td class="mono">${p.dias_laborados}</td>
+    <td><span class="ch ${p.activo?'cg':'cr'}">${p.activo?'Activo':'Inactivo'}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── USUARIOS ──
+async function crearUsr(){
+  const body={nombre:v('us-n').value.trim(),email:v('us-e').value.trim(),
+    password:v('us-p').value,rol:v('us-r').value};
+  if(!body.nombre||!body.email||!body.password){showMsg('us-ok','us-er',false,'Completá todos los campos.');return;}
+  const r=await http('POST','/usuarios/',body);
+  showMsg('us-ok','us-er',r.ok,r.d.detail||JSON.stringify(r.d));
+  if(r.ok) loadUsr();
+}
+async function loadUsr(){
+  const r=await http('GET','/usuarios/');
+  const el=v('t-usr');
+  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin usuarios.</div>';return;}
+  const col={administrador:'cr',supervisor:'ca',operario:'cb'};
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
+  <tbody>${r.d.map(u=>`<tr>
+    <td class="mono">${u.id}</td><td><strong>${u.nombre}</strong></td>
+    <td style="color:var(--muted);">${u.email}</td>
+    <td><span class="ch ${col[u.rol]||'cb'}">${u.rol}</span></td>
+    <td class="mono" style="font-size:11px;">${u.creado_en?.slice(0,10)||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// Render charts when navigating to those pages
+document.addEventListener('DOMContentLoaded',()=>{
+  // lazy chart renders
+  const orig=window.goTo;
+  window.goTo=function(pg,el){
+    orig&&orig(pg,el);
+    // handled inline
+    if(pg==='alim') setTimeout(renderFCRChart,100);
+    if(pg==='cosecha') setTimeout(renderCosChart,100);
   };
-  if (!body.nombre) { showMsg('ins-ok','ins-err',false,'El nombre es obligatorio.'); return; }
-  const r = await api('POST', '/inventario/insumos', body);
-  showMsg('ins-ok','ins-err', r.ok, r.data.detail || JSON.stringify(r.data));
-  if (r.ok) { cargarInsumos(); document.getElementById('ins-nombre').value = ''; }
-}
-
-async function registrarMovimiento() {
-  const body = {
-    insumo_id:  parseInt(document.getElementById('mov-insumo').value),
-    usuario_id: currentUser.id,
-    tipo:       document.getElementById('mov-tipo').value,
-    cantidad:   parseFloat(document.getElementById('mov-cantidad').value),
-    motivo:     document.getElementById('mov-motivo').value || null,
-  };
-  if (!body.insumo_id || isNaN(body.cantidad)) { showMsg('mov-ok','mov-err',false,'Completá todos los campos.'); return; }
-  const r = await api('POST', '/inventario/movimientos', body);
-  showMsg('mov-ok','mov-err', r.ok, r.data.detail || JSON.stringify(r.data));
-  if (r.ok) cargarInsumos();
-}
-
-async function cargarInsumos() {
-  const r = await api('GET', '/inventario/insumos');
-  const el = document.getElementById('insumos-tabla');
-  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin insumos registrados.</div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
-    <tbody>${r.data.map(i => `
-      <tr>
-        <td style="font-family:var(--mono);">${i.id}</td>
-        <td><strong>${i.nombre}</strong>${i.descripcion ? `<div style="font-size:11px;color:var(--muted);">${i.descripcion}</div>` : ''}</td>
-        <td style="font-family:var(--mono);font-weight:700;">${i.stock_actual}</td>
-        <td style="color:var(--muted);">${i.stock_minimo}</td>
-        <td>${i.unidad_medida}</td>
-        <td><span class="chip ${i.requiere_reabastecimiento ? 'chip-red':'chip-green'}">${i.requiere_reabastecimiento ? '⚠ Reabastecer':'✓ OK'}</span></td>
-      </tr>`).join('')}
-    </tbody></table>`;
-}
-
-// ── PERSONAL ───────────────────────────────────────────────────────────────
-async function crearPersonal() {
-  const body = {
-    cedula:        document.getElementById('per-cedula').value.trim(),
-    nombre:        document.getElementById('per-nombre').value.trim(),
-    cargo:         document.getElementById('per-cargo').value.trim(),
-    fecha_ingreso: document.getElementById('per-fecha').value,
-    telefono:      document.getElementById('per-tel').value || null,
-  };
-  if (!body.cedula || !body.nombre || !body.cargo || !body.fecha_ingreso) {
-    showMsg('per-ok','per-err',false,'Completá todos los campos obligatorios.'); return;
-  }
-  const r = await api('POST', '/personal/', body);
-  showMsg('per-ok','per-err', r.ok, r.data.detail || JSON.stringify(r.data));
-  if (r.ok) cargarPersonal();
-}
-
-async function cargarPersonal() {
-  const r = await api('GET', '/personal/');
-  const el = document.getElementById('personal-tabla');
-  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin colaboradores registrados.</div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días laborados</th><th>Estado</th></tr></thead>
-    <tbody>${r.data.map(p => `
-      <tr>
-        <td style="font-family:var(--mono);">${p.cedula}</td>
-        <td><strong>${p.nombre}</strong></td>
-        <td>${p.cargo}</td>
-        <td style="color:var(--muted);">${p.telefono || '—'}</td>
-        <td style="font-family:var(--mono);">${p.dias_laborados}</td>
-        <td><span class="chip ${p.activo ? 'chip-green':'chip-red'}">${p.activo ? 'Activo':'Inactivo'}</span></td>
-      </tr>`).join('')}
-    </tbody></table>`;
-}
-
-// ── USUARIOS ───────────────────────────────────────────────────────────────
-async function crearUsuario() {
-  const body = {
-    nombre:   document.getElementById('usr-nombre').value.trim(),
-    email:    document.getElementById('usr-email').value.trim(),
-    password: document.getElementById('usr-pass').value,
-    rol:      document.getElementById('usr-rol').value,
-  };
-  if (!body.nombre || !body.email || !body.password) {
-    showMsg('usr-ok','usr-err',false,'Completá todos los campos.'); return;
-  }
-  const r = await api('POST', '/usuarios/', body);
-  showMsg('usr-ok','usr-err', r.ok, r.data.detail || JSON.stringify(r.data));
-  if (r.ok) cargarUsuarios();
-}
-
-async function cargarUsuarios() {
-  const r = await api('GET', '/usuarios/');
-  const el = document.getElementById('usuarios-tabla');
-  if (!r.ok || r.data.length === 0) { el.innerHTML = '<div class="empty">Sin usuarios registrados.</div>'; return; }
-  const colores = { administrador: 'chip-red', supervisor: 'chip-amber', operario: 'chip-blue' };
-  el.innerHTML = `<table>
-    <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
-    <tbody>${r.data.map(u => `
-      <tr>
-        <td style="font-family:var(--mono);">${u.id}</td>
-        <td><strong>${u.nombre}</strong></td>
-        <td style="color:var(--muted);">${u.email}</td>
-        <td><span class="chip ${colores[u.rol] || 'chip-blue'}">${u.rol}</span></td>
-        <td style="font-size:12px;color:var(--muted);">${u.creado_en?.slice(0,10) || '—'}</td>
-      </tr>`).join('')}
-    </tbody></table>`;
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+});
 </script>
 </body>
 </html>
