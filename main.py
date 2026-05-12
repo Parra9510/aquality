@@ -10,6 +10,7 @@ from app.controllers.personal_controller   import router as personal_router
 from config.settings import APP_TITLE, APP_VERSION
 import os
 
+
 app = FastAPI(title=APP_TITLE, version=APP_VERSION)
 
 # 1. MIDDLEWARE
@@ -20,10 +21,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. EVENTOS
-@app.on_event("startup")
-def startup_event():
-    init_db()
+# ## 2. EVENTOS
+# @app.on_event("startup")
+# def startup_event():
+#     init_db()
 
 # 3. RUTAS DE LA API (Deben ir ANTES que el HTML)
 app.include_router(usuarios_router)

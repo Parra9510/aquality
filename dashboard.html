@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png.png">
+</head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AQUALITY – Control y Calidad</title>
@@ -229,7 +232,180 @@ tbody tr:hover td{background:var(--bg);}
 
 /* CHART */
 .chart-wrap{position:relative;height:200px;}
+
+/* ══ EXPANSIÓN AQUALITY ══ */
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi-card{background:#fff;border-radius:var(--r);padding:16px 18px;
+  border:1px solid var(--line);box-shadow:var(--sh);position:relative;overflow:hidden;}
+.kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi-c-blue::before{background:var(--pri);}
+.kpi-c-grn::before{background:var(--grn);}
+.kpi-c-red::before{background:var(--red);}
+.kpi-c-amb::before{background:var(--amb);}
+.kpi-c-pur::before{background:var(--pur);}
+.kpi-c-teal::before{background:var(--teal);}
+.kpi-c-ink::before{background:var(--ink);}
+.kpi-icon{font-size:22px;margin-bottom:8px;}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.kpi-value{font-family:var(--mono);font-size:26px;font-weight:700;
+  color:var(--ink);line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kpi-trend{display:inline-flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:700;padding:2px 6px;border-radius:99px;margin-top:6px;}
+.trend-up{background:var(--grn-l);color:var(--grn);}
+.trend-dn{background:var(--red-l);color:var(--red);}
+.trend-ok{background:var(--pri-l);color:var(--pri);}
+
+/* SEMÁFORO */
+.semaforo-wrap{display:flex;flex-direction:column;gap:10px;}
+.sem-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-radius:8px;border:1px solid var(--line);}
+.sem-param{font-size:13px;font-weight:600;}
+.sem-val{font-family:var(--mono);font-size:13px;}
+.sem-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.sem-opt .sem-dot{background:var(--grn);}
+.sem-pre .sem-dot{background:var(--amb);}
+.sem-cri .sem-dot{background:var(--red);}
+.sem-opt{background:var(--grn-l);border-color:rgba(22,163,74,.2);}
+.sem-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);}
+.sem-cri{background:var(--red-l);border-color:rgba(220,38,38,.2);}
+
+/* ALERTAS INTELIGENTES */
+.alert-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:12px;border:1px solid transparent;}
+.alert-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.alert-body{flex:1;}
+.alert-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.alert-msg{font-size:12px;opacity:.85;line-height:1.5;}
+.alert-time{font-size:11px;opacity:.6;margin-top:4px;}
+.alert-cri{background:var(--red-l);border-color:rgba(220,38,38,.2);color:#7F1D1D;}
+.alert-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);color:#78350F;}
+.alert-inf{background:var(--pri-l);border-color:rgba(43,127,212,.2);color:#1E3A5F;}
+
+/* RECOMENDACIONES */
+.rec-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--bg);border:1px solid var(--line);}
+.rec-icon{font-size:20px;flex-shrink:0;}
+.rec-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.rec-msg{font-size:12px;color:var(--muted);line-height:1.5;}
+.rec-pri{border-left:3px solid var(--red);}
+.rec-med{border-left:3px solid var(--amb);}
+.rec-low{border-left:3px solid var(--pri);}
+
+/* MAPA ESTANQUES */
+.tank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.tank-card{background:#fff;border-radius:var(--r);padding:16px;
+  border:2px solid var(--line);position:relative;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;}
+.tank-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.tank-card.t-opt{border-color:var(--grn);}
+.tank-card.t-pre{border-color:var(--amb);}
+.tank-card.t-cri{border-color:var(--red);}
+.tank-status{position:absolute;top:10px;right:10px;width:10px;height:10px;
+  border-radius:50%;animation:pulse 2s infinite;}
+.t-opt .tank-status{background:var(--grn);}
+.t-pre .tank-status{background:var(--amb);}
+.t-cri .tank-status{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.tank-code{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px;}
+.tank-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.tank-stage{display:inline-block;padding:2px 8px;border-radius:99px;
+  font-size:11px;font-weight:700;margin-bottom:10px;}
+.tank-metric{display:flex;justify-content:space-between;font-size:12px;
+  padding:3px 0;border-bottom:1px solid var(--line);}
+.tank-metric:last-child{border:none;}
+.tank-metric-label{color:var(--muted);}
+.tank-metric-val{font-family:var(--mono);font-weight:600;}
+
+/* ÍNDICE SALUD */
+.health-ring{display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;}
+.health-score{font-family:var(--mono);font-size:48px;font-weight:700;}
+.health-label{font-size:14px;font-weight:700;}
+.health-bar-wrap{width:100%;height:8px;background:var(--line);
+  border-radius:99px;overflow:hidden;margin-top:4px;}
+.health-bar-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+
+/* PREDICCIÓN */
+.pred-card{background:var(--ink);border-radius:var(--r);padding:20px 22px;color:#fff;}
+.pred-title{font-size:13px;color:rgba(255,255,255,.5);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.pred-val{font-family:var(--mono);font-size:28px;font-weight:700;color:#fff;}
+.pred-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;}
+
+/* FINANCIERO */
+.fin-total{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink);}
+.fin-row{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.fin-row:last-child{border:none;}
+.fin-label{color:var(--ink2);}
+.fin-amount{font-family:var(--mono);font-weight:600;}
+.fin-positive{color:var(--grn);}
+.fin-negative{color:var(--red);}
+
+/* INFORME TEXTO */
+.informe-texto{background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:20px 24px;font-size:13px;line-height:1.8;
+  color:var(--ink2);white-space:pre-line;font-family:Georgia,serif;}
+
+/* SELECTOR PERIODO */
+.period-tabs{display:flex;gap:4px;background:var(--bg);
+  padding:4px;border-radius:8px;border:1px solid var(--line);width:fit-content;}
+.ptab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;
+  cursor:pointer;color:var(--muted);transition:all .15s;}
+.ptab.on{background:#fff;color:var(--pri);box-shadow:var(--sh);}
+
+/* EXPORT BUTTONS */
+.export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.btn-export{display:inline-flex;align-items:center;gap:7px;
+  padding:10px 20px;border-radius:8px;font-family:var(--sans);
+  font-size:13px;font-weight:700;cursor:pointer;border:none;
+  transition:all .15s;}
+.bex-pdf{background:#DC2626;color:#fff;}
+.bex-pdf:hover{background:#b91c1c;transform:translateY(-1px);}
+.bex-xls{background:#16A34A;color:#fff;}
+.bex-xls:hover{background:#15803d;transform:translateY(-1px);}
+.bex-print{background:var(--ink);color:#fff;}
+.bex-print:hover{background:#1f2937;transform:translateY(-1px);}
+
+/* TENDENCIA MINI */
+.trend-mini{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.trend-up-arrow{color:var(--grn);font-weight:700;}
+.trend-dn-arrow{color:var(--red);font-weight:700;}
+
+/* G4 GRID */
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+
+/* RESPONSIVE */
+@media(max-width:1200px){
+  .kpi-grid{grid-template-columns:repeat(3,1fr);}
+  .g4{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:900px){
+  .sb{transform:translateX(-245px);transition:transform .3s;}
+  .sb.open{transform:translateX(0);}
+  .mn{margin-left:0;padding:16px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+  .sg{grid-template-columns:repeat(2,1fr);}
+  .tank-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .g4{grid-template-columns:1fr 1fr;}
+  .mn{padding:12px;}
+}
+
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 </head>
 <body>
 
@@ -282,7 +458,14 @@ tbody tr:hover td{background:var(--bg);}
  <div class="ni" onclick="goTo('personal',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Personal</div>
  <div class="ni" onclick="goTo('usuarios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuarios</div>
 
- <div class="sb-ft">
+ 
+ <div class="ns">Inteligencia</div>
+ <div class="ni" onclick="goTo('cultivo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>Estado del Cultivo</div>
+ <div class="ni" onclick="goTo('mapa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Mapa de Estanques</div>
+ <div class="ni" onclick="goTo('finanzas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Control Financiero</div>
+ <div class="ni" onclick="goTo('informes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Informes y Analítica</div>
+
+<div class="sb-ft">
   <div class="urow">
    <div class="av" id="uav">VP</div>
    <div><div class="unm" id="unm">Usuario</div><div class="urol" id="urol">rol</div></div>
@@ -706,6 +889,273 @@ tbody tr:hover td{background:var(--bg);}
  </div>
 </div>
 
+
+<!-- ══ ESTADO DEL CULTIVO ══ -->
+<div class="pg" id="pg-cultivo">
+ <div class="ph">
+  <div><div class="pt">Estado del Cultivo</div>
+  <div class="ps">Monitoreo inteligente en tiempo real · Actualizado automáticamente</div></div>
+  <div style="display:flex;gap:8px;">
+   <div class="period-tabs">
+    <div class="ptab on" onclick="setPeriodo('dia',this)">Hoy</div>
+    <div class="ptab" onclick="setPeriodo('semana',this)">Semana</div>
+    <div class="ptab" onclick="setPeriodo('mes',this)">Mes</div>
+   </div>
+   <button class="btn bg_ bsm" onclick="refreshCultivo()">↻ Actualizar</button>
+  </div>
+ </div>
+
+ <!-- KPI CARDS -->
+ <div class="kpi-grid" id="kpi-grid">
+  <div class="kpi-card kpi-c-teal">
+   <div class="kpi-icon">🐟</div>
+   <div class="kpi-label">Biomasa Total</div>
+   <div class="kpi-value" id="kpi-biomasa">—</div>
+   <div class="kpi-sub">kilogramos totales</div>
+   <div class="kpi-trend trend-up" id="kpi-biomasa-trend">↑ creciendo</div>
+  </div>
+  <div class="kpi-card kpi-c-blue">
+   <div class="kpi-icon">🐠</div>
+   <div class="kpi-label">Peces Activos</div>
+   <div class="kpi-value" id="kpi-peces">—</div>
+   <div class="kpi-sub">unidades en producción</div>
+   <div class="kpi-trend trend-ok" id="kpi-peces-trend">↔ estable</div>
+  </div>
+  <div class="kpi-card kpi-c-red">
+   <div class="kpi-icon">💀</div>
+   <div class="kpi-label">Mortalidad</div>
+   <div class="kpi-value" id="kpi-mort">—</div>
+   <div class="kpi-sub">% del total</div>
+   <div class="kpi-trend" id="kpi-mort-trend">—</div>
+  </div>
+  <div class="kpi-card kpi-c-blue">
+   <div class="kpi-icon">💧</div>
+   <div class="kpi-label">Oxígeno Prom.</div>
+   <div class="kpi-value" id="kpi-o2">—</div>
+   <div class="kpi-sub">mg/L promedio</div>
+   <div class="kpi-trend" id="kpi-o2-trend">—</div>
+  </div>
+  <div class="kpi-card kpi-c-amb">
+   <div class="kpi-icon">🌡</div>
+   <div class="kpi-label">Temperatura Prom.</div>
+   <div class="kpi-value" id="kpi-temp">—</div>
+   <div class="kpi-sub">°C promedio</div>
+   <div class="kpi-trend" id="kpi-temp-trend">—</div>
+  </div>
+  <div class="kpi-card kpi-c-grn">
+   <div class="kpi-icon">🌿</div>
+   <div class="kpi-label">Conv. Alimenticia</div>
+   <div class="kpi-value" id="kpi-fcr">—</div>
+   <div class="kpi-sub">FCR actual</div>
+   <div class="kpi-trend" id="kpi-fcr-trend">—</div>
+  </div>
+  <div class="kpi-card kpi-c-pur">
+   <div class="kpi-icon">🧪</div>
+   <div class="kpi-label">pH Promedio</div>
+   <div class="kpi-value" id="kpi-ph">—</div>
+   <div class="kpi-sub">unidades de pH</div>
+   <div class="kpi-trend" id="kpi-ph-trend">—</div>
+  </div>
+  <div class="kpi-card kpi-c-ink">
+   <div class="kpi-icon">⭐</div>
+   <div class="kpi-label">Estado General</div>
+   <div class="kpi-value" id="kpi-estado" style="font-size:18px;">—</div>
+   <div class="kpi-sub">índice de salud</div>
+   <div class="kpi-trend" id="kpi-estado-trend">—</div>
+  </div>
+ </div>
+
+ <!-- ÍNDICE DE SALUD + SEMÁFORO -->
+ <div class="g2" style="margin-bottom:16px;">
+  <div class="cd">
+   <div class="ct">⭐ Índice de Salud del Cultivo</div>
+   <div style="display:flex;gap:20px;align-items:center;">
+    <div class="health-ring" style="min-width:120px;">
+     <div class="health-score" id="health-score" style="color:var(--grn);">—</div>
+     <div class="health-label" id="health-label">Calculando...</div>
+     <div class="health-bar-wrap" style="width:100px;">
+      <div class="health-bar-fill" id="health-bar" style="width:0%;background:var(--grn);"></div>
+     </div>
+    </div>
+    <div style="flex:1;">
+     <div id="health-detail" style="font-size:13px;color:var(--muted);line-height:1.8;">
+      El índice evalúa: oxígeno (30%), supervivencia (25%), crecimiento (25%), calidad del agua (20%).
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="cd">
+   <div class="ct">🚦 Semáforo de Parámetros</div>
+   <div class="semaforo-wrap" id="semaforo-wrap">
+    <div class="sem-row sem-opt"><div class="sem-dot"></div><span class="sem-param">Cargando parámetros...</span><span class="sem-val">—</span></div>
+   </div>
+  </div>
+ </div>
+
+ <!-- GRÁFICOS -->
+ <div class="g2" style="margin-bottom:16px;">
+  <div class="cd">
+   <div class="ct">📈 Crecimiento de Biomasa Semanal</div>
+   <div class="chart-wrap" style="height:220px;"><canvas id="chart-biomasa"></canvas></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📊 Mortalidad por Etapa</div>
+   <div class="chart-wrap" style="height:220px;"><canvas id="chart-mort-etapa"></canvas></div>
+  </div>
+ </div>
+ <div class="g2" style="margin-bottom:16px;">
+  <div class="cd">
+   <div class="ct">🕸 Calidad del Agua (Radar)</div>
+   <div class="chart-wrap" style="height:240px;"><canvas id="chart-radar"></canvas></div>
+  </div>
+  <div class="cd">
+   <div class="ct">🍩 Distribución Consumo Alimento</div>
+   <div class="chart-wrap" style="height:240px;"><canvas id="chart-alim-dist"></canvas></div>
+  </div>
+ </div>
+
+ <!-- ALERTAS + RECOMENDACIONES -->
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">🚨 Alertas Automáticas <span id="alert-badge" style="background:var(--red-l);color:var(--red);font-size:11px;padding:2px 7px;border-radius:99px;font-weight:700;"></span></div>
+   <div id="alertas-inteligentes"><div class="empty">Analizando parámetros...</div></div>
+  </div>
+  <div class="cd">
+   <div class="ct">💡 Recomendaciones del Sistema</div>
+   <div id="recomendaciones-wrap"><div class="empty">Generando recomendaciones...</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MAPA DE ESTANQUES ══ -->
+<div class="pg" id="pg-mapa">
+ <div class="ph">
+  <div><div class="pt">Mapa Visual de Estanques</div>
+  <div class="ps">Estado en tiempo real de todas las unidades de producción</div></div>
+  <div style="display:flex;gap:8px;align-items:center;">
+   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--grn);"></div>Óptimo</div>
+   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--amb);"></div>Precaución</div>
+   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--red);"></div>Crítico</div>
+  </div>
+ </div>
+ <div class="cd" style="margin-bottom:16px;">
+  <div class="ct">Resumen global <button class="btn bg_ bsm" onclick="loadMapa()">↻ Actualizar</button></div>
+  <div class="g4" id="mapa-resumen">
+   <div class="sc"><div class="si" style="background:var(--grn-l)">✅</div><div class="sl">En óptimo</div><div class="sv" id="map-opt">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--amb-l)">⚠️</div><div class="sl">Precaución</div><div class="sv" id="map-pre">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--red-l)">🚨</div><div class="sl">Crítico</div><div class="sv" id="map-cri">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--pri-l)">📊</div><div class="sl">Total estanques</div><div class="sv" id="map-tot">—</div></div>
+  </div>
+ </div>
+ <div class="tank-grid" id="mapa-grid"><div class="empty">Cargando estanques...</div></div>
+</div>
+
+<!-- ══ CONTROL FINANCIERO ══ -->
+<div class="pg" id="pg-finanzas">
+ <div class="ph">
+  <div><div class="pt">Control Financiero</div>
+  <div class="ps">Costos, rentabilidad y proyección económica del ciclo</div></div>
+ </div>
+ <div class="g2" style="margin-bottom:16px;">
+  <div class="cd">
+   <div class="ct">💰 Resumen de Costos del Ciclo</div>
+   <div class="fin-total" id="fin-total">$0</div>
+   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Costo total acumulado</div>
+   <div class="fin-row"><span class="fin-label">🌿 Alimento</span><span class="fin-amount fin-negative" id="fin-alim">$—</span></div>
+   <div class="fin-row"><span class="fin-label">💊 Medicamentos</span><span class="fin-amount fin-negative" id="fin-med">$—</span></div>
+   <div class="fin-row"><span class="fin-label">⚡ Energía</span><span class="fin-amount fin-negative" id="fin-ener">$—</span></div>
+   <div class="fin-row"><span class="fin-label">👥 Mano de obra</span><span class="fin-amount fin-negative" id="fin-mano">$—</span></div>
+   <div class="fin-row" style="border-top:2px solid var(--line);margin-top:8px;padding-top:12px;font-weight:700;">
+    <span class="fin-label">📈 Rentabilidad proyectada</span>
+    <span class="fin-amount fin-positive" id="fin-rent">$—</span>
+   </div>
+  </div>
+  <div class="cd">
+   <div class="ct">Ingresar costos del ciclo</div>
+   <div class="fg">
+    <div class="ff"><label>Alimento ($/ciclo)</label><input type="number" id="fc-alim" placeholder="5000000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Medicamentos ($)</label><input type="number" id="fc-med" placeholder="500000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Energía ($)</label><input type="number" id="fc-ener" placeholder="800000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Mano de obra ($)</label><input type="number" id="fc-mano" placeholder="3000000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Precio venta ($/kg)</label><input type="number" id="fc-pventa" placeholder="12000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Biomasa cosecha (kg)</label><input type="number" id="fc-bio" placeholder="500" oninput="calcFinanzas()"></div>
+   </div>
+   <div class="fb" id="fin-resultado">Completá los datos para ver la proyección financiera</div>
+  </div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">📊 Distribución de Costos</div>
+   <div class="chart-wrap" style="height:250px;"><canvas id="chart-costos"></canvas></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📈 Proyección de Rentabilidad</div>
+   <div class="chart-wrap" style="height:250px;"><canvas id="chart-rent"></canvas></div>
+  </div>
+ </div>
+</div>
+
+<!-- ══ INFORMES Y ANALÍTICA ══ -->
+<div class="pg" id="pg-informes">
+ <div class="ph">
+  <div><div class="pt">Informes y Analítica</div>
+  <div class="ps">Generación automática de reportes técnicos profesionales</div></div>
+ </div>
+
+ <div class="export-bar">
+  <button class="btn-export bex-pdf" onclick="exportPDF()">📄 Descargar PDF</button>
+  <button class="btn-export bex-xls" onclick="exportExcel()">📊 Descargar Excel</button>
+  <button class="btn-export bex-print" onclick="window.print()">🖨 Imprimir</button>
+ </div>
+
+ <!-- INFORME AUTOMÁTICO -->
+ <div class="cd" style="margin-bottom:16px;" id="informe-section">
+  <div class="ct">📋 Informe Técnico Automático
+   <button class="btn bg_ bsm" onclick="generarInforme()">↻ Regenerar</button>
+  </div>
+  <div class="informe-texto" id="informe-texto">Generando informe técnico...</div>
+ </div>
+
+ <!-- PREDICCIÓN -->
+ <div class="cd" style="margin-bottom:16px;">
+  <div class="ct">🔮 Predicción y Proyección</div>
+  <div class="g4">
+   <div class="pred-card">
+    <div class="pred-title">Cosecha estimada</div>
+    <div class="pred-val" id="pred-fecha">—</div>
+    <div class="pred-sub">fecha proyectada</div>
+   </div>
+   <div class="pred-card" style="background:var(--pri);">
+    <div class="pred-title">Biomasa proyectada</div>
+    <div class="pred-val" id="pred-bio">—</div>
+    <div class="pred-sub">kg al momento de cosecha</div>
+   </div>
+   <div class="pred-card" style="background:var(--teal);">
+    <div class="pred-title">Alimento proyectado</div>
+    <div class="pred-val" id="pred-alim">—</div>
+    <div class="pred-sub">kg totales del ciclo</div>
+   </div>
+   <div class="pred-card" style="background:var(--pur);">
+    <div class="pred-title">Mortalidad proyectada</div>
+    <div class="pred-val" id="pred-mort">—</div>
+    <div class="pred-sub">% estimado al cierre</div>
+   </div>
+  </div>
+ </div>
+
+ <!-- TENDENCIAS -->
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">📈 Tendencia de Temperatura</div>
+   <div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-temp"></canvas></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📈 Tendencia de Oxígeno</div>
+   <div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-o2"></canvas></div>
+  </div>
+ </div>
+</div>
+
 </div></div><!-- /mn /app -->
 
 <script>
@@ -964,8 +1414,8 @@ function exportarAlertas(){
     if(!r.ok||!r.d.length){alert('No hay alertas para exportar.');return;}
     const rows=[['Estanque','Temperatura','pH','Oxígeno','Fecha','Observación'],
       ...r.d.map(l=>[l.estanque_id,l.temperatura,l.ph,l.oxigeno,fmtDate(l.registrado_en),l.observacion||''])];
-    const csv=rows.map(r=>r.join(',')).join('\
-');
+    const csv=rows.map(r=>r.join(',')).join(
+);
     const a=document.createElement('a');
     a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
     a.download='alertas_aquality.csv';a.click();
@@ -1114,6 +1564,824 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(pg==='cosecha') setTimeout(renderCosChart,100);
   };
 });
+
+
+// ═══════════════════════════════════════════════════════════
+// AQUALITY — MÓDULOS AVANZADOS
+// Estado del Cultivo · Mapa · Finanzas · Informes
+// ═══════════════════════════════════════════════════════════
+
+// ── DATOS SIMULADOS (reemplazar con API/localStorage) ──────
+const DATOS_SIM = {
+  biomasa:      { actual: 1240, semanas: [320,480,620,780,920,1080,1240] },
+  peces:        { activos: 8420, inicial: 9000 },
+  mortalidad:   { total: 580, pct: 6.4, porEtapa: [1.2, 3.8, 4.5, 6.4] },
+  oxigeno:      { prom: 9.2, historial: [9.0,9.3,8.8,9.5,9.1,9.4,9.2,8.9,9.3,9.2] },
+  temperatura:  { prom: 14.5, historial: [14.2,14.5,13.8,15.1,14.9,14.3,13.5,14.8,15.2,14.6] },
+  ph:           { prom: 7.3, historial: [7.2,7.3,7.4,7.2,7.1,7.3,7.5,7.2,7.3,7.4] },
+  fcr:          { actual: 1.28, historial: [1.1,1.2,1.15,1.3,1.25,1.18,1.28] },
+  amonio:       { prom: 0.018 },
+  nitritos:     { prom: 0.045 },
+  alimentacion: { porEtapa: [180, 420, 680, 960], totalAcum: 1580 },
+  estanques: [
+    { codigo:'EST-01', nombre:'Estanque Norte',   etapa:'engorde',   estado:'opt', biomasa:380, peces:1200, o2:9.4, temp:14.2 },
+    { codigo:'EST-02', nombre:'Estanque Sur',     etapa:'dedinos',   estado:'pre', biomasa:210, peces:2800, o2:7.8, temp:15.8 },
+    { codigo:'EST-03', nombre:'Estanque Este',    etapa:'alevinaje', estado:'opt', biomasa:85,  peces:3000, o2:9.1, temp:13.9 },
+    { codigo:'EST-04', nombre:'Estanque Oeste',   etapa:'incubacion',estado:'cri', biomasa:12,  peces:4200, o2:6.9, temp:16.5 },
+    { codigo:'EST-05', nombre:'Estanque Central', etapa:'engorde',   estado:'opt', biomasa:553, peces:1420, o2:9.8, temp:14.0 },
+  ],
+};
+
+let periodoCultivo = 'dia';
+let chartsAv = {}; // advanced charts registry
+
+// ── PERÍODO ──────────────────────────────────────────────
+function setPeriodo(p, el) {
+  periodoCultivo = p;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  refreshCultivo();
+}
+
+// ── NAVEGACIÓN EXTENDIDA ─────────────────────────────────
+const _goToOrig = window.goTo || function(){};
+window.goTo = function(pg, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  const pgEl = document.getElementById('pg-' + pg);
+  if (pgEl) pgEl.classList.add('on');
+  if (el) el.classList.add('on');
+  // original page loads
+  if (pg === 'inv')      loadInv && loadInv();
+  if (pg === 'personal') loadPer && loadPer();
+  if (pg === 'usuarios') loadUsr && loadUsr();
+  if (pg === 'estanques')loadEst && loadEst();
+  if (pg === 'agua')     loadAlertas && loadAlertas();
+  if (pg === 'alim')     setTimeout(() => renderFCRChart && renderFCRChart(), 80);
+  if (pg === 'cosecha')  setTimeout(() => renderCosChart && renderCosChart(), 80);
+  // new pages
+  if (pg === 'cultivo')  setTimeout(initCultivo, 80);
+  if (pg === 'mapa')     setTimeout(loadMapa, 80);
+  if (pg === 'finanzas') setTimeout(initFinanzas, 80);
+  if (pg === 'informes') setTimeout(initInformes, 80);
+};
+
+// ═══════════════════════════════════════════════
+// MÓDULO 1: ESTADO DEL CULTIVO
+// ═══════════════════════════════════════════════
+
+function initCultivo() {
+  refreshCultivo();
+}
+
+function refreshCultivo() {
+  const D = DATOS_SIM;
+  
+  // ── KPI CARDS ──
+  const mortPct = D.mortalidad.pct.toFixed(1);
+  const mortClass = mortPct < 3 ? 'trend-up' : mortPct < 8 ? 'trend-ok' : 'trend-dn';
+  
+  setKPI('kpi-biomasa',      D.biomasa.actual + ' kg',     'trend-up',  '↑ +160 kg esta semana');
+  setKPI('kpi-peces',        D.peces.activos.toLocaleString('es-CO'), 'trend-ok', '↔ estable');
+  setKPI('kpi-mort',         mortPct + '%',                 mortClass,   mortPct < 5 ? '✓ controlada' : '⚠ revisar');
+  setKPI('kpi-o2',           D.oxigeno.prom + ' mg/L',     D.oxigeno.prom >= 7 ? 'trend-up' : 'trend-dn', D.oxigeno.prom >= 7 ? '✓ óptimo' : '⚠ bajo');
+  setKPI('kpi-temp',         D.temperatura.prom + ' °C',   D.temperatura.prom <= 18 ? 'trend-ok' : 'trend-dn', D.temperatura.prom <= 18 ? '✓ rango normal' : '⚠ alta');
+  setKPI('kpi-fcr',          D.fcr.actual.toFixed(2),      D.fcr.actual < 1.5 ? 'trend-up' : 'trend-dn', D.fcr.actual < 1.5 ? '✓ eficiente' : '⚠ revisar');
+  setKPI('kpi-ph',           D.ph.prom.toFixed(1),         D.ph.prom >= 6.5 && D.ph.prom <= 8.5 ? 'trend-up' : 'trend-dn', '✓ rango normal');
+
+  // ── ÍNDICE DE SALUD ──
+  const idx = calcSalud(D);
+  const hs = document.getElementById('health-score');
+  const hl = document.getElementById('health-label');
+  const hb = document.getElementById('health-bar');
+  const hd = document.getElementById('health-detail');
+  if (hs) {
+    hs.textContent = idx.score + '/100';
+    hs.style.color = idx.color;
+    hl.textContent = idx.label;
+    hl.style.color = idx.color;
+    hb.style.width = idx.score + '%';
+    hb.style.background = idx.color;
+    hd.textContent = idx.detalle;
+  }
+  setKPI('kpi-estado', idx.label, idx.score >= 75 ? 'trend-up' : idx.score >= 50 ? 'trend-ok' : 'trend-dn', 'Score: ' + idx.score + '/100');
+
+  // ── SEMÁFORO ──
+  renderSemaforo(D);
+
+  // ── ALERTAS ──
+  generarAlertas(D);
+
+  // ── RECOMENDACIONES ──
+  generarRecomendaciones(D);
+
+  // ── GRÁFICOS ──
+  setTimeout(() => {
+    renderBiomasaChart(D);
+    renderMortEtapaChart(D);
+    renderRadarChart(D);
+    renderAlimDistChart(D);
+  }, 50);
+}
+
+function setKPI(id, val, trendClass, trendTxt) {
+  const el = document.getElementById(id);
+  const tr = document.getElementById(id + '-trend');
+  if (el) el.textContent = val;
+  if (tr) { tr.textContent = trendTxt; tr.className = 'kpi-trend ' + trendClass; }
+}
+
+function calcSalud(D) {
+  let score = 0;
+  // Oxígeno (30%)
+  score += D.oxigeno.prom >= 9 ? 30 : D.oxigeno.prom >= 7 ? 20 : 5;
+  // Supervivencia (25%)
+  const surv = 100 - D.mortalidad.pct;
+  score += surv >= 97 ? 25 : surv >= 92 ? 18 : surv >= 85 ? 10 : 3;
+  // Crecimiento/FCR (25%)
+  score += D.fcr.actual <= 1.3 ? 25 : D.fcr.actual <= 1.6 ? 18 : D.fcr.actual <= 2 ? 10 : 3;
+  // Calidad agua pH (20%)
+  score += (D.ph.prom >= 6.5 && D.ph.prom <= 8.5) ? 20 : (D.ph.prom >= 6 && D.ph.prom <= 9) ? 10 : 0;
+  
+  const label = score >= 80 ? 'Excelente' : score >= 65 ? 'Bueno' : score >= 45 ? 'Riesgo' : 'Crítico';
+  const color = score >= 80 ? 'var(--grn)' : score >= 65 ? 'var(--pri)' : score >= 45 ? 'var(--amb)' : 'var(--red)';
+  const detalle = `Oxígeno: ${D.oxigeno.prom}mg/L (${D.oxigeno.prom>=9?'✓':'⚠'}) · Supervivencia: ${(100-D.mortalidad.pct).toFixed(1)}% · FCR: ${D.fcr.actual} · pH: ${D.ph.prom}`;
+  return { score, label, color, detalle };
+}
+
+function renderSemaforo(D) {
+  const wrap = document.getElementById('semaforo-wrap');
+  if (!wrap) return;
+  const params = [
+    { nombre:'Oxígeno',     val:D.oxigeno.prom+' mg/L',   ok: D.oxigeno.prom>=7,    cri: D.oxigeno.prom<5 },
+    { nombre:'Temperatura', val:D.temperatura.prom+' °C',  ok: D.temperatura.prom<=18, cri: D.temperatura.prom>22 },
+    { nombre:'pH',          val:D.ph.prom.toFixed(1),      ok: D.ph.prom>=6.5&&D.ph.prom<=8.5, cri: D.ph.prom<6||D.ph.prom>9 },
+    { nombre:'Mortalidad',  val:D.mortalidad.pct.toFixed(1)+'%', ok: D.mortalidad.pct<5, cri: D.mortalidad.pct>10 },
+    { nombre:'Amonio NH₃',  val:D.amonio.prom+' mg/L',    ok: D.amonio.prom<0.025,   cri: D.amonio.prom>0.1 },
+    { nombre:'Nitritos NO₂',val:D.nitritos.prom+' mg/L',  ok: D.nitritos.prom<0.1,   cri: D.nitritos.prom>0.5 },
+  ];
+  wrap.innerHTML = params.map(p => {
+    const cls = p.cri ? 'sem-cri' : p.ok ? 'sem-opt' : 'sem-pre';
+    return `<div class="sem-row ${cls}"><div class="sem-dot"></div><span class="sem-param">${p.nombre}</span><span class="sem-val">${p.val}</span></div>`;
+  }).join('');
+}
+
+function generarAlertas(D) {
+  const wrap = document.getElementById('alertas-inteligentes');
+  if (!wrap) return;
+  const alertas = [];
+  const ahora = new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+
+  if (D.oxigeno.prom < 7)
+    alertas.push({ tipo:'cri', icon:'🚨', title:'Oxígeno crítico', msg:`Nivel promedio ${D.oxigeno.prom} mg/L está por debajo del mínimo seguro (7 mg/L). Activar aireación inmediatamente.` });
+  else if (D.oxigeno.prom < 8)
+    alertas.push({ tipo:'pre', icon:'⚠️', title:'Oxígeno bajo', msg:`Nivel ${D.oxigeno.prom} mg/L se aproxima al límite de precaución. Monitorear frecuentemente.` });
+
+  if (D.temperatura.prom > 20)
+    alertas.push({ tipo:'cri', icon:'🌡', title:'Temperatura alta', msg:`${D.temperatura.prom}°C supera el umbral crítico. Revisar aireación y sombra. Puede afectar alimentación.` });
+  else if (D.temperatura.prom > 18)
+    alertas.push({ tipo:'pre', icon:'🌡', title:'Temperatura elevada', msg:`${D.temperatura.prom}°C fuera del rango óptimo (10–18°C). Ajustar caudal o sombra.` });
+
+  if (D.mortalidad.pct > 10)
+    alertas.push({ tipo:'cri', icon:'💀', title:'Mortalidad alta', msg:`Mortalidad acumulada de ${D.mortalidad.pct}% supera el 10%. Realizar diagnóstico urgente.` });
+  else if (D.mortalidad.pct > 5)
+    alertas.push({ tipo:'pre', icon:'💀', title:'Mortalidad en precaución', msg:`Mortalidad ${D.mortalidad.pct}%. Investigar causas y revisar calidad del agua.` });
+
+  if (D.ph.prom < 6.5 || D.ph.prom > 8.5)
+    alertas.push({ tipo:'cri', icon:'🧪', title:'pH fuera de rango', msg:`pH ${D.ph.prom} fuera del rango seguro (6.5–8.5). Aplicar corrección según indicación técnica.` });
+
+  if (D.amonio.prom > 0.025)
+    alertas.push({ tipo:'pre', icon:'☣️', title:'Amonio elevado', msg:`NH₃ ${D.amonio.prom} mg/L supera el límite. Reducir carga de biomasa o incrementar recambio de agua.` });
+
+  if (D.fcr.actual > 2.0)
+    alertas.push({ tipo:'pre', icon:'🌿', title:'FCR ineficiente', msg:`Factor de conversión ${D.fcr.actual} indica sobrealimentación. Revisar cantidades y frecuencias.` });
+
+  if (alertas.length === 0)
+    alertas.push({ tipo:'inf', icon:'✅', title:'Todos los parámetros normales', msg:'El sistema no detecta situaciones de riesgo en este momento. Continuar monitoreo rutinario.' });
+
+  const badge = document.getElementById('alert-badge');
+  if (badge) {
+    const cris = alertas.filter(a => a.tipo === 'cri').length;
+    badge.textContent = cris > 0 ? `${cris} crítica(s)` : `${alertas.length} activa(s)`;
+    badge.style.background = cris > 0 ? 'var(--red-l)' : 'var(--amb-l)';
+    badge.style.color = cris > 0 ? 'var(--red)' : 'var(--amb)';
+  }
+
+  wrap.innerHTML = alertas.map(a =>
+    `<div class="alert-card alert-${a.tipo}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-msg">${a.msg}</div>
+        <div class="alert-time">${ahora} · generado automáticamente</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function generarRecomendaciones(D) {
+  const wrap = document.getElementById('recomendaciones-wrap');
+  if (!wrap) return;
+  const recs = [];
+
+  if (D.oxigeno.prom < 8)
+    recs.push({ pri:'rec-pri', icon:'💨', title:'Incrementar aireación', msg:'Aumentar el caudal de aireación en estanques con O₂ por debajo de 8 mg/L, especialmente en las horas de mayor temperatura.' });
+
+  if (D.mortalidad.pct > 5)
+    recs.push({ pri:'rec-pri', icon:'🔬', title:'Diagnóstico de mortalidad', msg:'Realizar necropsia de peces muertos y análisis bacteriológico del agua para identificar agentes causales.' });
+
+  if (D.temperatura.prom > 17)
+    recs.push({ pri:'rec-med', icon:'🌿', title:'Gestión térmica', msg:'Considerar incremento del caudal de agua fresca, instalación de mallas sombreadoras o ajuste de horarios de alimentación a las horas más frescas.' });
+
+  if (D.fcr.actual > 1.5)
+    recs.push({ pri:'rec-med', icon:'🌱', title:'Optimizar alimentación', msg:`FCR de ${D.fcr.actual} indica oportunidad de mejora. Revisar calidad del alimento, ajustar ración al 2–3% de biomasa y verificar frecuencias diarias.` });
+
+  if (D.amonio.prom > 0.015)
+    recs.push({ pri:'rec-med', icon:'💧', title:'Recambio de agua', msg:'Implementar recambios parciales (20–30%) para diluir compuestos nitrogenados. Evaluar densidad de siembra.' });
+
+  recs.push({ pri:'rec-low', icon:'📋', title:'Muestreo semanal', msg:'Mantener el registro periódico de peso promedio para calcular GDP y ajustar la ración alimenticia con precisión.' });
+  recs.push({ pri:'rec-low', icon:'🧹', title:'Limpieza preventiva', msg:'Programar desinfección de equipos, redes y bordas de estanques. Revisar filtros y sistemas de aireación.' });
+
+  wrap.innerHTML = recs.slice(0, 6).map(r =>
+    `<div class="rec-card ${r.pri}">
+      <div class="rec-icon">${r.icon}</div>
+      <div><div class="rec-title">${r.title}</div><div class="rec-msg">${r.msg}</div></div>
+    </div>`
+  ).join('');
+}
+
+// ── GRÁFICOS AVANZADOS ──────────────────────────────────
+
+function renderBiomasaChart(D) {
+  const ctx = document.getElementById('chart-biomasa');
+  if (!ctx) return;
+  if (chartsAv['biomasa']) chartsAv['biomasa'].destroy();
+  const semanas = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7'];
+  chartsAv['biomasa'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: semanas, datasets: [{
+      label: 'Biomasa (kg)', data: D.biomasa.semanas,
+      borderColor: 'var(--teal)', backgroundColor: 'rgba(14,165,160,.12)',
+      tension: .4, fill: true, pointRadius: 5, pointBackgroundColor: 'var(--teal)',
+    }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
+      scales:{ y:{min:0,grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
+  });
+}
+
+function renderMortEtapaChart(D) {
+  const ctx = document.getElementById('chart-mort-etapa');
+  if (!ctx) return;
+  if (chartsAv['mort']) chartsAv['mort'].destroy();
+  chartsAv['mort'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['🥚 Incubación','🐟 Alevinaje','🐠 Dedinos','🎣 Engorde'],
+      datasets: [{ label: 'Mortalidad (%)',
+        data: D.mortalidad.porEtapa,
+        backgroundColor: ['rgba(124,58,237,.7)','rgba(14,165,160,.7)','rgba(217,119,6,.7)','rgba(220,38,38,.7)'],
+        borderRadius: 6,
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
+      scales:{ y:{min:0,max:15,grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
+  });
+}
+
+function renderRadarChart(D) {
+  const ctx = document.getElementById('chart-radar');
+  if (!ctx) return;
+  if (chartsAv['radar']) chartsAv['radar'].destroy();
+  // Normalizar a 0–100
+  const normO2   = Math.min(100, (D.oxigeno.prom / 12) * 100);
+  const normTemp = Math.max(0, 100 - Math.abs(D.temperatura.prom - 14) * 10);
+  const normPH   = Math.max(0, 100 - Math.abs(D.ph.prom - 7.2) * 40);
+  const normNH3  = Math.max(0, 100 - (D.amonio.prom / 0.025) * 50);
+  const normNO2  = Math.max(0, 100 - (D.nitritos.prom / 0.1) * 50);
+  chartsAv['radar'] = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Oxígeno','Temperatura','pH','Amonio','Nitritos'],
+      datasets: [{
+        label: 'Estado actual', fill: true,
+        data: [normO2, normTemp, normPH, normNH3, normNO2].map(v => Math.round(v)),
+        backgroundColor: 'rgba(43,127,212,.15)', borderColor: 'var(--pri)',
+        pointBackgroundColor: 'var(--pri)', pointRadius: 4,
+      },{
+        label: 'Óptimo', fill: false,
+        data: [100,100,100,100,100],
+        borderColor: 'rgba(22,163,74,.4)', borderDash: [4,4],
+        pointRadius: 0,
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      scales:{ r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(0,0,0,.06)'}} },
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} } }
+  });
+}
+
+function renderAlimDistChart(D) {
+  const ctx = document.getElementById('chart-alim-dist');
+  if (!ctx) return;
+  if (chartsAv['alim']) chartsAv['alim'].destroy();
+  chartsAv['alim'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['🥚 Incubación','🐟 Alevinaje','🐠 Dedinos','🎣 Engorde'],
+      datasets: [{ data: D.alimentacion.porEtapa,
+        backgroundColor: ['rgba(124,58,237,.8)','rgba(14,165,160,.8)','rgba(217,119,6,.8)','rgba(22,163,74,.8)'],
+        borderWidth: 2, borderColor: '#fff',
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+                tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed} kg`}} } }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// MÓDULO 2: MAPA DE ESTANQUES
+// ═══════════════════════════════════════════════
+
+function loadMapa() {
+  const D = DATOS_SIM;
+  const grid = document.getElementById('mapa-grid');
+  if (!grid) return;
+
+  const opt = D.estanques.filter(e => e.estado === 'opt').length;
+  const pre = D.estanques.filter(e => e.estado === 'pre').length;
+  const cri = D.estanques.filter(e => e.estado === 'cri').length;
+  
+  const sv = id => { const el = document.getElementById(id); if(el) el.textContent = D.estanques.filter(e=>e.estado===id.split('-')[1]).length||'—'; };
+  const sm = document.getElementById('map-opt'); if(sm) sm.textContent = opt;
+  const smp = document.getElementById('map-pre'); if(smp) smp.textContent = pre;
+  const smc = document.getElementById('map-cri'); if(smc) smc.textContent = cri;
+  const smt = document.getElementById('map-tot'); if(smt) smt.textContent = D.estanques.length;
+
+  const etapaColors = {
+    incubacion: {bg:'var(--pur-l)',color:'var(--pur)',label:'🥚 Incubación'},
+    alevinaje:  {bg:'var(--teal-l)',color:'var(--teal)',label:'🐟 Alevinaje'},
+    dedinos:    {bg:'var(--amb-l)',color:'var(--amb)',label:'🐠 Dedinos'},
+    engorde:    {bg:'var(--grn-l)',color:'var(--grn)',label:'🎣 Engorde'},
+  };
+
+  grid.innerHTML = D.estanques.map(e => {
+    const ec = etapaColors[e.etapa] || {};
+    const o2Class = e.o2 >= 8 ? 'color:var(--grn)' : e.o2 >= 6 ? 'color:var(--amb)' : 'color:var(--red)';
+    return `
+    <div class="tank-card t-${e.estado}" onclick="verDetalle('${e.codigo}')">
+      <div class="tank-status"></div>
+      <div class="tank-code">${e.codigo}</div>
+      <div class="tank-name">${e.nombre}</div>
+      <div class="tank-stage" style="background:${ec.bg};color:${ec.color};">${ec.label}</div>
+      <div class="tank-metric"><span class="tank-metric-label">Biomasa</span><span class="tank-metric-val">${e.biomasa} kg</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Peces</span><span class="tank-metric-val">${e.peces.toLocaleString('es-CO')}</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Oxígeno</span><span class="tank-metric-val" style="${o2Class}">${e.o2} mg/L</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Temperatura</span><span class="tank-metric-val">${e.temp}°C</span></div>
+    </div>`;
+  }).join('');
+}
+
+function verDetalle(codigo) {
+  const e = DATOS_SIM.estanques.find(x => x.codigo === codigo);
+  if (!e) return;
+  const estados = { opt:'✅ Óptimo', pre:'⚠️ Precaución', cri:'🚨 Crítico' };
+  alert(`${e.codigo} – ${e.nombre}
+
+Etapa: ${e.etapa}
+Estado: ${estados[e.estado]}
+Biomasa: ${e.biomasa} kg
+Peces: ${e.peces}
+Oxígeno: ${e.o2} mg/L
+Temperatura: ${e.temp}°C`);
+}
+
+// ═══════════════════════════════════════════════
+// MÓDULO 3: CONTROL FINANCIERO
+// ═══════════════════════════════════════════════
+
+function initFinanzas() {
+  calcFinanzas();
+  setTimeout(renderFinanzasCharts, 80);
+}
+
+function calcFinanzas() {
+  const alim  = parseFloat(document.getElementById('fc-alim')?.value) || 5000000;
+  const med   = parseFloat(document.getElementById('fc-med')?.value)  || 500000;
+  const ener  = parseFloat(document.getElementById('fc-ener')?.value)  || 800000;
+  const mano  = parseFloat(document.getElementById('fc-mano')?.value)  || 3000000;
+  const pventa= parseFloat(document.getElementById('fc-pventa')?.value) || 12000;
+  const bio   = parseFloat(document.getElementById('fc-bio')?.value)    || 500;
+
+  const total    = alim + med + ener + mano;
+  const ingresos = pventa * bio;
+  const rent     = ingresos - total;
+  const rentPct  = total > 0 ? ((rent / total) * 100).toFixed(1) : 0;
+
+  const fmt = n => '$' + n.toLocaleString('es-CO');
+  const sv  = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+
+  sv('fin-total', fmt(total));
+  sv('fin-alim',  fmt(alim));
+  sv('fin-med',   fmt(med));
+  sv('fin-ener',  fmt(ener));
+  sv('fin-mano',  fmt(mano));
+  sv('fin-rent',  fmt(rent));
+
+  const rb = document.getElementById('fin-resultado');
+  if (rb) {
+    const color = rent >= 0 ? 'var(--grn)' : 'var(--red)';
+    rb.style.color = color;
+    rb.textContent = rent >= 0
+      ? `✓ Rentabilidad positiva: ${fmt(rent)} (${rentPct}%) · Ingreso estimado: ${fmt(ingresos)}`
+      : `✗ Pérdida proyectada: ${fmt(Math.abs(rent))} · Ingreso estimado: ${fmt(ingresos)}`;
+  }
+  renderFinanzasCharts(alim, med, ener, mano, rent);
+}
+
+function renderFinanzasCharts(alim, med, ener, mano, rent) {
+  alim  = alim  || 5000000;
+  med   = med   || 500000;
+  ener  = ener  || 800000;
+  mano  = mano  || 3000000;
+  rent  = rent  !== undefined ? rent : 2700000;
+
+  const ctx1 = document.getElementById('chart-costos');
+  const ctx2 = document.getElementById('chart-rent');
+  if (!ctx1 || !ctx2) return;
+
+  if (chartsAv['costos']) chartsAv['costos'].destroy();
+  chartsAv['costos'] = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['🌿 Alimento','💊 Medicamentos','⚡ Energía','👥 Mano de obra'],
+      datasets: [{ data: [alim, med, ener, mano],
+        backgroundColor: ['rgba(22,163,74,.8)','rgba(220,38,38,.8)','rgba(217,119,6,.8)','rgba(43,127,212,.8)'],
+        borderWidth:2, borderColor:'#fff',
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+                tooltip:{callbacks:{label:c=>`${c.label}: $${c.parsed.toLocaleString('es-CO')}`}} } }
+  });
+
+  const meses = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6'];
+  const costoAcum  = meses.map((_,i) => Math.round((alim+med+ener+mano)*(i+1)/6));
+  const ingresoAcum = meses.map((_,i) => i < 5 ? 0 : Math.round((alim+med+ener+mano+rent)));
+  if (chartsAv['rent']) chartsAv['rent'].destroy();
+  chartsAv['rent'] = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: meses,
+      datasets: [
+        { label:'Costo acumulado', data:costoAcum, borderColor:'var(--red)', backgroundColor:'rgba(220,38,38,.08)', fill:true, tension:.4, pointRadius:4 },
+        { label:'Ingreso proyectado', data:ingresoAcum, borderColor:'var(--grn)', backgroundColor:'rgba(22,163,74,.08)', fill:true, tension:.4, pointRadius:4 },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+                tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${c.parsed.y.toLocaleString('es-CO')}`}} },
+      scales:{ y:{grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
+  });
+}
+
+// ═══════════════════════════════════════════════
+// MÓDULO 4: INFORMES Y ANALÍTICA
+// ═══════════════════════════════════════════════
+
+function initInformes() {
+  generarInforme();
+  calcPrediccion();
+  setTimeout(renderTendencias, 80);
+}
+
+function generarInforme() {
+  const D   = DATOS_SIM;
+  const idx = calcSalud(D);
+  const hoy = new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+
+  const texto = `INFORME TÉCNICO DE PRODUCCIÓN ACUÍCOLA
+Sistema AQUALITY — Generado el ${hoy}
+${'─'.repeat(52)}
+
+ESTADO GENERAL DEL CULTIVO: ${idx.label.toUpperCase()} (${idx.score}/100)
+
+RESUMEN EJECUTIVO
+Durante el período de análisis, el cultivo presenta condiciones ${idx.label.toLowerCase()} según el índice de salud ponderado. La biomasa total acumulada es de ${D.biomasa.actual} kg distribuida en ${DATOS_SIM.estanques.length} estanques activos, con un total de ${D.peces.activos.toLocaleString('es-CO')} peces en producción.
+
+PARÁMETROS DE CALIDAD DEL AGUA
+Temperatura promedio: ${D.temperatura.prom}°C ${D.temperatura.prom<=18?'(dentro del rango óptimo 10–18°C)':'(fuera del rango, revisar urgente)'}
+Oxígeno disuelto: ${D.oxigeno.prom} mg/L ${D.oxigeno.prom>=7?'(nivel adecuado)':'(nivel crítico)'}
+pH: ${D.ph.prom} ${(D.ph.prom>=6.5&&D.ph.prom<=8.5)?'(rango normal)':'(fuera de rango)'}
+Amonio NH₃: ${D.amonio.prom} mg/L
+Nitritos NO₂: ${D.nitritos.prom} mg/L
+
+INVENTARIO BIOLÓGICO
+Peces activos: ${D.peces.activos.toLocaleString('es-CO')} unidades
+Mortalidad acumulada: ${D.mortalidad.pct}% (${D.mortalidad.total} unidades)
+${D.mortalidad.pct<5?'La mortalidad se encuentra dentro de los rangos aceptables para la especie.':'Se recomienda investigar las causas de mortalidad y aplicar medidas correctivas.'}
+
+NUTRICIÓN Y ALIMENTACIÓN
+Factor de Conversión Alimenticia (FCR): ${D.fcr.actual}
+${D.fcr.actual<1.3?'Excelente eficiencia alimenticia. El FCR indica aprovechamiento óptimo del alimento.':
+  D.fcr.actual<1.6?'FCR aceptable. Monitorear para mantener eficiencia en niveles óptimos.':
+  'FCR elevado. Revisar calidad del alimento, ración y frecuencia de suministro.'}
+Alimento suministrado acumulado: ${D.alimentacion.totalAcum} kg
+
+PROYECCIONES
+Biomasa proyectada al cierre: ${Math.round(D.biomasa.actual * 1.15)} kg
+FCR proyectado al cierre: ${(D.fcr.actual * 1.05).toFixed(2)}
+Mortalidad proyectada: ${(D.mortalidad.pct * 1.1).toFixed(1)}%
+
+CONCLUSIONES Y RECOMENDACIONES
+${idx.score>=80?
+'El cultivo se encuentra en condiciones óptimas. Mantener los protocolos actuales de manejo y monitoreo.':
+idx.score>=65?
+'El cultivo muestra condiciones favorables con áreas de mejora identificadas. Se recomienda atención a los parámetros en precaución.':
+'Se requiere atención prioritaria. Revisar parámetros críticos e implementar medidas correctivas inmediatas.'}
+
+${'─'.repeat(52)}
+Informe generado automáticamente por AQUALITY v1.0
+Sistema Integral de Gestión Acuícola`;
+
+  const el = document.getElementById('informe-texto');
+  if (el) el.textContent = texto;
+}
+
+function calcPrediccion() {
+  const D = DATOS_SIM;
+  const tasaCrecSemanal = (D.biomasa.actual - D.biomasa.semanas[0]) / D.biomasa.semanas.length;
+  const bioObjetivo = 2000; // kg objetivo de cosecha
+  const semanasRest = Math.ceil((bioObjetivo - D.biomasa.actual) / tasaCrecSemanal);
+  const fechaCosecha = new Date();
+  fechaCosecha.setDate(fechaCosecha.getDate() + semanasRest * 7);
+  
+  const sv = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  sv('pred-fecha', fechaCosecha.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}));
+  sv('pred-bio',   bioObjetivo.toLocaleString('es-CO') + ' kg');
+  sv('pred-alim',  Math.round(bioObjetivo * D.fcr.actual).toLocaleString('es-CO') + ' kg');
+  sv('pred-mort',  (D.mortalidad.pct * 1.1).toFixed(1) + '%');
+}
+
+function renderTendencias() {
+  const D = DATOS_SIM;
+  const labels = ['L1','L2','L3','L4','L5','L6','L7','L8','L9','L10'];
+
+  const ctxT = document.getElementById('chart-trend-temp');
+  if (ctxT) {
+    if (chartsAv['trendT']) chartsAv['trendT'].destroy();
+    chartsAv['trendT'] = new Chart(ctxT, {
+      type: 'line',
+      data: { labels, datasets: [
+        { label:'Temperatura °C', data: D.temperatura.historial, borderColor:'var(--amb)', backgroundColor:'rgba(217,119,6,.1)', fill:true, tension:.4, pointRadius:3 },
+        { label:'Máx (18°C)', data:Array(10).fill(18), borderColor:'rgba(220,38,38,.5)', borderDash:[4,4], pointRadius:0 },
+        { label:'Mín (10°C)', data:Array(10).fill(10), borderColor:'rgba(43,127,212,.5)', borderDash:[4,4], pointRadius:0 },
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+        scales:{y:{min:8,max:22,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}} }
+    });
+  }
+
+  const ctxO = document.getElementById('chart-trend-o2');
+  if (ctxO) {
+    if (chartsAv['trendO']) chartsAv['trendO'].destroy();
+    chartsAv['trendO'] = new Chart(ctxO, {
+      type: 'line',
+      data: { labels, datasets: [
+        { label:'O₂ mg/L', data: D.oxigeno.historial, borderColor:'var(--pri)', backgroundColor:'rgba(43,127,212,.1)', fill:true, tension:.4, pointRadius:3 },
+        { label:'Mín seguro (7)', data:Array(10).fill(7), borderColor:'rgba(220,38,38,.5)', borderDash:[4,4], pointRadius:0 },
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+        scales:{y:{min:4,max:13,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}} }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EXPORTACIÓN PDF
+// ═══════════════════════════════════════════════
+
+async function exportPDF() {
+  const btn = document.querySelector('.bex-pdf');
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+    const D   = DATOS_SIM;
+    const idx = calcSalud(D);
+    const hoy = new Date().toLocaleDateString('es-CO');
+    let y = 20;
+
+    // Header
+    doc.setFillColor(15, 25, 41);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(18); doc.setTextColor(255,255,255);
+    doc.text('AQUALITY', 14, 13);
+    doc.setFontSize(10); doc.setTextColor(150,180,220);
+    doc.text('Sistema Integral de Gestión Acuícola', 14, 20);
+    doc.setFontSize(9); doc.setTextColor(120,150,180);
+    doc.text('Informe generado: ' + hoy, 14, 27);
+    y = 45;
+
+    // Título
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(15,25,41);
+    doc.text('INFORME TÉCNICO DE PRODUCCIÓN', 14, y); y += 10;
+
+    // Estado general
+    const stColor = idx.score>=80?[22,163,74]:idx.score>=65?[43,127,212]:idx.score>=45?[217,119,6]:[220,38,38];
+    doc.setFillColor(...stColor);
+    doc.roundedRect(14, y, 182, 14, 3, 3, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
+    doc.text(`Estado: ${idx.label}  ·  Índice de Salud: ${idx.score}/100`, 20, y+9);
+    y += 24;
+
+    // KPIs
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
+    doc.text('INDICADORES CLAVE', 14, y); y += 8;
+    const kpis = [
+      ['Biomasa Total', D.biomasa.actual+' kg'],
+      ['Peces Activos', D.peces.activos.toLocaleString('es-CO')],
+      ['Mortalidad', D.mortalidad.pct+'%'],
+      ['Oxígeno prom.', D.oxigeno.prom+' mg/L'],
+      ['Temperatura prom.', D.temperatura.prom+' °C'],
+      ['FCR', D.fcr.actual.toFixed(2)],
+      ['pH promedio', D.ph.prom.toFixed(1)],
+    ];
+    kpis.forEach((k, i) => {
+      const col = i % 2 === 0 ? 14 : 110;
+      if (i % 2 === 0 && i > 0) y += 10;
+      doc.setFillColor(246,248,252); doc.rect(col, y-5, 88, 9, 'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(107,114,128);
+      doc.text(k[0], col+3, y);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,25,41);
+      doc.text(k[1], col+60, y);
+    });
+    y += 20;
+
+    // Parámetros de calidad
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
+    doc.text('PARÁMETROS DE CALIDAD DEL AGUA', 14, y); y += 8;
+    const params = [
+      ['Temperatura', D.temperatura.prom+'°C', D.temperatura.prom<=18?'Óptimo':'Revisar'],
+      ['Oxígeno disuelto', D.oxigeno.prom+' mg/L', D.oxigeno.prom>=7?'Óptimo':'Crítico'],
+      ['pH', D.ph.prom.toFixed(1), (D.ph.prom>=6.5&&D.ph.prom<=8.5)?'Normal':'Fuera de rango'],
+      ['Amonio NH₃', D.amonio.prom+' mg/L', D.amonio.prom<0.025?'Normal':'Elevado'],
+      ['Nitritos NO₂', D.nitritos.prom+' mg/L', D.nitritos.prom<0.1?'Normal':'Elevado'],
+    ];
+    params.forEach(p => {
+      doc.setFillColor(246,248,252); doc.rect(14, y-5, 182, 9, 'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(55,65,81);
+      doc.text(p[0], 17, y); doc.text(p[1], 80, y); 
+      const ok = p[2]==='Óptimo'||p[2]==='Normal';
+      doc.setTextColor(...(ok?[22,163,74]:[220,38,38]));
+      doc.text('● '+p[2], 140, y);
+      y += 10;
+    });
+    y += 6;
+
+    // Informe texto
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
+    doc.text('ANÁLISIS TÉCNICO', 14, y); y += 8;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(55,65,81);
+    const lineas = doc.splitTextToSize(
+      `El cultivo presenta estado ${idx.label.toLowerCase()} con índice de salud ${idx.score}/100. Biomasa acumulada: ${D.biomasa.actual} kg en ${DATOS_SIM.estanques.length} estanques. FCR de ${D.fcr.actual} indica ${D.fcr.actual<1.3?'excelente':'buena'} eficiencia alimenticia. Se recomienda mantener el monitoreo continuo de parámetros fisicoquímicos y ajustar el manejo según las alertas del sistema.`,
+      182
+    );
+    doc.text(lineas, 14, y); y += lineas.length * 5 + 6;
+
+    // Footer
+    doc.setFillColor(246,248,252); doc.rect(0, 280, 210, 17, 'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(107,114,128);
+    doc.text('AQUALITY · Sistema Integral de Gestión Acuícola · Informe generado automáticamente', 14, 288);
+    doc.text('Página 1 de 1', 180, 288);
+
+    doc.save('AQUALITY_Informe_' + hoy.replace(/\//g,'-') + '.pdf');
+  } catch(e) {
+    alert('Error generando PDF: ' + e.message + '. Verificá que el servidor esté activo.');
+  }
+
+  if (btn) { btn.textContent = '📄 Descargar PDF'; btn.disabled = false; }
+}
+
+// ═══════════════════════════════════════════════
+// EXPORTACIÓN EXCEL
+// ═══════════════════════════════════════════════
+
+function exportExcel() {
+  const btn = document.querySelector('.bex-xls');
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+
+  try {
+    const D   = DATOS_SIM;
+    const wb  = XLSX.utils.book_new();
+    const hoy = new Date().toLocaleDateString('es-CO');
+
+    // Hoja 1: Resumen General
+    const resumen = [
+      ['AQUALITY – Informe de Producción', '', hoy],
+      [],
+      ['INDICADORES GENERALES','VALOR','ESTADO'],
+      ['Biomasa Total (kg)', D.biomasa.actual, D.biomasa.actual>1000?'Alto':'Normal'],
+      ['Peces Activos', D.peces.activos, 'Activo'],
+      ['Mortalidad (%)', D.mortalidad.pct, D.mortalidad.pct<5?'Normal':'Revisar'],
+      ['Oxígeno prom (mg/L)', D.oxigeno.prom, D.oxigeno.prom>=7?'Óptimo':'Crítico'],
+      ['Temperatura prom (°C)', D.temperatura.prom, D.temperatura.prom<=18?'Óptimo':'Revisar'],
+      ['FCR', D.fcr.actual, D.fcr.actual<1.5?'Eficiente':'Revisar'],
+      ['pH promedio', D.ph.prom, (D.ph.prom>=6.5&&D.ph.prom<=8.5)?'Normal':'Fuera de rango'],
+      ['Amonio NH₃ (mg/L)', D.amonio.prom, D.amonio.prom<0.025?'Normal':'Elevado'],
+      ['Nitritos NO₂ (mg/L)', D.nitritos.prom, D.nitritos.prom<0.1?'Normal':'Elevado'],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), 'Resumen General');
+
+    // Hoja 2: Biomasa semanal
+    const bioData = [
+      ['CRECIMIENTO DE BIOMASA SEMANAL'],
+      ['Semana','Biomasa (kg)','Incremento (kg)'],
+      ...D.biomasa.semanas.map((b,i) => [
+        'Semana '+(i+1), b, i>0?b-D.biomasa.semanas[i-1]:0
+      ])
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(bioData), 'Biomasa');
+
+    // Hoja 3: Mortalidad por etapa
+    const mortData = [
+      ['MORTALIDAD POR ETAPA PRODUCTIVA'],
+      ['Etapa','Mortalidad (%)','Clasificación'],
+      ['Incubación', D.mortalidad.porEtapa[0], 'Aceptable'],
+      ['Alevinaje',  D.mortalidad.porEtapa[1], 'Aceptable'],
+      ['Dedinos',    D.mortalidad.porEtapa[2], 'Precaución'],
+      ['Engorde',    D.mortalidad.porEtapa[3], 'Precaución'],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mortData), 'Mortalidad');
+
+    // Hoja 4: Historial de parámetros
+    const parData = [
+      ['HISTORIAL PARÁMETROS FISICOQUÍMICOS'],
+      ['Lectura','Temperatura (°C)','Oxígeno (mg/L)','pH'],
+      ...D.temperatura.historial.map((t,i) => [
+        'Lectura '+(i+1), t, D.oxigeno.historial[i], D.ph.historial[i]
+      ])
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(parData), 'Parámetros');
+
+    // Hoja 5: Alimentación
+    const alimData = [
+      ['CONTROL DE ALIMENTACIÓN POR ETAPA'],
+      ['Etapa','Alimento suministrado (kg)','FCR','Eficiencia'],
+      ['Incubación', D.alimentacion.porEtapa[0], 1.0, 'Excelente'],
+      ['Alevinaje',  D.alimentacion.porEtapa[1], 1.15,'Muy buena'],
+      ['Dedinos',    D.alimentacion.porEtapa[2], 1.28,'Buena'],
+      ['Engorde',    D.alimentacion.porEtapa[3], 1.35,'Aceptable'],
+      [],
+      ['TOTAL ACUMULADO', D.alimentacion.totalAcum, D.fcr.actual, ''],
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(alimData), 'Alimentación');
+
+    // Hoja 6: Estanques
+    const estData = [
+      ['MAPA DE ESTANQUES'],
+      ['Código','Nombre','Etapa','Estado','Biomasa (kg)','Peces','O₂ (mg/L)','Temp (°C)'],
+      ...D.estanques.map(e => [
+        e.codigo, e.nombre, e.etapa,
+        e.estado==='opt'?'Óptimo':e.estado==='pre'?'Precaución':'Crítico',
+        e.biomasa, e.peces, e.o2, e.temp
+      ])
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(estData), 'Estanques');
+
+    XLSX.writeFile(wb, 'AQUALITY_Datos_' + hoy.replace(/\//g,'-') + '.xlsx');
+  } catch(e) {
+    alert('Error generando Excel: ' + e.message);
+  }
+
+  if (btn) { btn.textContent = '📊 Descargar Excel'; btn.disabled = false; }
+}
+
+// ── RESPONSIVE SIDEBAR (móvil) ───────────────────
+(function initResponsive(){
+  const sb = document.querySelector('.sb');
+  if(!sb) return;
+  let btn = document.getElementById('menu-toggle');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'menu-toggle';
+    btn.innerHTML = '☰';
+    btn.style.cssText='position:fixed;top:12px;left:12px;z-index:300;display:none;background:var(--ink);color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:18px;cursor:pointer;';
+    document.body.appendChild(btn);
+    btn.addEventListener('click',()=>sb.classList.toggle('open'));
+    document.addEventListener('click',e=>{if(!sb.contains(e.target)&&e.target!==btn)sb.classList.remove('open');});
+  }
+  function checkResponsive(){
+    btn.style.display = window.innerWidth<=900?'block':'none';
+  }
+  window.addEventListener('resize', checkResponsive);
+  checkResponsive();
+})();
+
 </script>
-</body>
-</html>
