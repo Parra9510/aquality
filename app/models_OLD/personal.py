@@ -1,6 +1,6 @@
 """
-app/models/personal.py
-Modelo ORM de Personal (trabajadores de la piscifactoría).
+api/models/personal.py
+Modelo ORM de Personal (colaboradores de la piscifactoría).
 """
 from __future__ import annotations
 from datetime import datetime, date
@@ -9,7 +9,6 @@ from app.models.database import Base
 
 
 class Personal(Base):
-    """Administración de colaboradores de la unidad productiva."""
     __tablename__ = "personal"
 
     id            = Column(Integer, primary_key=True, index=True)
@@ -26,16 +25,9 @@ class Personal(Base):
         self.cedula        = cedula
         self.nombre        = nombre
         self.cargo         = cargo
-        self.telefono      = telefono
         self.fecha_ingreso = fecha_ingreso
+        self.telefono      = telefono
         self.activo        = True
-
-    def __repr__(self) -> str:
-        return f"<Personal {self.nombre!r} cargo={self.cargo}>"
-
-    def __str__(self) -> str:
-        estado = "Activo" if self.activo else "Inactivo"
-        return f"{self.nombre} – {self.cargo} ({estado})"
 
     @property
     def dias_laborados(self) -> int:

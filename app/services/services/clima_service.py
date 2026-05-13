@@ -9,9 +9,7 @@ API pública sin autenticación: https://open-meteo.com/
 from __future__ import annotations
 import requests
 from requests.exceptions import Timeout, ConnectionError, HTTPError
-
-# --- IMPORT CORREGIDO ---
-from app.core.config import settings
+from config.settings import WEATHER_API_BASE
 
 
 class ClimaAPIError(Exception):
@@ -28,8 +26,7 @@ class ClimaService:
     TIMEOUT_SEGUNDOS = 8
 
     def __init__(self) -> None:
-        # Usamos el objeto settings centralizado
-        self._base_url = settings.WEATHER_API_BASE
+        self._base_url = WEATHER_API_BASE
 
     def __repr__(self) -> str:
         return f"<ClimaService url={self._base_url!r}>"
@@ -66,7 +63,7 @@ class ClimaService:
         except ConnectionError:
             raise ClimaAPIError("No se pudo establecer conexión con la API de clima.")
         except HTTPError as exc:
-            codigo = exc.response.status_code if exc.response else "Desconocido"
+            codigo = exc.response.status_code
             raise ClimaAPIError(f"La API de clima respondió con error HTTP {codigo}.")
         except ValueError:
             raise ClimaAPIError("La respuesta de la API de clima no es JSON válido.")
@@ -91,7 +88,7 @@ class ClimaService:
             raise ClimaAPIError(f"Estructura inesperada en la respuesta de la API: {exc}")
 
     def estimar_temperatura_agua(self, latitud: float = 4.8133,
-                                 longitud: float = -75.6189) -> float | None:
+                                  longitud: float = -75.6189) -> float | None:
         """
         Retorna una estimación de temperatura del agua basada en temperatura
         ambiente (correlación empírica para estanques en la región).

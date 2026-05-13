@@ -4,8 +4,8 @@ Lógica de negocio para el módulo de monitoreo hídrico.
 """
 from __future__ import annotations
 from sqlalchemy.orm import Session
-from app.domain.lectura import Lectura
-from app.domain.estanque import Estanque
+from app.models.lectura import LecturaHidrica
+from app.models.estanque import Estanque
 
 
 class LecturaService:
