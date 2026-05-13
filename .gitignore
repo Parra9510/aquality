@@ -1,6 +1,38 @@
-venv/
+# Python
 __pycache__/
 *.pyc
+*.pyd
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+
+# Base de datos local
 *.db
+*.sqlite3
+
+# Variables de entorno (NUNCA subir al repo)
 .env
+
+# Pytest
 .pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Vercel
+.vercel/
+
+# macOS
+.DS_Store
+
+# Alembic (migraciones generadas, no las versiones)
+# Conservar alembic/versions/ en el repo.env
