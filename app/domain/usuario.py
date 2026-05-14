@@ -19,15 +19,14 @@ class Usuario(Base):
     __tablename__ = "usuarios"
 
     # Definición de Columnas
-    id        = Column(Integer, primary_key=True, index=True)
-    nombre    = Column(String(100), nullable=False)
-    email     = Column(String(150), unique=True, nullable=False, index=True)
-    password  = Column(String(255), nullable=False)  # Sincronizado con el INSERT de tu error
-    rol       = Column(String(20), nullable=False, default=RolUsuario.OPERARIO)
-    creado_en = Column(DateTime, default=datetime.utcnow)
+    id            = Column(Integer, primary_key=True, index=True)
+    nombre        = Column(String(100), nullable=False)
+    email         = Column(String(150), unique=True, nullable=False, index=True)
+    password_hash = Column(String(64), nullable=False)  # columna real en la BD
+    rol           = Column(String(20), nullable=False, default=RolUsuario.OPERARIO)
+    creado_en     = Column(DateTime, default=datetime.utcnow)
 
     # --- RELACIONES SINCRONIZADAS ---
-    # Asegúrate de que los back_populates coincidan en lectura.py, inventario.py y personal.py
     lecturas          = relationship("Lectura", back_populates="usuario")
     movimientos       = relationship("Movimiento", back_populates="usuario")
     personal_asignado = relationship("Personal", back_populates="usuario_responsable")
@@ -37,8 +36,7 @@ class Usuario(Base):
         self.nombre = nombre
         self.email  = email
         self.rol    = rol
-        # Hasheamos la contraseña antes de guardarla en la columna 'password'
-        self.password = self._hash_password(password)
+        self.password_hash = self._hash_password(password)
 
     def _hash_password(self, password: str) -> str:
         if len(password) < 6:
@@ -47,7 +45,7 @@ class Usuario(Base):
 
     def verificar_password(self, password: str) -> bool:
         """Compara una contraseña plana con el hash almacenado."""
-        return self.password == hashlib.sha256(password.encode()).hexdigest()
+        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
 
     def to_dict(self) -> dict:
         return {
