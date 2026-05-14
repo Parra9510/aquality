@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/png" href="/icons/icon-192.png.png">
-</head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AQUALITY – Control y Calidad</title>
@@ -11,7 +8,10 @@
 <meta name="theme-color" content="#1a3a5c">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
+/* ══ VARIABLES ══ */
 :root{
   --pri:#2B7FD4;--pri-d:#1A5FA8;--pri-l:#EBF4FF;
   --teal:#0EA5A0;--teal-l:#E0F5F4;
@@ -30,43 +30,57 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;}
 
-/* LOGIN */
-#ls{min-height:100vh;display:flex;align-items:center;justify-content:center;
+/* ══ PANTALLA BIENVENIDA (primer uso) ══ */
+#screen-welcome{
+  position:fixed;inset:0;z-index:1000;
   background:linear-gradient(135deg,#0f2744,#1a4a8a 50%,#0f3d5c);
-  background-image:linear-gradient(135deg,#0f2744,#1a4a8a 50%,#0f3d5c),
-  radial-gradient(circle at 20% 50%,rgba(43,127,212,.2),transparent 50%);}
-.lc{background:#fff;border-radius:20px;padding:40px;width:400px;
-  box-shadow:0 32px 80px rgba(0,0,0,.3);}
-.lc img{display:block;margin:0 auto 20px;height:90px;}
-.lt{text-align:center;font-size:20px;font-weight:800;margin-bottom:4px;}
-.ls{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px;}
-.lf{margin-bottom:14px;}
-.lf label{display:block;font-size:11px;font-weight:700;color:var(--ink2);
+  display:flex;align-items:center;justify-content:center;
+}
+.welcome-box{
+  background:#fff;border-radius:24px;padding:0;width:480px;max-width:95vw;
+  box-shadow:0 40px 100px rgba(0,0,0,.35);overflow:hidden;
+}
+.welcome-tabs{display:flex;border-bottom:1px solid var(--line);}
+.wtab{flex:1;padding:18px;text-align:center;font-size:13px;font-weight:700;
+  cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;
+  transition:all .2s;}
+.wtab.on{color:var(--pri);border-bottom-color:var(--pri);}
+.welcome-panel{padding:36px;display:none;}
+.welcome-panel.on{display:block;}
+.welcome-logo{text-align:center;margin-bottom:24px;}
+.welcome-logo-title{font-size:24px;font-weight:800;color:var(--ink);margin-top:10px;}
+.welcome-logo-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+.wf{margin-bottom:14px;}
+.wf label{display:block;font-size:11px;font-weight:700;color:var(--ink2);
   margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
-.lf input{width:100%;padding:10px 14px;border:1.5px solid var(--line);
+.wf input,.wf select{width:100%;padding:10px 14px;border:1.5px solid var(--line);
   border-radius:8px;font-family:var(--sans);font-size:14px;outline:none;
   transition:border-color .2s,box-shadow .2s;background:var(--bg);}
-.lf input:focus{border-color:var(--pri);background:#fff;
+.wf input:focus,.wf select:focus{border-color:var(--pri);background:#fff;
   box-shadow:0 0 0 3px rgba(43,127,212,.1);}
-.bl{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;
+.wbtn{width:100%;padding:13px;background:var(--pri);color:#fff;border:none;
   border-radius:8px;font-family:var(--sans);font-size:15px;font-weight:700;
   cursor:pointer;transition:all .2s;margin-top:4px;}
-.bl:hover{background:var(--pri-d);transform:translateY(-1px);
+.wbtn:hover{background:var(--pri-d);transform:translateY(-1px);
   box-shadow:0 4px 16px rgba(43,127,212,.4);}
-.lerr{color:var(--red);font-size:13px;margin-top:10px;text-align:center;
+.wbtn.secondary{background:transparent;color:var(--pri);
+  border:1.5px solid var(--pri);margin-top:10px;}
+.wbtn.secondary:hover{background:var(--pri-l);transform:none;box-shadow:none;}
+.werr{color:var(--red);font-size:13px;margin-top:10px;text-align:center;
   display:none;padding:8px;background:var(--red-l);border-radius:6px;}
+.wok{color:var(--grn);font-size:13px;margin-top:10px;text-align:center;
+  display:none;padding:8px;background:var(--grn-l);border-radius:6px;}
+.welcome-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;
+  padding-top:16px;border-top:1px solid var(--line);line-height:1.6;}
 
-/* SHELL */
+/* ══ APP SHELL ══ */
 #app{display:none;}
 .sb{position:fixed;top:0;left:0;height:100vh;width:245px;
-  background:var(--ink);display:flex;flex-direction:column;z-index:200;
-  overflow-y:auto;}
+  background:var(--ink);display:flex;flex-direction:column;z-index:200;overflow-y:auto;}
 .sb-hdr{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
-.sb-hdr img{height:38px;}
+.sb-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.5px;}
 .sb-tag{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;
   letter-spacing:.08em;text-transform:uppercase;}
-
-/* ETAPA SELECTOR */
 .ep{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
 .ep-lbl{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;
   letter-spacing:.07em;margin-bottom:6px;}
@@ -79,8 +93,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .p-ale.on{background:var(--teal);border-color:var(--teal);color:#fff;}
 .p-ded.on{background:var(--amb);border-color:var(--amb);color:#fff;}
 .p-eng.on{background:var(--grn);border-color:var(--grn);color:#fff;}
-
-/* NAV */
 .ns{padding:8px 16px 3px;font-size:10px;color:rgba(255,255,255,.28);
   text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
 .ni{display:flex;align-items:center;gap:10px;padding:9px 18px;
@@ -90,23 +102,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .ni:hover{color:#fff;background:rgba(255,255,255,.06);}
 .ni.on{color:#fff;background:rgba(43,127,212,.18);border-left-color:var(--pri);}
 .ni.on svg{opacity:1;}
-
-.sb-ft{margin-top:auto;padding:14px 16px;
-  border-top:1px solid rgba(255,255,255,.07);}
+.sb-ft{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
 .urow{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
 .av{width:32px;height:32px;border-radius:50%;background:var(--pri);
   display:flex;align-items:center;justify-content:center;
   font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
-.unm{font-size:13px;color:#fff;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.unm{font-size:13px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .urol{font-size:11px;color:rgba(255,255,255,.4);}
 .blogout{width:100%;padding:7px;background:rgba(255,255,255,.07);
   color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);
-  border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;
-  font-family:var(--sans);}
+  border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;font-family:var(--sans);}
 .blogout:hover{background:rgba(255,255,255,.12);color:#fff;}
 
-/* MAIN */
+/* ══ MAIN ══ */
 .mn{margin-left:245px;padding:26px 30px;min-height:100vh;}
 .pg{display:none;}
 .pg.on{display:block;animation:fu .2s ease;}
@@ -115,21 +123,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
   margin-bottom:22px;flex-wrap:wrap;gap:10px;}
 .pt{font-size:22px;font-weight:800;}
 .ps{font-size:13px;color:var(--muted);margin-top:3px;}
-.ebadge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
-  border-radius:99px;font-size:11px;font-weight:700;margin-top:6px;}
 
-/* STATS */
+/* ══ STATS ══ */
 .sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:#fff;border-radius:var(--r);padding:16px 18px;
   border:1px solid var(--line);box-shadow:var(--sh);}
 .si{width:34px;height:34px;border-radius:8px;display:flex;
   align-items:center;justify-content:center;margin-bottom:10px;font-size:17px;}
-.sl{font-size:11px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.sl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
 .sv{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1;}
 .ss{font-size:11px;color:var(--muted);margin-top:3px;}
 
-/* CARDS */
+/* ══ CARDS ══ */
 .cd{background:#fff;border-radius:var(--r);padding:20px 22px;
   border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:16px;}
 .ct{font-size:14px;font-weight:700;margin-bottom:14px;
@@ -137,33 +142,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .ctl{display:flex;align-items:center;gap:7px;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
 
-/* FORM */
+/* ══ FORM ══ */
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .fg3{grid-template-columns:1fr 1fr 1fr;}
-.fg4{grid-template-columns:1fr 1fr 1fr 1fr;}
 .ff{display:flex;flex-direction:column;gap:4px;}
 .ff.full{grid-column:1/-1;}
-.ff label{font-size:11px;font-weight:700;color:var(--ink2);
-  text-transform:uppercase;letter-spacing:.05em;}
-.ff input,.ff select,.ff textarea{
-  padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;
+.ff label{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;}
+.ff input,.ff select,.ff textarea{padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;
   font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--bg);
   outline:none;transition:border-color .2s,box-shadow .2s;}
-.ff input:focus,.ff select:focus,.ff textarea:focus{
-  border-color:var(--pri);background:#fff;
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--pri);background:#fff;
   box-shadow:0 0 0 3px rgba(43,127,212,.08);}
 .ff textarea{resize:vertical;min-height:65px;}
 .fn{font-size:11px;color:var(--muted);margin-top:2px;}
 .fro{background:#f0f4f8!important;color:var(--muted);}
 
-/* BUTTONS */
+/* ══ BUTTONS ══ */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
   border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;
   cursor:pointer;border:none;transition:all .15s;}
 .bp{background:var(--pri);color:#fff;}
-.bp:hover{background:var(--pri-d);transform:translateY(-1px);
-  box-shadow:0 4px 12px rgba(43,127,212,.3);}
+.bp:hover{background:var(--pri-d);transform:translateY(-1px);box-shadow:0 4px 12px rgba(43,127,212,.3);}
 .bg_{background:transparent;color:var(--muted);border:1.5px solid var(--line);}
 .bg_:hover{border-color:var(--pri);color:var(--pri);}
 .bd{background:var(--red);color:#fff;}
@@ -172,7 +173,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .btn:active{transform:scale(.97);}
 .bg{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 
-/* TABLE */
+/* ══ TABLE ══ */
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{text-align:left;padding:9px 13px;font-size:11px;font-weight:700;
@@ -183,7 +184,7 @@ tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:var(--bg);}
 .mono{font-family:var(--mono);font-size:12px;}
 
-/* CHIPS */
+/* ══ CHIPS ══ */
 .ch{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;
   border-radius:99px;font-size:11px;font-weight:700;}
 .cg{background:var(--grn-l);color:var(--grn);}
@@ -193,49 +194,20 @@ tbody tr:hover td{background:var(--bg);}
 .cp{background:var(--pur-l);color:var(--pur);}
 .ct_{background:var(--teal-l);color:var(--teal);}
 
-/* MSG */
-.msg{padding:9px 13px;border-radius:7px;font-size:13px;margin-top:9px;
-  display:none;font-weight:500;}
+/* ══ MSG ══ */
+.msg{padding:9px 13px;border-radius:7px;font-size:13px;margin-top:9px;display:none;font-weight:500;}
 .mok{background:var(--grn-l);color:var(--grn);}
 .mer{background:var(--red-l);color:var(--red);}
 .empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
 
-/* KPI BAR */
-.kb{margin-bottom:12px;}
-.kh{display:flex;justify-content:space-between;margin-bottom:4px;}
-.kn{font-size:12px;font-weight:600;color:var(--ink2);}
-.kv{font-family:var(--mono);font-size:12px;}
-.tk{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
-.fk{height:100%;border-radius:99px;transition:width .5s;}
+/* ══ LOADING ══ */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:32px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2.5px solid var(--line);
+  border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-/* FORMULA BOX */
-.fb{background:var(--pri-l);border:1px solid rgba(43,127,212,.2);
-  border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:13px;
-  color:var(--pri-d);margin:10px 0;text-align:center;}
-
-/* ALERT BANNER */
-.ab{display:none;background:var(--red-l);border:1px solid #FCA5A5;
-  border-radius:var(--r);padding:12px 16px;margin-bottom:16px;}
-.ab strong{color:var(--red);font-size:13px;}
-.ab p{color:#7F1D1D;font-size:12px;margin-top:2px;}
-
-/* CLIMA */
-.cg2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-.cc{background:var(--bg);border-radius:8px;padding:13px;text-align:center;}
-.cv{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--pri);}
-.cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
-
-/* ETAPA INFO CARDS */
-.ecard{padding:11px;border-radius:8px;margin-bottom:8px;}
-.ec-t{font-size:12px;font-weight:700;margin-bottom:3px;}
-.ec-s{font-size:12px;color:var(--muted);}
-
-/* CHART */
-.chart-wrap{position:relative;height:200px;}
-
-/* ══ EXPANSIÓN AQUALITY ══ */
-
-/* KPI GRID */
+/* ══ KPI CARDS ══ */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
 .kpi-card{background:#fff;border-radius:var(--r);padding:16px 18px;
   border:1px solid var(--line);box-shadow:var(--sh);position:relative;overflow:hidden;}
@@ -248,18 +220,16 @@ tbody tr:hover td{background:var(--bg);}
 .kpi-c-teal::before{background:var(--teal);}
 .kpi-c-ink::before{background:var(--ink);}
 .kpi-icon{font-size:22px;margin-bottom:8px;}
-.kpi-label{font-size:11px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
-.kpi-value{font-family:var(--mono);font-size:26px;font-weight:700;
-  color:var(--ink);line-height:1;}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.kpi-value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink);line-height:1;}
 .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.kpi-trend{display:inline-flex;align-items:center;gap:3px;
-  font-size:11px;font-weight:700;padding:2px 6px;border-radius:99px;margin-top:6px;}
+.kpi-trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;
+  padding:2px 6px;border-radius:99px;margin-top:6px;}
 .trend-up{background:var(--grn-l);color:var(--grn);}
 .trend-dn{background:var(--red-l);color:var(--red);}
 .trend-ok{background:var(--pri-l);color:var(--pri);}
 
-/* SEMÁFORO */
+/* ══ SEMÁFORO ══ */
 .semaforo-wrap{display:flex;flex-direction:column;gap:10px;}
 .sem-row{display:flex;align-items:center;justify-content:space-between;
   padding:12px 16px;border-radius:8px;border:1px solid var(--line);}
@@ -273,7 +243,7 @@ tbody tr:hover td{background:var(--bg);}
 .sem-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);}
 .sem-cri{background:var(--red-l);border-color:rgba(220,38,38,.2);}
 
-/* ALERTAS INTELIGENTES */
+/* ══ ALERTAS ══ */
 .alert-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
   display:flex;align-items:flex-start;gap:12px;border:1px solid transparent;}
 .alert-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
@@ -285,10 +255,9 @@ tbody tr:hover td{background:var(--bg);}
 .alert-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);color:#78350F;}
 .alert-inf{background:var(--pri-l);border-color:rgba(43,127,212,.2);color:#1E3A5F;}
 
-/* RECOMENDACIONES */
+/* ══ RECOMENDACIONES ══ */
 .rec-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
-  display:flex;align-items:flex-start;gap:12px;
-  background:var(--bg);border:1px solid var(--line);}
+  display:flex;align-items:flex-start;gap:12px;background:var(--bg);border:1px solid var(--line);}
 .rec-icon{font-size:20px;flex-shrink:0;}
 .rec-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
 .rec-msg{font-size:12px;color:var(--muted);line-height:1.5;}
@@ -296,11 +265,10 @@ tbody tr:hover td{background:var(--bg);}
 .rec-med{border-left:3px solid var(--amb);}
 .rec-low{border-left:3px solid var(--pri);}
 
-/* MAPA ESTANQUES */
+/* ══ TANKS ══ */
 .tank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
-.tank-card{background:#fff;border-radius:var(--r);padding:16px;
-  border:2px solid var(--line);position:relative;cursor:pointer;
-  transition:transform .15s,box-shadow .15s;}
+.tank-card{background:#fff;border-radius:var(--r);padding:16px;border:2px solid var(--line);
+  position:relative;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .tank-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
 .tank-card.t-opt{border-color:var(--grn);}
 .tank-card.t-pre{border-color:var(--amb);}
@@ -313,58 +281,61 @@ tbody tr:hover td{background:var(--bg);}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 .tank-code{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px;}
 .tank-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;}
-.tank-stage{display:inline-block;padding:2px 8px;border-radius:99px;
-  font-size:11px;font-weight:700;margin-bottom:10px;}
-.tank-metric{display:flex;justify-content:space-between;font-size:12px;
-  padding:3px 0;border-bottom:1px solid var(--line);}
+.tank-stage{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-bottom:10px;}
+.tank-metric{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--line);}
 .tank-metric:last-child{border:none;}
 .tank-metric-label{color:var(--muted);}
 .tank-metric-val{font-family:var(--mono);font-weight:600;}
 
-/* ÍNDICE SALUD */
-.health-ring{display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:6px;}
+/* ══ MISC ══ */
+.kb{margin-bottom:12px;}
+.kh{display:flex;justify-content:space-between;margin-bottom:4px;}
+.kn{font-size:12px;font-weight:600;color:var(--ink2);}
+.kv{font-family:var(--mono);font-size:12px;}
+.tk{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
+.fk{height:100%;border-radius:99px;transition:width .5s;}
+.fb{background:var(--pri-l);border:1px solid rgba(43,127,212,.2);border-radius:8px;
+  padding:12px 16px;font-family:var(--mono);font-size:13px;color:var(--pri-d);margin:10px 0;text-align:center;}
+.ab{display:none;background:var(--red-l);border:1px solid #FCA5A5;border-radius:var(--r);
+  padding:12px 16px;margin-bottom:16px;}
+.ab strong{color:var(--red);font-size:13px;}
+.ab p{color:#7F1D1D;font-size:12px;margin-top:2px;}
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.cc{background:var(--bg);border-radius:8px;padding:13px;text-align:center;}
+.cv{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--pri);}
+.cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.ecard{padding:11px;border-radius:8px;margin-bottom:8px;}
+.ec-t{font-size:12px;font-weight:700;margin-bottom:3px;}
+.ec-s{font-size:12px;color:var(--muted);}
+.chart-wrap{position:relative;height:200px;}
+.health-ring{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;}
 .health-score{font-family:var(--mono);font-size:48px;font-weight:700;}
 .health-label{font-size:14px;font-weight:700;}
-.health-bar-wrap{width:100%;height:8px;background:var(--line);
-  border-radius:99px;overflow:hidden;margin-top:4px;}
+.health-bar-wrap{width:100%;height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:4px;}
 .health-bar-fill{height:100%;border-radius:99px;transition:width .6s ease;}
-
-/* PREDICCIÓN */
 .pred-card{background:var(--ink);border-radius:var(--r);padding:20px 22px;color:#fff;}
-.pred-title{font-size:13px;color:rgba(255,255,255,.5);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.pred-title{font-size:13px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
 .pred-val{font-family:var(--mono);font-size:28px;font-weight:700;color:#fff;}
 .pred-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;}
-
-/* FINANCIERO */
 .fin-total{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink);}
-.fin-row{display:flex;justify-content:space-between;align-items:center;
-  padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
 .fin-row:last-child{border:none;}
 .fin-label{color:var(--ink2);}
 .fin-amount{font-family:var(--mono);font-weight:600;}
 .fin-positive{color:var(--grn);}
 .fin-negative{color:var(--red);}
-
-/* INFORME TEXTO */
-.informe-texto{background:var(--bg);border:1px solid var(--line);
-  border-radius:8px;padding:20px 24px;font-size:13px;line-height:1.8;
-  color:var(--ink2);white-space:pre-line;font-family:Georgia,serif;}
-
-/* SELECTOR PERIODO */
-.period-tabs{display:flex;gap:4px;background:var(--bg);
-  padding:4px;border-radius:8px;border:1px solid var(--line);width:fit-content;}
+.informe-texto{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:20px 24px;font-size:13px;line-height:1.8;color:var(--ink2);
+  white-space:pre-line;font-family:Georgia,serif;}
+.period-tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:8px;
+  border:1px solid var(--line);width:fit-content;}
 .ptab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;
   cursor:pointer;color:var(--muted);transition:all .15s;}
 .ptab.on{background:#fff;color:var(--pri);box-shadow:var(--sh);}
-
-/* EXPORT BUTTONS */
 .export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
-.btn-export{display:inline-flex;align-items:center;gap:7px;
-  padding:10px 20px;border-radius:8px;font-family:var(--sans);
-  font-size:13px;font-weight:700;cursor:pointer;border:none;
-  transition:all .15s;}
+.btn-export{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
+  border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;
+  cursor:pointer;border:none;transition:all .15s;}
 .bex-pdf{background:#DC2626;color:#fff;}
 .bex-pdf:hover{background:#b91c1c;transform:translateY(-1px);}
 .bex-xls{background:#16A34A;color:#fff;}
@@ -372,19 +343,14 @@ tbody tr:hover td{background:var(--bg);}
 .bex-print{background:var(--ink);color:#fff;}
 .bex-print:hover{background:#1f2937;transform:translateY(-1px);}
 
-/* TENDENCIA MINI */
-.trend-mini{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
-.trend-up-arrow{color:var(--grn);font-weight:700;}
-.trend-dn-arrow{color:var(--red);font-weight:700;}
+/* ══ BANNER "SIN DATOS REALES" ══ */
+.demo-banner{background:linear-gradient(90deg,var(--amb-l),#fffbeb);
+  border:1px solid var(--amb);border-radius:8px;padding:10px 16px;
+  font-size:12px;color:#78350F;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;}
 
-/* G4 GRID */
-.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
-
-/* RESPONSIVE */
-@media(max-width:1200px){
-  .kpi-grid{grid-template-columns:repeat(3,1fr);}
-  .g4{grid-template-columns:1fr 1fr;}
-}
+/* ══ RESPONSIVE ══ */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:1fr 1fr;}}
 @media(max-width:900px){
   .sb{transform:translateX(-245px);transition:transform .3s;}
   .sb.open{transform:translateX(0);}
@@ -394,33 +360,68 @@ tbody tr:hover td{background:var(--bg);}
   .sg{grid-template-columns:repeat(2,1fr);}
   .tank-grid{grid-template-columns:repeat(2,1fr);}
 }
-@media(max-width:600px){
-  .kpi-grid{grid-template-columns:1fr 1fr;}
-  .g4{grid-template-columns:1fr 1fr;}
-  .mn{padding:12px;}
-}
-
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}.g4{grid-template-columns:1fr 1fr;}.mn{padding:12px;}}
 </style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 </head>
 <body>
 
-<!-- ════ LOGIN ════ -->
-<div id="ls">
- <div class="lc">
-  <img src="data:image/jpeg;base64,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" alt="AQUALITY">
-  <div class="lt">Bienvenido a AQUALITY</div>
-  <div class="ls">Control y Calidad · Sistema Acuícola Integral</div>
-  <div class="lf"><label>Correo electrónico</label>
-    <input type="email" id="lem" placeholder="usuario@aquality.co"></div>
-  <div class="lf"><label>Contraseña</label>
-    <input type="password" id="lpw" placeholder="••••••••"></div>
-  <button class="bl" onclick="doLogin()">Iniciar sesión</button>
-  <div class="lerr" id="lerr">Correo o contraseña incorrectos.</div>
+<!-- ════ PANTALLA DE BIENVENIDA (login + registro) ════ -->
+<div id="screen-welcome">
+ <div class="welcome-box">
+  <div class="welcome-tabs">
+   <div class="wtab on" id="tab-login" onclick="switchTab('login')">Iniciar sesión</div>
+   <div class="wtab" id="tab-register" onclick="switchTab('register')">Crear cuenta</div>
+  </div>
+
+  <!-- Panel Login -->
+  <div class="welcome-panel on" id="panel-login">
+   <div class="welcome-logo">
+    <div style="font-size:40px;">🐟</div>
+    <div class="welcome-logo-title">AQUALITY</div>
+    <div class="welcome-logo-sub">Control y Calidad · Sistema Acuícola Integral</div>
+   </div>
+   <div class="wf"><label>Correo electrónico</label>
+    <input type="email" id="lem" placeholder="usuario@aquality.co" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <div class="wf"><label>Contraseña</label>
+    <input type="password" id="lpw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <button class="wbtn" onclick="doLogin()">Iniciar sesión</button>
+   <div class="werr" id="lerr">Correo o contraseña incorrectos.</div>
+   <div class="welcome-hint">
+    ¿Primera vez en el sistema?<br>
+    <span style="color:var(--pri);cursor:pointer;font-weight:600;" onclick="switchTab('register')">Crear una cuenta nueva →</span>
+   </div>
+  </div>
+
+  <!-- Panel Registro -->
+  <div class="welcome-panel" id="panel-register">
+   <div class="welcome-logo">
+    <div style="font-size:36px;">👤</div>
+    <div class="welcome-logo-title">Crear cuenta</div>
+    <div class="welcome-logo-sub">Registrá el primer usuario administrador</div>
+   </div>
+   <div class="wf"><label>Nombre completo</label>
+    <input id="rn" placeholder="Juan García">
+   </div>
+   <div class="wf"><label>Correo electrónico</label>
+    <input type="email" id="re" placeholder="juan@aquality.co">
+   </div>
+   <div class="wf"><label>Contraseña (mín. 8 caracteres)</label>
+    <input type="password" id="rp" placeholder="••••••••">
+   </div>
+   <div class="wf"><label>Rol</label>
+    <select id="rr">
+     <option value="administrador">Administrador — Acceso total</option>
+     <option value="supervisor">Supervisor — Lectura y escritura</option>
+     <option value="operario">Operario — Solo registro</option>
+    </select>
+   </div>
+   <button class="wbtn" onclick="doRegister()">Registrar y entrar</button>
+   <button class="wbtn secondary" onclick="switchTab('login')">← Ya tengo cuenta</button>
+   <div class="werr" id="rerr"></div>
+   <div class="wok" id="rok">✓ Cuenta creada. Entrando al sistema...</div>
+  </div>
  </div>
 </div>
 
@@ -428,10 +429,9 @@ tbody tr:hover td{background:var(--bg);}
 <div id="app">
 <div class="sb">
  <div class="sb-hdr">
-  <img src="data:image/jpeg;base64,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" alt="AQUALITY">
+  <div class="sb-logo">🐟 AQUALITY</div>
   <div class="sb-tag">Control y calidad</div>
  </div>
-
  <div class="ep">
   <div class="ep-lbl">Etapa productiva</div>
   <div class="ep-pills">
@@ -441,33 +441,25 @@ tbody tr:hover td{background:var(--bg);}
    <div class="pill p-eng" onclick="setEtapa('engorde',this)">🎣 Engorde</div>
   </div>
  </div>
-
  <div class="ns">Principal</div>
  <div class="ni on" onclick="goTo('dash',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
  <div class="ni" onclick="goTo('estanques',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Estanques</div>
-
  <div class="ns">Producción</div>
  <div class="ni" onclick="goTo('agua',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>Calidad del Agua</div>
  <div class="ni" onclick="goTo('biomasa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12s1-3 4-3 4 3 4 3"/><path d="M9 9l1 1M15 9l-1 1"/></svg>Biomasa</div>
  <div class="ni" onclick="goTo('alim',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Alimentación</div>
- <div class="ni" onclick="goTo('sanidad',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Sanidad</div>
- <div class="ni" onclick="goTo('cosecha',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Cosecha</div>
-
  <div class="ns">Gestión</div>
  <div class="ni" onclick="goTo('inv',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Inventario</div>
  <div class="ni" onclick="goTo('personal',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Personal</div>
  <div class="ni" onclick="goTo('usuarios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuarios</div>
-
- 
  <div class="ns">Inteligencia</div>
  <div class="ni" onclick="goTo('cultivo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>Estado del Cultivo</div>
  <div class="ni" onclick="goTo('mapa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Mapa de Estanques</div>
  <div class="ni" onclick="goTo('finanzas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Control Financiero</div>
- <div class="ni" onclick="goTo('informes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Informes y Analítica</div>
-
-<div class="sb-ft">
+ <div class="ni" onclick="goTo('informes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Informes</div>
+ <div class="sb-ft">
   <div class="urow">
-   <div class="av" id="uav">VP</div>
+   <div class="av" id="uav">--</div>
    <div><div class="unm" id="unm">Usuario</div><div class="urol" id="urol">rol</div></div>
   </div>
   <button class="blogout" onclick="doLogout()">Cerrar sesión</button>
@@ -476,13 +468,10 @@ tbody tr:hover td{background:var(--bg);}
 
 <div class="mn">
 
-<!-- ══ DASHBOARD ══ -->
+<!-- DASHBOARD -->
 <div class="pg on" id="pg-dash">
  <div class="ph">
-  <div>
-   <div class="pt">Dashboard</div>
-   <div class="ps">Resumen operativo · <span id="etapa-dash" style="font-weight:600;">Seleccioná una etapa</span></div>
-  </div>
+  <div><div class="pt">Dashboard</div><div class="ps" id="dash-sub">Resumen operativo</div></div>
   <button class="btn bg_ bsm" onclick="loadDash()">↻ Actualizar</button>
  </div>
  <div class="ab" id="abanner"><strong>⚠ Parámetros fuera de rango</strong><p id="abanner-txt"></p></div>
@@ -496,7 +485,7 @@ tbody tr:hover td{background:var(--bg);}
  <div class="g2">
   <div class="cd">
    <div class="ct"><div class="ctl">🌤 Clima – Santa Rosa de Cabal</div><span style="font-size:11px;color:var(--muted);font-weight:400;">Open-Meteo API</span></div>
-   <div id="clima-box"><div class="empty">Cargando...</div></div>
+   <div id="clima-box"><div class="loading"><div class="spinner"></div>Cargando clima...</div></div>
   </div>
   <div class="cd">
    <div class="ct">📊 Rangos seguros – Trucha arcoíris</div>
@@ -509,8 +498,9 @@ tbody tr:hover td{background:var(--bg);}
  </div>
  <div class="g2">
   <div class="cd">
-   <div class="ct">📈 Últimas 10 lecturas de temperatura</div>
+   <div class="ct">📈 Últimas lecturas de temperatura</div>
    <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
+   <div id="chart-temp-empty" class="empty" style="display:none;">Sin lecturas aún. Registrá la primera en Calidad del Agua.</div>
   </div>
   <div class="cd">
    <div class="ct">🚨 Alertas hídricas recientes</div>
@@ -519,9 +509,9 @@ tbody tr:hover td{background:var(--bg);}
  </div>
 </div>
 
-<!-- ══ ESTANQUES ══ -->
+<!-- ESTANQUES -->
 <div class="pg" id="pg-estanques">
- <div class="ph"><div><div class="pt">Infraestructura y Estanques</div><div class="ps">Registro de unidades de producción por etapa productiva</div></div></div>
+ <div class="ph"><div><div class="pt">Infraestructura y Estanques</div><div class="ps">Registro de unidades de producción</div></div></div>
  <div class="g2">
   <div class="cd">
    <div class="ct">Registrar estanque</div>
@@ -531,16 +521,13 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Etapa</label>
      <select id="ee"><option value="incubacion">🥚 Incubación</option><option value="alevinaje">🐟 Alevinaje</option><option value="dedinos">🐠 Dedinos</option><option value="engorde">🎣 Engorde</option></select>
     </div>
-    <div class="ff"><label>Tipo</label>
-     <select id="et"><option value="concreto">Concreto</option><option value="tierra">Tierra</option><option value="geomembrana">Geomembrana</option><option value="jaula_flotante">Jaula flotante</option></select>
-    </div>
     <div class="ff"><label>Largo (m)</label><input type="number" id="el" placeholder="10" step="0.1" oninput="calcEst()"></div>
     <div class="ff"><label>Ancho (m)</label><input type="number" id="ea" placeholder="5" step="0.1" oninput="calcEst()"></div>
     <div class="ff"><label>Profundidad (m)</label><input type="number" id="ep2" placeholder="1.5" step="0.1" oninput="calcEst()"></div>
     <div class="ff"><label>Capacidad (kg)</label><input type="number" id="ecap" placeholder="500" oninput="calcEst()"></div>
-    <div class="ff"><label>Densidad (kg/m³)</label><input id="edens" class="fro" readonly></div>
+    <div class="ff"><label>Densidad calc.</label><input id="edens" class="fro" readonly></div>
    </div>
-   <div class="fb" id="e-calc">Complete las dimensiones para calcular el volumen automáticamente</div>
+   <div class="fb" id="e-calc">Complete las dimensiones para calcular el volumen</div>
    <div class="bg"><button class="btn bp" onclick="regEstanque()">Registrar estanque</button></div>
    <div class="msg mok" id="e-ok">✓ Estanque registrado.</div>
    <div class="msg mer" id="e-er"></div>
@@ -548,20 +535,20 @@ tbody tr:hover td{background:var(--bg);}
   <div class="cd">
    <div class="ct">Guía por etapa</div>
    <div class="ecard" style="background:var(--pur-l);"><div class="ec-t" style="color:var(--pur)">🥚 Incubación</div><div class="ec-s">T: 8–12°C · Alta sensibilidad al O₂ · Oscuridad parcial</div></div>
-   <div class="ecard" style="background:var(--teal-l);"><div class="ec-t" style="color:var(--teal)">🐟 Alevinaje</div><div class="ec-s">0–3 meses · Alta densidad · Vigilancia diaria de parámetros</div></div>
+   <div class="ecard" style="background:var(--teal-l);"><div class="ec-t" style="color:var(--teal)">🐟 Alevinaje</div><div class="ec-s">0–3 meses · Alta densidad · Vigilancia diaria</div></div>
    <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">🐠 Dedinos</div><div class="ec-s">3–6 meses · Transición alimentaria · Separación por tallas</div></div>
-   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">6+ meses · FCR crítico · Monitoreo de biomasa y crecimiento</div></div>
+   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">6+ meses · FCR crítico · Monitoreo de biomasa</div></div>
   </div>
  </div>
  <div class="cd">
   <div class="ct">Estanques registrados <button class="btn bg_ bsm" onclick="loadEst()">↻ Actualizar</button></div>
-  <div class="tw"><div id="t-est"><div class="empty">Sin estanques registrados.</div></div></div>
+  <div class="tw"><div id="t-est"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
  </div>
 </div>
 
-<!-- ══ AGUA ══ -->
+<!-- AGUA -->
 <div class="pg" id="pg-agua">
- <div class="ph"><div><div class="pt">Calidad del Agua</div><div class="ps">Monitoreo fisicoquímico diario — el corazón de la acuicultura</div></div></div>
+ <div class="ph"><div><div class="pt">Calidad del Agua</div><div class="ps">Monitoreo fisicoquímico diario</div></div></div>
  <div class="g2">
   <div class="cd">
    <div class="ct">Nueva lectura</div>
@@ -570,10 +557,6 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Temperatura (°C)</label><input type="number" id="ag-t" placeholder="14.0" step="0.1"></div>
     <div class="ff"><label>pH</label><input type="number" id="ag-ph" placeholder="7.2" step="0.1"></div>
     <div class="ff"><label>Oxígeno mg/L</label><input type="number" id="ag-o2" placeholder="9.0" step="0.1"></div>
-    <div class="ff"><label>Amonio NH₃ mg/L</label><input type="number" id="ag-nh3" placeholder="0.01" step="0.001"></div>
-    <div class="ff"><label>Nitritos NO₂ mg/L</label><input type="number" id="ag-no2" placeholder="0.05" step="0.001"></div>
-    <div class="ff"><label>Nitratos NO₃ mg/L</label><input type="number" id="ag-no3" placeholder="5.0" step="0.1"></div>
-    <div class="ff"><label>Disco Secchi (cm)</label><input type="number" id="ag-sch" placeholder="35" step="1"></div>
     <div class="ff full"><label>Observaciones</label><input id="ag-obs" placeholder="Sin novedad"></div>
    </div>
    <div class="bg"><button class="btn bp" onclick="regLectura()">Registrar lectura</button></div>
@@ -582,7 +565,7 @@ tbody tr:hover td{background:var(--bg);}
   </div>
   <div class="cd">
    <div class="ct">Alertas activas <span id="al-cnt" style="font-size:12px;font-weight:400;color:var(--muted);">—</span></div>
-   <div id="al-box"><div class="empty">Sin alertas ✓</div></div>
+   <div id="al-box"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
   </div>
  </div>
  <div class="cd">
@@ -590,16 +573,16 @@ tbody tr:hover td{background:var(--bg);}
    <div style="display:flex;gap:8px;align-items:center;">
     <input type="number" id="ag-bid" placeholder="ID estanque" style="padding:6px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;width:110px;outline:none;">
     <button class="btn bp bsm" onclick="buscarLect()">Buscar</button>
-    <button class="btn bg_ bsm" onclick="exportarAlertas()">⬇ Exportar alertas</button>
    </div>
   </div>
   <div class="tw"><div id="t-lect"><div class="empty">Ingresá un ID de estanque.</div></div></div>
  </div>
 </div>
 
-<!-- ══ BIOMASA ══ -->
+<!-- BIOMASA (local — aún sin API) -->
 <div class="pg" id="pg-biomasa">
- <div class="ph"><div><div class="pt">Biomasa e Inventario Biológico</div><div class="ps">Siembra, muestreos, mortalidad y biomasa calculada automáticamente</div></div></div>
+ <div class="ph"><div><div class="pt">Biomasa e Inventario Biológico</div><div class="ps">Siembra, muestreos y mortalidad</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los datos de biomasa se guardarán localmente hasta que se conecte el endpoint correspondiente en la API.</div>
  <div class="g2">
   <div class="cd">
    <div class="ct">Registrar siembra</div>
@@ -609,45 +592,24 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Cantidad de alevinos</label><input type="number" id="bi-c" placeholder="5000" oninput="calcBio()"></div>
     <div class="ff"><label>Peso inicial prom (g)</label><input type="number" id="bi-p" placeholder="5.0" step="0.1" oninput="calcBio()"></div>
     <div class="ff"><label>Proveedor</label><input id="bi-pr" placeholder="Piscícola XYZ"></div>
-    <div class="ff"><label>Etapa</label>
-     <select id="bi-et"><option value="incubacion">Incubación</option><option value="alevinaje">Alevinaje</option><option value="dedinos">Dedinos</option><option value="engorde">Engorde</option></select>
-    </div>
+    <div class="ff"><label>Etapa</label><select id="bi-et"><option value="incubacion">Incubación</option><option value="alevinaje">Alevinaje</option><option value="dedinos">Dedinos</option><option value="engorde">Engorde</option></select></div>
    </div>
    <div class="fb" id="bi-calc">Biomasa inicial = cant × peso = — kg</div>
-   <div class="bg"><button class="btn bp" onclick="showMsg('bi-ok','bi-er',true)">Registrar siembra</button></div>
-   <div class="msg mok" id="bi-ok">✓ Siembra registrada.</div>
+   <div class="bg"><button class="btn bp" onclick="guardarBioLocal()">Registrar siembra</button></div>
+   <div class="msg mok" id="bi-ok">✓ Siembra guardada localmente.</div>
    <div class="msg mer" id="bi-er"></div>
   </div>
   <div class="cd">
-   <div class="ct">Muestreo periódico y mortalidad</div>
-   <div class="fg">
-    <div class="ff"><label>ID Estanque</label><input type="number" id="mu-e" placeholder="1"></div>
-    <div class="ff"><label>Fecha muestreo</label><input type="date" id="mu-f"></div>
-    <div class="ff"><label>Peso prom actual (g)</label><input type="number" id="mu-pp" placeholder="120" step="0.1" oninput="calcMue()"></div>
-    <div class="ff"><label>Peces actuales</label><input type="number" id="mu-pc" placeholder="4800" oninput="calcMue()"></div>
-    <div class="ff"><label>Mortalidad (unidades)</label><input type="number" id="mu-mo" placeholder="12"></div>
-    <div class="ff"><label>Causa mortalidad</label>
-     <select id="mu-ca">
-      <option value="">Seleccionar</option>
-      <option value="calidad_agua">Calidad del agua</option>
-      <option value="enfermedad">Enfermedad</option>
-      <option value="depredacion">Depredación</option>
-      <option value="manipulacion">Manipulación</option>
-      <option value="otra">Otra</option>
-     </select>
-    </div>
-   </div>
-   <div class="fb" id="mu-calc">Biomasa total = peces × peso = — kg · GDP = — g/día</div>
-   <div class="bg"><button class="btn bp" onclick="showMsg('mu-ok','mu-er',true)">Registrar muestreo</button></div>
-   <div class="msg mok" id="mu-ok">✓ Muestreo registrado.</div>
-   <div class="msg mer" id="mu-er"></div>
+   <div class="ct">Siembras registradas</div>
+   <div id="t-bio"><div class="empty">Sin siembras registradas.</div></div>
   </div>
  </div>
 </div>
 
-<!-- ══ ALIMENTACIÓN ══ -->
+<!-- ALIMENTACIÓN (local) -->
 <div class="pg" id="pg-alim">
- <div class="ph"><div><div class="pt">Alimentación y Nutrición</div><div class="ps">Control de raciones diarias y FCR por etapa productiva</div></div></div>
+ <div class="ph"><div><div class="pt">Alimentación y Nutrición</div><div class="ps">Control de raciones y FCR</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los registros de alimentación se guardan localmente por ahora.</div>
  <div class="g2">
   <div class="cd">
    <div class="ct">Registrar ración diaria</div>
@@ -655,146 +617,26 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>ID Estanque</label><input type="number" id="al-e" placeholder="1"></div>
     <div class="ff"><label>Fecha</label><input type="date" id="al-f"></div>
     <div class="ff"><label>Tipo de alimento</label>
-     <select id="al-ti">
-      <option value="iniciacion">Iniciación (&lt;1g) · 50–55% prot</option>
-      <option value="levante">Levante (1–10g) · 45–50% prot</option>
-      <option value="engorde">Engorde (&gt;10g) · 38–42% prot</option>
-     </select>
+     <select id="al-ti"><option value="iniciacion">Iniciación &lt;1g · 50–55% prot</option><option value="levante">Levante 1–10g · 45–50% prot</option><option value="engorde">Engorde &gt;10g · 38–42% prot</option></select>
     </div>
-    <div class="ff"><label>Proteína (%)</label><input type="number" id="al-pr" placeholder="45" step="1"></div>
     <div class="ff"><label>Cantidad hoy (kg)</label><input type="number" id="al-c" placeholder="12.5" step="0.1" oninput="calcFCR()"></div>
-    <div class="ff"><label>Frecuencias/día</label><input type="number" id="al-fr" placeholder="4" min="1"></div>
-    <div class="ff"><label>Alimento total acum (kg)</label><input type="number" id="al-ac" placeholder="250" oninput="calcFCR()"></div>
-    <div class="ff"><label>Ganancia de peso total (kg)</label><input type="number" id="al-gp" placeholder="100" oninput="calcFCR()"></div>
+    <div class="ff"><label>Alimento acum. (kg)</label><input type="number" id="al-ac" placeholder="250" oninput="calcFCR()"></div>
+    <div class="ff"><label>Ganancia de peso (kg)</label><input type="number" id="al-gp" placeholder="100" oninput="calcFCR()"></div>
    </div>
    <div class="fb" id="fcr-box">FCR = alimento acumulado ÷ ganancia de peso = —</div>
-   <div class="bg"><button class="btn bp" onclick="showMsg('al-ok','al-er',true)">Registrar alimentación</button></div>
-   <div class="msg mok" id="al-ok">✓ Ración registrada.</div>
+   <div class="bg"><button class="btn bp" onclick="guardarAlimLocal()">Registrar alimentación</button></div>
+   <div class="msg mok" id="al-ok">✓ Ración registrada localmente.</div>
    <div class="msg mer" id="al-er"></div>
   </div>
   <div class="cd">
-   <div class="ct">Guía FCR por etapa</div>
-   <div class="ecard" style="background:var(--pur-l);"><div class="ec-t" style="color:var(--pur)">🥚 Incubación / Alevinaje</div><div class="ec-s">Alimento Iniciación · Proteína 50–55% · FCR objetivo: 0.8–1.0</div></div>
-   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">🐠 Dedinos</div><div class="ec-s">Alimento Levante · Proteína 45–50% · FCR objetivo: 1.0–1.3</div></div>
-   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">Alimento Engorde · Proteína 38–42% · FCR objetivo: 1.3–1.6</div></div>
-   <div class="ecard" style="background:var(--red-l);"><div class="ec-t" style="color:var(--red)">⚠ FCR &gt; 2.0 = ineficiencia crítica</div><div class="ec-s">El alimento representa 60–70% del costo operativo total.</div></div>
-   <div style="margin-top:12px;">
-    <div class="ct">📈 Evolución FCR</div>
-    <div class="chart-wrap"><canvas id="chart-fcr"></canvas></div>
-   </div>
+   <div class="ct">📈 Evolución FCR</div>
+   <div class="chart-wrap"><canvas id="chart-fcr"></canvas></div>
+   <div id="chart-fcr-empty" class="empty" style="display:none;">Sin datos de FCR aún.</div>
   </div>
  </div>
 </div>
 
-<!-- ══ SANIDAD ══ -->
-<div class="pg" id="pg-sanidad">
- <div class="ph"><div><div class="pt">Sanidad y Bioseguridad</div><div class="ps">Tratamientos, signos clínicos y desinfección</div></div></div>
- <div class="g2">
-  <div class="cd">
-   <div class="ct">Registrar tratamiento</div>
-   <div class="fg">
-    <div class="ff"><label>ID Estanque</label><input type="number" id="sa-e" placeholder="1"></div>
-    <div class="ff"><label>Fecha</label><input type="date" id="sa-f"></div>
-    <div class="ff"><label>Tipo</label>
-     <select id="sa-ti">
-      <option value="medicamento">Medicamento</option>
-      <option value="probiotico">Probiótico</option>
-      <option value="quimico">Químico</option>
-      <option value="vitaminas">Vitaminas</option>
-      <option value="desinfeccion">Desinfección</option>
-     </select>
-    </div>
-    <div class="ff"><label>Producto</label><input id="sa-pr" placeholder="Nombre del producto"></div>
-    <div class="ff"><label>Dosis</label><input id="sa-do" placeholder="2 mg/L"></div>
-    <div class="ff"><label>Duración (días)</label><input type="number" id="sa-du" placeholder="5"></div>
-    <div class="ff full"><label>Signos clínicos observados</label>
-     <textarea id="sa-sg" placeholder="Nado errático, boqueo superficial, boqueo superficial, manchas blanquecinas, aletas roídas, pérdida de apetito..."></textarea>
-     <div class="fn">Describí el comportamiento o signos físicos del lote afectado.</div>
-    </div>
-   </div>
-   <div class="bg"><button class="btn bp" onclick="showMsg('sa-ok','sa-er',true)">Registrar tratamiento</button></div>
-   <div class="msg mok" id="sa-ok">✓ Tratamiento registrado.</div>
-   <div class="msg mer" id="sa-er"></div>
-  </div>
-  <div class="cd">
-   <div class="ct">Registro de limpieza y desinfección</div>
-   <div class="fg">
-    <div class="ff"><label>ID Estanque</label><input type="number" id="li-e" placeholder="1"></div>
-    <div class="ff"><label>Fecha</label><input type="date" id="li-f"></div>
-    <div class="ff"><label>Tipo de limpieza</label>
-     <select id="li-ti">
-      <option value="desinfeccion_estanque">Desinfección estanque</option>
-      <option value="desinfeccion_equipos">Desinfección equipos</option>
-      <option value="limpieza_filtros">Limpieza de filtros</option>
-      <option value="recambio_agua">Recambio de agua</option>
-     </select>
-    </div>
-    <div class="ff"><label>Producto usado</label><input id="li-pr" placeholder="Cal viva, cloro, yodo..."></div>
-    <div class="ff full"><label>Observaciones</label>
-     <textarea id="li-ob" placeholder="Detalles del proceso de limpieza y bioseguridad..."></textarea>
-    </div>
-   </div>
-   <div class="bg"><button class="btn bp" onclick="showMsg('li-ok','li-er',true)">Registrar limpieza</button></div>
-   <div class="msg mok" id="li-ok">✓ Limpieza registrada.</div>
-   <div class="msg mer" id="li-er"></div>
-  </div>
- </div>
-</div>
-
-<!-- ══ COSECHA ══ -->
-<div class="pg" id="pg-cosecha">
- <div class="ph"><div><div class="pt">Cosecha y Comercialización</div><div class="ps">Registro de cosechas, rendimiento en canal y destino comercial</div></div></div>
- <div class="g2">
-  <div class="cd">
-   <div class="ct">Registrar cosecha</div>
-   <div class="fg fg3">
-    <div class="ff"><label>ID Estanque</label><input type="number" id="co-e" placeholder="1"></div>
-    <div class="ff"><label>Fecha</label><input type="date" id="co-f"></div>
-    <div class="ff"><label>Talla comercial</label>
-     <select id="co-ta">
-      <option value="250_350g">250–350 g (Porción)</option>
-      <option value="350_500g">350–500 g (Estándar)</option>
-      <option value="500_800g">500–800 g (Grande)</option>
-      <option value="800g_mas">800 g+ (Especial)</option>
-     </select>
-    </div>
-    <div class="ff"><label>Peso total VIVO (kg)</label><input type="number" id="co-v" placeholder="450" step="0.1" oninput="calcRend()"></div>
-    <div class="ff"><label>Peso canal LIMPIO (kg)</label><input type="number" id="co-ca" placeholder="360" step="0.1" oninput="calcRend()"></div>
-    <div class="ff"><label>Peso prom/pez (g)</label><input type="number" id="co-pp" placeholder="350"></div>
-    <div class="ff"><label>Cantidad de peces</label><input type="number" id="co-pc" placeholder="1286"></div>
-    <div class="ff"><label>Destino</label>
-     <select id="co-de">
-      <option value="cliente_directo">Cliente directo</option>
-      <option value="planta_proceso">Planta de proceso</option>
-      <option value="mercado_local">Mercado local</option>
-      <option value="exportacion">Exportación</option>
-     </select>
-    </div>
-    <div class="ff"><label>Cliente / comprador</label><input id="co-cl" placeholder="Nombre del comprador"></div>
-    <div class="ff"><label>Precio por kg ($COP)</label><input type="number" id="co-pr" placeholder="12000" oninput="calcRend()"></div>
-   </div>
-   <div class="fb" id="rend-box">Rendimiento en canal = peso canal ÷ peso vivo × 100 = —%  ·  Valor estimado = $—</div>
-   <div class="bg">
-    <button class="btn bp" onclick="showMsg('co-ok','co-er',true)">Registrar cosecha</button>
-    <button class="btn bg_" onclick="exportarResumen()">⬇ Exportar resumen</button>
-   </div>
-   <div class="msg mok" id="co-ok">✓ Cosecha registrada.</div>
-   <div class="msg mer" id="co-er"></div>
-  </div>
-  <div class="cd">
-   <div class="ct">Indicadores de cosecha</div>
-   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">Rendimiento óptimo en canal</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--grn);margin:4px 0;">80–85%</div><div class="ec-s">Peso canal ÷ Peso vivo × 100</div></div>
-   <div class="ecard" style="background:var(--pri-l);"><div class="ec-t" style="color:var(--pri)">Talla comercial trucha</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--pri);margin:4px 0;">250–500 g</div><div class="ec-s">Mercado nacional estándar Colombia</div></div>
-   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">Ciclo productivo total</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--amb);margin:4px 0;">8–12 meses</div><div class="ec-s">Desde alevino hasta cosecha comercial</div></div>
-   <div style="margin-top:12px;">
-    <div class="ct">📊 Rendimiento por cosecha</div>
-    <div class="chart-wrap"><canvas id="chart-cos"></canvas></div>
-   </div>
-  </div>
- </div>
-</div>
-
-<!-- ══ INVENTARIO ══ -->
+<!-- INVENTARIO -->
 <div class="pg" id="pg-inv">
  <div class="ph"><div><div class="pt">Inventario de Insumos</div><div class="ps">Alimentos, medicamentos y materiales</div></div></div>
  <div class="g2">
@@ -825,11 +667,11 @@ tbody tr:hover td{background:var(--bg);}
  </div>
  <div class="cd">
   <div class="ct">Inventario actual <button class="btn bg_ bsm" onclick="loadInv()">↻ Actualizar</button></div>
-  <div class="tw"><div id="t-inv"><div class="empty">Cargando...</div></div></div>
+  <div class="tw"><div id="t-inv"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
  </div>
 </div>
 
-<!-- ══ PERSONAL ══ -->
+<!-- PERSONAL -->
 <div class="pg" id="pg-personal">
  <div class="ph"><div><div class="pt">Personal</div><div class="ps">Colaboradores de la unidad productiva</div></div></div>
  <div class="g2">
@@ -854,11 +696,11 @@ tbody tr:hover td{background:var(--bg);}
  </div>
  <div class="cd">
   <div class="ct">Colaboradores <button class="btn bg_ bsm" onclick="loadPer()">↻ Actualizar</button></div>
-  <div class="tw"><div id="t-per"><div class="empty">Cargando...</div></div></div>
+  <div class="tw"><div id="t-per"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
  </div>
 </div>
 
-<!-- ══ USUARIOS ══ -->
+<!-- USUARIOS -->
 <div class="pg" id="pg-usuarios">
  <div class="ph"><div><div class="pt">Usuarios del sistema</div><div class="ps">Registro y control de accesos</div></div></div>
  <div class="g2">
@@ -867,7 +709,7 @@ tbody tr:hover td{background:var(--bg);}
    <div class="fg">
     <div class="ff"><label>Nombre</label><input id="us-n" placeholder="Ana López"></div>
     <div class="ff"><label>Email</label><input type="email" id="us-e" placeholder="ana@aquality.co"></div>
-    <div class="ff"><label>Contraseña</label><input type="password" id="us-p" placeholder="mínimo 6 caracteres"></div>
+    <div class="ff"><label>Contraseña</label><input type="password" id="us-p" placeholder="mínimo 8 caracteres"></div>
     <div class="ff"><label>Rol</label><select id="us-r"><option value="operario">Operario</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador</option></select></div>
    </div>
    <div class="bg"><button class="btn bp" onclick="crearUsr()">Registrar usuario</button></div>
@@ -885,180 +727,64 @@ tbody tr:hover td{background:var(--bg);}
  </div>
  <div class="cd">
   <div class="ct">Usuarios registrados <button class="btn bg_ bsm" onclick="loadUsr()">↻ Actualizar</button></div>
-  <div class="tw"><div id="t-usr"><div class="empty">Cargando...</div></div></div>
+  <div class="tw"><div id="t-usr"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
  </div>
 </div>
 
-
-<!-- ══ ESTADO DEL CULTIVO ══ -->
+<!-- ESTADO CULTIVO -->
 <div class="pg" id="pg-cultivo">
  <div class="ph">
-  <div><div class="pt">Estado del Cultivo</div>
-  <div class="ps">Monitoreo inteligente en tiempo real · Actualizado automáticamente</div></div>
-  <div style="display:flex;gap:8px;">
-   <div class="period-tabs">
-    <div class="ptab on" onclick="setPeriodo('dia',this)">Hoy</div>
-    <div class="ptab" onclick="setPeriodo('semana',this)">Semana</div>
-    <div class="ptab" onclick="setPeriodo('mes',this)">Mes</div>
-   </div>
-   <button class="btn bg_ bsm" onclick="refreshCultivo()">↻ Actualizar</button>
-  </div>
+  <div><div class="pt">Estado del Cultivo</div><div class="ps">Monitoreo inteligente — datos reales de la API</div></div>
+  <button class="btn bg_ bsm" onclick="refreshCultivo()">↻ Actualizar</button>
  </div>
-
- <!-- KPI CARDS -->
+ <div class="demo-banner" id="cultivo-banner" style="display:none;">⚠️ <strong>Sin lecturas registradas.</strong> Registrá lecturas en Calidad del Agua para ver métricas reales aquí.</div>
  <div class="kpi-grid" id="kpi-grid">
-  <div class="kpi-card kpi-c-teal">
-   <div class="kpi-icon">🐟</div>
-   <div class="kpi-label">Biomasa Total</div>
-   <div class="kpi-value" id="kpi-biomasa">—</div>
-   <div class="kpi-sub">kilogramos totales</div>
-   <div class="kpi-trend trend-up" id="kpi-biomasa-trend">↑ creciendo</div>
-  </div>
-  <div class="kpi-card kpi-c-blue">
-   <div class="kpi-icon">🐠</div>
-   <div class="kpi-label">Peces Activos</div>
-   <div class="kpi-value" id="kpi-peces">—</div>
-   <div class="kpi-sub">unidades en producción</div>
-   <div class="kpi-trend trend-ok" id="kpi-peces-trend">↔ estable</div>
-  </div>
-  <div class="kpi-card kpi-c-red">
-   <div class="kpi-icon">💀</div>
-   <div class="kpi-label">Mortalidad</div>
-   <div class="kpi-value" id="kpi-mort">—</div>
-   <div class="kpi-sub">% del total</div>
-   <div class="kpi-trend" id="kpi-mort-trend">—</div>
-  </div>
-  <div class="kpi-card kpi-c-blue">
-   <div class="kpi-icon">💧</div>
-   <div class="kpi-label">Oxígeno Prom.</div>
-   <div class="kpi-value" id="kpi-o2">—</div>
-   <div class="kpi-sub">mg/L promedio</div>
-   <div class="kpi-trend" id="kpi-o2-trend">—</div>
-  </div>
-  <div class="kpi-card kpi-c-amb">
-   <div class="kpi-icon">🌡</div>
-   <div class="kpi-label">Temperatura Prom.</div>
-   <div class="kpi-value" id="kpi-temp">—</div>
-   <div class="kpi-sub">°C promedio</div>
-   <div class="kpi-trend" id="kpi-temp-trend">—</div>
-  </div>
-  <div class="kpi-card kpi-c-grn">
-   <div class="kpi-icon">🌿</div>
-   <div class="kpi-label">Conv. Alimenticia</div>
-   <div class="kpi-value" id="kpi-fcr">—</div>
-   <div class="kpi-sub">FCR actual</div>
-   <div class="kpi-trend" id="kpi-fcr-trend">—</div>
-  </div>
-  <div class="kpi-card kpi-c-pur">
-   <div class="kpi-icon">🧪</div>
-   <div class="kpi-label">pH Promedio</div>
-   <div class="kpi-value" id="kpi-ph">—</div>
-   <div class="kpi-sub">unidades de pH</div>
-   <div class="kpi-trend" id="kpi-ph-trend">—</div>
-  </div>
-  <div class="kpi-card kpi-c-ink">
-   <div class="kpi-icon">⭐</div>
-   <div class="kpi-label">Estado General</div>
-   <div class="kpi-value" id="kpi-estado" style="font-size:18px;">—</div>
-   <div class="kpi-sub">índice de salud</div>
-   <div class="kpi-trend" id="kpi-estado-trend">—</div>
-  </div>
+  <div class="kpi-card kpi-c-teal"><div class="kpi-icon">💧</div><div class="kpi-label">Oxígeno prom.</div><div class="kpi-value" id="kpi-o2">—</div><div class="kpi-sub">mg/L promedio</div><div class="kpi-trend trend-ok" id="kpi-o2-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-amb"><div class="kpi-icon">🌡</div><div class="kpi-label">Temperatura prom.</div><div class="kpi-value" id="kpi-temp">—</div><div class="kpi-sub">°C promedio</div><div class="kpi-trend trend-ok" id="kpi-temp-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-pur"><div class="kpi-icon">🧪</div><div class="kpi-label">pH promedio</div><div class="kpi-value" id="kpi-ph">—</div><div class="kpi-sub">unidades de pH</div><div class="kpi-trend trend-ok" id="kpi-ph-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-red"><div class="kpi-icon">🚨</div><div class="kpi-label">Alertas activas</div><div class="kpi-value" id="kpi-alertas">—</div><div class="kpi-sub">parámetros fuera rango</div><div class="kpi-trend trend-ok" id="kpi-alertas-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-blue"><div class="kpi-icon">🐟</div><div class="kpi-label">Estanques activos</div><div class="kpi-value" id="kpi-estanques">—</div><div class="kpi-sub">unidades en producción</div><div class="kpi-trend trend-ok" id="kpi-estanques-trend">—</div></div>
+  <div class="kpi-card kpi-c-grn"><div class="kpi-icon">📦</div><div class="kpi-label">Insumos OK</div><div class="kpi-value" id="kpi-insumos">—</div><div class="kpi-sub">con stock suficiente</div><div class="kpi-trend trend-ok" id="kpi-insumos-trend">—</div></div>
+  <div class="kpi-card kpi-c-ink"><div class="kpi-icon">👥</div><div class="kpi-label">Personal activo</div><div class="kpi-value" id="kpi-personal">—</div><div class="kpi-sub">colaboradores</div><div class="kpi-trend trend-ok" id="kpi-personal-trend">—</div></div>
+  <div class="kpi-card kpi-c-amb"><div class="kpi-icon">⭐</div><div class="kpi-label">Total lecturas</div><div class="kpi-value" id="kpi-lecturas">—</div><div class="kpi-sub">registros hídricos</div><div class="kpi-trend trend-ok" id="kpi-lecturas-trend">—</div></div>
  </div>
-
- <!-- ÍNDICE DE SALUD + SEMÁFORO -->
- <div class="g2" style="margin-bottom:16px;">
-  <div class="cd">
-   <div class="ct">⭐ Índice de Salud del Cultivo</div>
-   <div style="display:flex;gap:20px;align-items:center;">
-    <div class="health-ring" style="min-width:120px;">
-     <div class="health-score" id="health-score" style="color:var(--grn);">—</div>
-     <div class="health-label" id="health-label">Calculando...</div>
-     <div class="health-bar-wrap" style="width:100px;">
-      <div class="health-bar-fill" id="health-bar" style="width:0%;background:var(--grn);"></div>
-     </div>
-    </div>
-    <div style="flex:1;">
-     <div id="health-detail" style="font-size:13px;color:var(--muted);line-height:1.8;">
-      El índice evalúa: oxígeno (30%), supervivencia (25%), crecimiento (25%), calidad del agua (20%).
-     </div>
-    </div>
-   </div>
-  </div>
-  <div class="cd">
-   <div class="ct">🚦 Semáforo de Parámetros</div>
-   <div class="semaforo-wrap" id="semaforo-wrap">
-    <div class="sem-row sem-opt"><div class="sem-dot"></div><span class="sem-param">Cargando parámetros...</span><span class="sem-val">—</span></div>
-   </div>
-  </div>
- </div>
-
- <!-- GRÁFICOS -->
- <div class="g2" style="margin-bottom:16px;">
-  <div class="cd">
-   <div class="ct">📈 Crecimiento de Biomasa Semanal</div>
-   <div class="chart-wrap" style="height:220px;"><canvas id="chart-biomasa"></canvas></div>
-  </div>
-  <div class="cd">
-   <div class="ct">📊 Mortalidad por Etapa</div>
-   <div class="chart-wrap" style="height:220px;"><canvas id="chart-mort-etapa"></canvas></div>
-  </div>
- </div>
- <div class="g2" style="margin-bottom:16px;">
-  <div class="cd">
-   <div class="ct">🕸 Calidad del Agua (Radar)</div>
-   <div class="chart-wrap" style="height:240px;"><canvas id="chart-radar"></canvas></div>
-  </div>
-  <div class="cd">
-   <div class="ct">🍩 Distribución Consumo Alimento</div>
-   <div class="chart-wrap" style="height:240px;"><canvas id="chart-alim-dist"></canvas></div>
-  </div>
- </div>
-
- <!-- ALERTAS + RECOMENDACIONES -->
  <div class="g2">
   <div class="cd">
-   <div class="ct">🚨 Alertas Automáticas <span id="alert-badge" style="background:var(--red-l);color:var(--red);font-size:11px;padding:2px 7px;border-radius:99px;font-weight:700;"></span></div>
-   <div id="alertas-inteligentes"><div class="empty">Analizando parámetros...</div></div>
+   <div class="ct">🚦 Semáforo de parámetros (última lectura)</div>
+   <div class="semaforo-wrap" id="semaforo-wrap"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
   </div>
   <div class="cd">
-   <div class="ct">💡 Recomendaciones del Sistema</div>
-   <div id="recomendaciones-wrap"><div class="empty">Generando recomendaciones...</div></div>
+   <div class="ct">💡 Recomendaciones automáticas</div>
+   <div id="recomendaciones-wrap"><div class="loading"><div class="spinner"></div>Analizando...</div></div>
   </div>
  </div>
 </div>
 
-<!-- ══ MAPA DE ESTANQUES ══ -->
+<!-- MAPA -->
 <div class="pg" id="pg-mapa">
  <div class="ph">
-  <div><div class="pt">Mapa Visual de Estanques</div>
-  <div class="ps">Estado en tiempo real de todas las unidades de producción</div></div>
-  <div style="display:flex;gap:8px;align-items:center;">
-   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--grn);"></div>Óptimo</div>
-   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--amb);"></div>Precaución</div>
-   <div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:10px;height:10px;border-radius:50%;background:var(--red);"></div>Crítico</div>
-  </div>
+  <div><div class="pt">Mapa Visual de Estanques</div><div class="ps">Estado en tiempo real</div></div>
+  <button class="btn bg_ bsm" onclick="loadMapa()">↻ Actualizar</button>
  </div>
  <div class="cd" style="margin-bottom:16px;">
-  <div class="ct">Resumen global <button class="btn bg_ bsm" onclick="loadMapa()">↻ Actualizar</button></div>
+  <div class="ct">Resumen</div>
   <div class="g4" id="mapa-resumen">
-   <div class="sc"><div class="si" style="background:var(--grn-l)">✅</div><div class="sl">En óptimo</div><div class="sv" id="map-opt">—</div></div>
-   <div class="sc"><div class="si" style="background:var(--amb-l)">⚠️</div><div class="sl">Precaución</div><div class="sv" id="map-pre">—</div></div>
-   <div class="sc"><div class="si" style="background:var(--red-l)">🚨</div><div class="sl">Crítico</div><div class="sv" id="map-cri">—</div></div>
-   <div class="sc"><div class="si" style="background:var(--pri-l)">📊</div><div class="sl">Total estanques</div><div class="sv" id="map-tot">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--grn-l)">✅</div><div class="sl">Activos</div><div class="sv" id="map-act">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--red-l)">❌</div><div class="sl">Inactivos</div><div class="sv" id="map-ina">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--amb-l)">⚠️</div><div class="sl">Con alertas</div><div class="sv" id="map-ale">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--pri-l)">📊</div><div class="sl">Total</div><div class="sv" id="map-tot">—</div></div>
   </div>
  </div>
- <div class="tank-grid" id="mapa-grid"><div class="empty">Cargando estanques...</div></div>
+ <div class="tank-grid" id="mapa-grid"><div class="loading"><div class="spinner"></div>Cargando estanques...</div></div>
 </div>
 
-<!-- ══ CONTROL FINANCIERO ══ -->
+<!-- FINANZAS -->
 <div class="pg" id="pg-finanzas">
- <div class="ph">
-  <div><div class="pt">Control Financiero</div>
-  <div class="ps">Costos, rentabilidad y proyección económica del ciclo</div></div>
- </div>
+ <div class="ph"><div><div class="pt">Control Financiero</div><div class="ps">Proyección económica del ciclo</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo proyección:</strong> ingresá los costos del ciclo para calcular la rentabilidad estimada.</div>
  <div class="g2" style="margin-bottom:16px;">
   <div class="cd">
-   <div class="ct">💰 Resumen de Costos del Ciclo</div>
+   <div class="ct">💰 Resumen de Costos</div>
    <div class="fin-total" id="fin-total">$0</div>
    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Costo total acumulado</div>
    <div class="fin-row"><span class="fin-label">🌿 Alimento</span><span class="fin-amount fin-negative" id="fin-alim">$—</span></div>
@@ -1080,327 +806,382 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Precio venta ($/kg)</label><input type="number" id="fc-pventa" placeholder="12000" oninput="calcFinanzas()"></div>
     <div class="ff"><label>Biomasa cosecha (kg)</label><input type="number" id="fc-bio" placeholder="500" oninput="calcFinanzas()"></div>
    </div>
-   <div class="fb" id="fin-resultado">Completá los datos para ver la proyección financiera</div>
+   <div class="fb" id="fin-resultado">Completá los datos para ver la proyección</div>
   </div>
  </div>
  <div class="g2">
-  <div class="cd">
-   <div class="ct">📊 Distribución de Costos</div>
-   <div class="chart-wrap" style="height:250px;"><canvas id="chart-costos"></canvas></div>
-  </div>
-  <div class="cd">
-   <div class="ct">📈 Proyección de Rentabilidad</div>
-   <div class="chart-wrap" style="height:250px;"><canvas id="chart-rent"></canvas></div>
-  </div>
+  <div class="cd"><div class="ct">📊 Distribución de Costos</div><div class="chart-wrap" style="height:250px;"><canvas id="chart-costos"></canvas></div></div>
+  <div class="cd"><div class="ct">📈 Proyección de Rentabilidad</div><div class="chart-wrap" style="height:250px;"><canvas id="chart-rent"></canvas></div></div>
  </div>
 </div>
 
-<!-- ══ INFORMES Y ANALÍTICA ══ -->
+<!-- INFORMES -->
 <div class="pg" id="pg-informes">
- <div class="ph">
-  <div><div class="pt">Informes y Analítica</div>
-  <div class="ps">Generación automática de reportes técnicos profesionales</div></div>
- </div>
-
+ <div class="ph"><div><div class="pt">Informes y Analítica</div><div class="ps">Reportes basados en datos reales de la API</div></div></div>
  <div class="export-bar">
   <button class="btn-export bex-pdf" onclick="exportPDF()">📄 Descargar PDF</button>
   <button class="btn-export bex-xls" onclick="exportExcel()">📊 Descargar Excel</button>
   <button class="btn-export bex-print" onclick="window.print()">🖨 Imprimir</button>
  </div>
-
- <!-- INFORME AUTOMÁTICO -->
- <div class="cd" style="margin-bottom:16px;" id="informe-section">
-  <div class="ct">📋 Informe Técnico Automático
-   <button class="btn bg_ bsm" onclick="generarInforme()">↻ Regenerar</button>
-  </div>
-  <div class="informe-texto" id="informe-texto">Generando informe técnico...</div>
- </div>
-
- <!-- PREDICCIÓN -->
- <div class="cd" style="margin-bottom:16px;">
-  <div class="ct">🔮 Predicción y Proyección</div>
-  <div class="g4">
-   <div class="pred-card">
-    <div class="pred-title">Cosecha estimada</div>
-    <div class="pred-val" id="pred-fecha">—</div>
-    <div class="pred-sub">fecha proyectada</div>
-   </div>
-   <div class="pred-card" style="background:var(--pri);">
-    <div class="pred-title">Biomasa proyectada</div>
-    <div class="pred-val" id="pred-bio">—</div>
-    <div class="pred-sub">kg al momento de cosecha</div>
-   </div>
-   <div class="pred-card" style="background:var(--teal);">
-    <div class="pred-title">Alimento proyectado</div>
-    <div class="pred-val" id="pred-alim">—</div>
-    <div class="pred-sub">kg totales del ciclo</div>
-   </div>
-   <div class="pred-card" style="background:var(--pur);">
-    <div class="pred-title">Mortalidad proyectada</div>
-    <div class="pred-val" id="pred-mort">—</div>
-    <div class="pred-sub">% estimado al cierre</div>
-   </div>
-  </div>
- </div>
-
- <!-- TENDENCIAS -->
- <div class="g2">
-  <div class="cd">
-   <div class="ct">📈 Tendencia de Temperatura</div>
-   <div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-temp"></canvas></div>
-  </div>
-  <div class="cd">
-   <div class="ct">📈 Tendencia de Oxígeno</div>
-   <div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-o2"></canvas></div>
-  </div>
+ <div class="cd" id="informe-section">
+  <div class="ct">📋 Informe Técnico <button class="btn bg_ bsm" onclick="generarInforme()">↻ Regenerar</button></div>
+  <div class="informe-texto" id="informe-texto"><div class="loading"><div class="spinner"></div>Generando informe...</div></div>
  </div>
 </div>
 
-</div></div><!-- /mn /app -->
+</div><!-- /mn -->
+</div><!-- /app -->
+
+<!-- ════ MOBILE MENU TOGGLE ════ -->
+<button id="menu-toggle" style="display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--ink);color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:18px;cursor:pointer;" onclick="document.querySelector('.sb').classList.toggle('open')">☰</button>
 
 <script>
-const API='http://127.0.0.1:8000';
-let CU=null; // currentUser
-let chartTemp=null, chartFCR=null, chartCos=null;
-// Datos simulados para graficas demo
-let tempHistory={labels:[],data:[]};
-let fcrHistory={labels:[],data:[]};
-let cosHistory={labels:[],data:[]};
+// ══════════════════════════════════════════════════════════════
+// AQUALITY — JavaScript Modular
+// Separado en: Config, Utils, Auth, Nav, API modules
+// ══════════════════════════════════════════════════════════════
 
-// ── UTILS ──
-async function http(m,p,b){
-  try{
-    const o={method:m,headers:{'Content-Type':'application/json'}};
-    if(b) o.body=JSON.stringify(b);
-    const r=await fetch(API+p,o);
-    const d=await r.json();
-    return{ok:r.ok,d};
-  }catch(e){return{ok:false,d:{detail:'Sin conexión con el servidor. ¿Está corriendo uvicorn?'}};}
-}
-function showMsg(oid,eid,ok,msg=''){
-  const o=document.getElementById(oid),e=document.getElementById(eid);
-  o.style.display='none';e.style.display='none';
-  if(ok){o.style.display='block';}
-  else{e.textContent='✗ '+msg;e.style.display='block';}
-  setTimeout(()=>{o.style.display='none';e.style.display='none';},4500);
-}
-function fmtDate(s){return s?s.slice(0,16).replace('T',' '):'—';}
-function v(id){return document.getElementById(id);}
-function fmt(n,dec=2){return n!=null?parseFloat(n).toFixed(dec):'—';}
-
-// ── LOGIN ──
-async function doLogin(){
-  const em=v('lem').value.trim(),pw=v('lpw').value;
-  if(!em||!pw) return;
-  const r=await http('POST','/usuarios/login',{email:em,password:pw});
-  if(r.ok){
-    CU=r.d.usuario;
-    v('ls').style.display='none';v('app').style.display='block';
-    const ini=CU.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    v('uav').textContent=ini;v('unm').textContent=CU.nombre;v('urol').textContent=CU.rol;
-    loadDash();
-  }else{v('lerr').style.display='block';}
-}
-v('lpw') && document.addEventListener('DOMContentLoaded',()=>{
-  v('lpw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-});
-function doLogout(){CU=null;v('app').style.display='none';v('ls').style.display='flex';}
-
-// ── ETAPA ──
-const ETAPA={
-  incubacion:{label:'🥚 Incubación',color:'var(--pur)'},
-  alevinaje: {label:'🐟 Alevinaje', color:'var(--teal)'},
-  dedinos:   {label:'🐠 Dedinos',   color:'var(--amb)'},
-  engorde:   {label:'🎣 Engorde',   color:'var(--grn)'},
+// ── CONFIG ──────────────────────────────────────────────────
+const CFG = {
+  // Cambiá esta URL cuando despliegues en Render
+  API: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000'
+    : 'https://TU-APP.onrender.com', // ← reemplazar con tu URL real
 };
-function setEtapa(e,el){
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+
+// Estado global de la app
+const STATE = {
+  user: null,
+  charts: {},
+  localBio: JSON.parse(localStorage.getItem('aq_bio') || '[]'),
+  localAlim: JSON.parse(localStorage.getItem('aq_alim') || '[]'),
+};
+
+// ── UTILS ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmtDate = s => s ? s.slice(0,16).replace('T',' ') : '—';
+const fmtCOP = n => '$' + (n||0).toLocaleString('es-CO');
+const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+
+async function http(method, path, body) {
+  try {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(CFG.API + path, opts);
+    const data = await res.json();
+    return { ok: res.ok, data, status: res.status };
+  } catch(e) {
+    return { ok: false, data: { detail: 'Sin conexión con el servidor.' }, status: 0 };
+  }
+}
+
+function showMsg(okId, errId, ok, msg = '') {
+  $(okId) && ($(okId).style.display = 'none');
+  $(errId) && ($(errId).style.display = 'none');
+  if (ok) {
+    $(okId) && ($(okId).style.display = 'block');
+  } else {
+    if ($(errId)) { $(errId).textContent = '✗ ' + msg; $(errId).style.display = 'block'; }
+  }
+  setTimeout(() => {
+    $(okId) && ($(okId).style.display = 'none');
+    $(errId) && ($(errId).style.display = 'none');
+  }, 4500);
+}
+
+function destroyChart(key) {
+  if (STATE.charts[key]) { STATE.charts[key].destroy(); delete STATE.charts[key]; }
+}
+
+// ── AUTH ────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  ['login','register'].forEach(t => {
+    $('tab-'+t).classList.toggle('on', t === tab);
+    $('panel-'+t).classList.toggle('on', t === tab);
+  });
+}
+
+async function doLogin() {
+  const em = $('lem').value.trim(), pw = $('lpw').value;
+  if (!em || !pw) return;
+  const r = await http('POST', '/usuarios/login', {
+  email: em,
+  password: pw
+});
+  if (r.ok) {
+    enterApp(r.data.usuario);
+  } else {
+    $('lerr').style.display = 'block';
+  }
+}
+
+async function doRegister() {
+  const nombre = $('rn').value.trim();
+  const email  = $('re').value.trim();
+  const pw     = $('rp').value;
+  const rol    = $('rr').value;
+  $('rerr').style.display = 'none';
+  $('rok').style.display = 'none';
+
+  if (!nombre || !email || !pw) {
+    $('rerr').textContent = '✗ Completá todos los campos.';
+    $('rerr').style.display = 'block'; return;
+  }
+  if (pw.length < 8) {
+    $('rerr').textContent = '✗ La contraseña debe tener al menos 8 caracteres.';
+    $('rerr').style.display = 'block'; return;
+  }
+
+  const r = await http('POST', '/usuarios/', { nombre, email, password: pw, rol });
+  if (r.ok) {
+    $('rok').style.display = 'block';
+    // Hacer login automático
+    setTimeout(async () => {
+      const login = await http('POST', '/usuarios/login', {
+  email,
+  password: pw
+});
+      if (login.ok) enterApp(login.data.usuario);
+    }, 1200);
+  } else {
+    const msg = r.data.detail || JSON.stringify(r.data);
+    $('rerr').textContent = '✗ ' + msg;
+    $('rerr').style.display = 'block';
+  }
+}
+
+function enterApp(user) {
+  STATE.user = user;
+  $('screen-welcome').style.display = 'none';
+  $('app').style.display = 'block';
+  const ini = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  $('uav').textContent = ini;
+  $('unm').textContent = user.nombre;
+  $('urol').textContent = user.rol;
+  loadDash();
+}
+
+function doLogout() {
+  STATE.user = null;
+  $('app').style.display = 'none';
+  $('screen-welcome').style.display = 'flex';
+  switchTab('login');
+}
+
+// ── NAVEGACIÓN ──────────────────────────────────────────────
+
+function goTo(pg, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  $('pg-' + pg) && $('pg-' + pg).classList.add('on');
+  if (el) el.classList.add('on');
+  // Cargar datos según sección
+  const loaders = {
+    dash:      loadDash,
+    inv:       loadInv,
+    personal:  loadPer,
+    usuarios:  loadUsr,
+    estanques: loadEst,
+    agua:      loadAlertas,
+    cultivo:   refreshCultivo,
+    mapa:      loadMapa,
+    finanzas:  () => { calcFinanzas(); setTimeout(renderFinanzasCharts, 80); },
+    informes:  generarInforme,
+    biomasa:   renderBioLocal,
+    alim:      () => { renderAlimLocal(); setTimeout(renderFCRChart, 80); },
+  };
+  if (loaders[pg]) setTimeout(loaders[pg], 50);
+}
+
+function setEtapa(e, el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
   el.classList.add('on');
-  const m=ETAPA[e];
-  const d=v('etapa-dash');
-  if(d){d.textContent=m.label;d.style.color=m.color;}
 }
 
-// ── NAV ──
-function goTo(pg,el){
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  v('pg-'+pg).classList.add('on');
-  if(el) el.classList.add('on');
-  if(pg==='inv') loadInv();
-  if(pg==='personal') loadPer();
-  if(pg==='usuarios') loadUsr();
-  if(pg==='estanques') loadEst();
-  if(pg==='agua') loadAlertas();
-}
+// ── DASHBOARD ──────────────────────────────────────────────
 
-// ── DASHBOARD ──
-async function loadDash(){
-  const[us,ins,per,al,cl]=await Promise.all([
-    http('GET','/usuarios/'),http('GET','/inventario/insumos'),
-    http('GET','/personal/'),http('GET','/lecturas/alertas'),
-    http('GET','/lecturas/clima/actual'),
+async function loadDash() {
+  const [us, ins, per, al, cl, est] = await Promise.all([
+    http('GET', '/usuarios/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+    http('GET', '/lecturas/alertas'),
+    http('GET', '/lecturas/clima/actual'),
+    http('GET', '/estanques/'),
   ]);
-  if(us.ok) v('s-u').textContent=us.d.length;
-  if(ins.ok) v('s-i').textContent=ins.d.length;
-  if(per.ok) v('s-p').textContent=per.d.filter(p=>p.activo).length;
-  if(al.ok){
-    v('s-a').textContent=al.d.length;
-    if(al.d.length>0){
-      v('abanner').style.display='block';
-      v('abanner-txt').textContent=`${al.d.length} lectura(s) con parámetros fuera del rango seguro.`;
-      v('alertas-r').innerHTML=al.d.slice(0,5).map(l=>`
+
+  if (us.ok)  $('s-u').textContent = us.data.length;
+  if (est.ok) $('s-e').textContent = est.data.filter(e => e.estado === 'activo').length;
+  if (ins.ok) $('s-i').textContent = ins.data.length;
+  if (per.ok) $('s-p').textContent = per.data.filter(p => p.activo).length;
+
+  if (al.ok) {
+    $('s-a').textContent = al.data.length;
+    if (al.data.length > 0) {
+      $('abanner').style.display = 'block';
+      $('abanner-txt').textContent = `${al.data.length} lectura(s) con parámetros fuera del rango seguro.`;
+      $('alertas-r').innerHTML = al.data.slice(0,5).map(l => `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);">
           <div><div style="font-size:13px;font-weight:600;">Estanque #${l.estanque_id}</div>
           <div style="font-size:12px;color:var(--muted);">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div></div>
-          <span class="ch cr">⚠ Alerta</span></div>`).join('');
+          <span class="ch cr">⚠ Alerta</span>
+        </div>`).join('');
+    } else {
+      $('abanner').style.display = 'none';
+      $('alertas-r').innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
     }
   }
+
   // Clima
-  const cb=v('clima-box');
-  if(cl.ok){
-    const d=cl.d;
-    cb.innerHTML=`<div class="cg2">
-      <div class="cc"><div class="cv">${d.temperatura_ambiente_c??'—'}°C</div><div class="cl">Temperatura</div></div>
-      <div class="cc"><div class="cv" style="color:var(--teal);">${d.humedad_relativa_pct??'—'}%</div><div class="cl">Humedad</div></div>
-      <div class="cc"><div class="cv" style="color:var(--ink);font-size:18px;">${d.precipitacion_mm??0}mm</div><div class="cl">Precipitación</div></div>
-      <div class="cc"><div class="cv" style="color:var(--grn);font-size:18px;">${d.temperatura_agua_estimada_c??'—'}°C</div><div class="cl">Agua estimada</div></div>
-    </div><div style="font-size:11px;color:var(--muted);margin-top:8px;">Actualizado: ${d.hora_lectura??''}</div>`;
-  }else{cb.innerHTML='<div class="empty">API de clima no disponible.</div>';}
-  // Chart temperatura
-  renderTempChart();
+  const cb = $('clima-box');
+  if (cl.ok) {
+    const d = cl.data;
+    cb.innerHTML = `<div class="cg2">
+      <div class="cc"><div class="cv">${d.temperatura_ambiente_c ?? '—'}°C</div><div class="cl">Temperatura</div></div>
+      <div class="cc"><div class="cv" style="color:var(--teal);">${d.humedad_relativa_pct ?? '—'}%</div><div class="cl">Humedad</div></div>
+      <div class="cc"><div class="cv" style="color:var(--ink);font-size:18px;">${d.precipitacion_mm ?? 0}mm</div><div class="cl">Precipitación</div></div>
+      <div class="cc"><div class="cv" style="color:var(--grn);font-size:18px;">${d.temperatura_agua_estimada_c ?? '—'}°C</div><div class="cl">Agua estimada</div></div>
+    </div><div style="font-size:11px;color:var(--muted);margin-top:8px;">Actualizado: ${d.hora_lectura ?? ''}</div>`;
+  } else {
+    cb.innerHTML = '<div class="empty">API de clima no disponible.</div>';
+  }
+
+  // Gráfico temperatura desde lecturas reales
+  await renderTempChartFromAPI();
 }
 
-// ── CHARTS ──
-function renderTempChart(){
-  const ctx=v('chart-temp');
-  if(!ctx) return;
-  // Datos demo — en producción vendría de /lecturas/estanque/{id}
-  const labels=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom','Lun','Mar','Mié'];
-  const datos=[14.2,14.5,13.8,15.1,14.9,14.3,13.5,14.8,15.2,14.6];
-  if(chartTemp) chartTemp.destroy();
-  chartTemp=new Chart(ctx,{
-    type:'line',
-    data:{labels,datasets:[{
-      label:'Temperatura °C',data:datos,
-      borderColor:'#2B7FD4',backgroundColor:'rgba(43,127,212,.1)',
-      tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#2B7FD4',
-    },{
-      label:'Límite máx (18°C)',data:Array(10).fill(18),
-      borderColor:'#DC2626',borderDash:[5,5],pointRadius:0,
-    },{
-      label:'Límite mín (10°C)',data:Array(10).fill(10),
-      borderColor:'#D97706',borderDash:[5,5],pointRadius:0,
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      scales:{y:{min:8,max:20,grid:{color:'rgba(0,0,0,.05)'}},
-              x:{grid:{color:'rgba(0,0,0,.05)'}}}}
+// ── CHART TEMPERATURA (datos reales desde API) ──────────────
+
+async function renderTempChartFromAPI() {
+  // Intenta obtener lecturas del primer estanque disponible, luego estanques activos
+  const estR = await http('GET', '/estanques/');
+  const activos = estR.ok ? estR.data.filter(e => e.estado === 'activo') : [];
+
+  let lecturas = [];
+  for (const est of activos.slice(0, 3)) {
+    const r = await http('GET', `/lecturas/estanque/${est.id}?limite=10`);
+    if (r.ok && r.data.length) { lecturas = r.data; break; }
+  }
+
+  const ctx = $('chart-temp');
+  if (!ctx) return;
+
+  if (!lecturas.length) {
+    ctx.style.display = 'none';
+    $('chart-temp-empty') && ($('chart-temp-empty').style.display = 'block');
+    return;
+  }
+
+  ctx.style.display = 'block';
+  $('chart-temp-empty') && ($('chart-temp-empty').style.display = 'none');
+
+  const labels = lecturas.reverse().map(l => fmtDate(l.registrado_en).slice(5,16));
+  const temps  = lecturas.map(l => l.temperatura);
+  const phs    = lecturas.map(l => l.ph);
+  const o2s    = lecturas.map(l => l.oxigeno);
+
+  destroyChart('temp');
+  STATE.charts['temp'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Temperatura °C', data: temps, borderColor:'#2B7FD4', backgroundColor:'rgba(43,127,212,.1)', tension:.4, fill:true, pointRadius:4, yAxisID:'y' },
+      { label:'pH', data: phs, borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,.05)', tension:.4, fill:false, pointRadius:3, yAxisID:'y2' },
+      { label:'O₂ mg/L', data: o2s, borderColor:'#0EA5A0', backgroundColor:'rgba(14,165,160,.05)', tension:.4, fill:false, pointRadius:3, yAxisID:'y3' },
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
+      scales:{
+        y:  { min:8, max:22, grid:{color:'rgba(0,0,0,.04)'}, title:{display:true,text:'°C',font:{size:10}} },
+        y2: { min:5, max:10, position:'right', grid:{display:false}, title:{display:true,text:'pH',font:{size:10}} },
+        y3: { min:0, max:15, position:'right', grid:{display:false}, display:false },
+        x:  { grid:{color:'rgba(0,0,0,.04)'} }
+      }
+    }
   });
 }
 
-function renderFCRChart(){
-  const ctx=v('chart-fcr');
-  if(!ctx) return;
-  const labels=['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6'];
-  const datos=[1.1,1.2,1.15,1.3,1.25,1.18];
-  if(chartFCR) chartFCR.destroy();
-  chartFCR=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[{
-      label:'FCR semanal',data:datos,
-      backgroundColor:datos.map(v=>v<1.3?'rgba(22,163,74,.7)':v<2?'rgba(217,119,6,.7)':'rgba(220,38,38,.7)'),
-      borderRadius:6,
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      scales:{y:{min:0,max:2.5,grid:{color:'rgba(0,0,0,.05)'}},
-              x:{grid:{display:false}}}}
-  });
-}
+// ── ESTANQUES ───────────────────────────────────────────────
 
-function renderCosChart(){
-  const ctx=v('chart-cos');
-  if(!ctx) return;
-  const labels=['Cosecha 1','Cosecha 2','Cosecha 3'];
-  const datos=[82,84,80];
-  if(chartCos) chartCos.destroy();
-  chartCos=new Chart(ctx,{
-    type:'doughnut',
-    data:{labels,datasets:[{
-      data:datos,
-      backgroundColor:['rgba(22,163,74,.8)','rgba(43,127,212,.8)','rgba(14,165,160,.8)'],
-      borderWidth:2,borderColor:'#fff',
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
-               tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}% rend.`}}}}
-  });
-}
-
-// ── ESTANQUES ──
-function calcEst(){
-  const l=parseFloat(v('el').value)||0,a=parseFloat(v('ea').value)||0,
-        p=parseFloat(v('ep2').value)||0,cap=parseFloat(v('ecap').value)||0;
-  if(l&&a&&p){
-    const vol=l*a*p;
-    v('e-calc').textContent=`Volumen = ${l}×${a}×${p} = ${vol.toFixed(2)} m³`;
-    if(cap>0) v('edens').value=(cap/vol).toFixed(1)+' kg/m³';
+function calcEst() {
+  const l=parseFloat($('el')?.value)||0, a=parseFloat($('ea')?.value)||0,
+        p=parseFloat($('ep2')?.value)||0, cap=parseFloat($('ecap')?.value)||0;
+  if (l&&a&&p) {
+    const vol = l*a*p;
+    $('e-calc').textContent = `Volumen = ${l}×${a}×${p} = ${vol.toFixed(2)} m³`;
+    if (cap > 0) $('edens').value = (cap/vol).toFixed(1) + ' kg/m³';
   }
 }
-async function regEstanque(){
-  const cap=parseFloat(v('ecap').value);
-  const l=parseFloat(v('el').value)||null,a=parseFloat(v('ea').value)||null,p=parseFloat(v('ep2').value)||null;
-  const vol=l&&a&&p?+(l*a*p).toFixed(2):null;
-  const body={codigo:v('ec').value.trim(),nombre:v('en').value.trim(),capacidad_kg:cap,volumen_m3:vol};
-  if(!body.codigo||!body.nombre||!cap){showMsg('e-ok','e-er',false,'Completá código, nombre y capacidad.');return;}
-  const r=await http('POST','/estanques/',body);
-  showMsg('e-ok','e-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadEst();
+
+async function regEstanque() {
+  const cap = parseFloat($('ecap')?.value);
+  const l=parseFloat($('el')?.value)||null, a=parseFloat($('ea')?.value)||null, p=parseFloat($('ep2')?.value)||null;
+  const vol = l&&a&&p ? +(l*a*p).toFixed(2) : null;
+  const body = { codigo:$('ec').value.trim(), nombre:$('en').value.trim(), capacidad_kg:cap, volumen_m3:vol, etapa:$('ee').value };
+  if (!body.codigo || !body.nombre || !cap) { showMsg('e-ok','e-er',false,'Completá código, nombre y capacidad.'); return; }
+  const r = await http('POST', '/estanques/', body);
+  showMsg('e-ok','e-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) { loadEst(); loadDash(); }
 }
-async function loadEst(){
-  const r=await http('GET','/estanques/');
-  const el=v('t-est');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin estanques registrados.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>Código</th><th>Nombre</th><th>Capacidad</th><th>Volumen</th><th>Estado</th></tr></thead>
-  <tbody>${r.d.map(e=>`<tr>
+
+async function loadEst() {
+  const r = await http('GET', '/estanques/');
+  const el = $('t-est');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin estanques registrados.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Código</th><th>Nombre</th><th>Etapa</th><th>Capacidad</th><th>Volumen</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(e=>`<tr>
     <td class="mono">${e.codigo}</td><td><strong>${e.nombre}</strong></td>
-    <td class="mono">${e.capacidad_kg} kg</td><td class="mono">${e.volumen_m3??'—'} m³</td>
+    <td>${e.etapa || '—'}</td>
+    <td class="mono">${e.capacidad_kg} kg</td><td class="mono">${e.volumen_m3 ?? '—'} m³</td>
     <td><span class="ch ${e.estado==='activo'?'cg':'cr'}">${e.estado}</span></td>
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── AGUA ──
-async function regLectura(){
-  const body={estanque_id:parseInt(v('ag-e').value),usuario_id:CU.id,
-    temperatura:parseFloat(v('ag-t').value),ph:parseFloat(v('ag-ph').value),
-    oxigeno:parseFloat(v('ag-o2').value),observacion:v('ag-obs').value||null};
-  if(!body.estanque_id||isNaN(body.temperatura)||isNaN(body.ph)||isNaN(body.oxigeno)){
-    showMsg('ag-ok','ag-er',false,'Completá todos los campos obligatorios.');return;}
-  const r=await http('POST','/lecturas/',body);
-  showMsg('ag-ok','ag-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadAlertas();
+// ── LECTURAS DE AGUA ────────────────────────────────────────
+
+async function regLectura() {
+  const body = {
+    estanque_id: parseInt($('ag-e').value),
+    usuario_id:  STATE.user.id,
+    temperatura: parseFloat($('ag-t').value),
+    ph:          parseFloat($('ag-ph').value),
+    oxigeno:     parseFloat($('ag-o2').value),
+    observacion: $('ag-obs').value || null,
+  };
+  if (!body.estanque_id || isNaN(body.temperatura) || isNaN(body.ph) || isNaN(body.oxigeno)) {
+    showMsg('ag-ok','ag-er',false,'Completá todos los campos numéricos.'); return;
+  }
+  const r = await http('POST', '/lecturas/', body);
+  showMsg('ag-ok','ag-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadAlertas();
 }
-async function loadAlertas(){
-  const r=await http('GET','/lecturas/alertas');
-  const el=v('al-box'),cnt=v('al-cnt');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin alertas activas ✓</div>';cnt.textContent='(0)';return;}
-  cnt.textContent=`(${r.d.length})`;
-  el.innerHTML=r.d.slice(0,6).map(l=>`
+
+async function loadAlertas() {
+  const r = await http('GET', '/lecturas/alertas');
+  const el = $('al-box'), cnt = $('al-cnt');
+  if (!r.ok || !r.data.length) {
+    el.innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
+    cnt && (cnt.textContent = '(0)'); return;
+  }
+  cnt && (cnt.textContent = `(${r.data.length})`);
+  el.innerHTML = r.data.slice(0,6).map(l=>`
     <div style="padding:8px 0;border-bottom:1px solid var(--line);">
       <div style="display:flex;justify-content:space-between;">
         <strong style="font-size:13px;">Estanque #${l.estanque_id}</strong>
-        <span class="ch cr">⚠ Alerta</span></div>
+        <span class="ch cr">⚠ Alerta</span>
+      </div>
       <div style="font-size:12px;color:var(--muted);margin-top:2px;">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div>
     </div>`).join('');
 }
-async function buscarLect(){
-  const id=v('ag-bid').value;if(!id) return;
-  const r=await http('GET',`/lecturas/estanque/${id}?limite=20`);
-  const el=v('t-lect');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin lecturas para este estanque.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>O₂</th><th>Estado</th><th>Observación</th></tr></thead>
-  <tbody>${r.d.map(l=>`<tr>
+
+async function buscarLect() {
+  const id = $('ag-bid').value; if (!id) return;
+  const r = await http('GET', `/lecturas/estanque/${id}?limite=20`);
+  const el = $('t-lect');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin lecturas para este estanque.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>O₂</th><th>Estado</th><th>Observación</th></tr></thead>
+  <tbody>${r.data.map(l=>`<tr>
     <td class="mono">${fmtDate(l.registrado_en)}</td>
     <td>${l.temperatura}°C</td><td>${l.ph}</td><td>${l.oxigeno}mg/L</td>
     <td><span class="ch ${l.alerta?'cr':'cg'}">${l.alerta?'⚠ Alerta':'✓ Normal'}</span></td>
@@ -1408,97 +1189,32 @@ async function buscarLect(){
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── EXPORTAR ──
-function exportarAlertas(){
-  http('GET','/lecturas/alertas').then(r=>{
-    if(!r.ok||!r.d.length){alert('No hay alertas para exportar.');return;}
-    const rows=[['Estanque','Temperatura','pH','Oxígeno','Fecha','Observación'],
-      ...r.d.map(l=>[l.estanque_id,l.temperatura,l.ph,l.oxigeno,fmtDate(l.registrado_en),l.observacion||''])];
-    const csv=rows.map(r=>r.join(',')).join(
-);
-    const a=document.createElement('a');
-    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-    a.download='alertas_aquality.csv';a.click();
-  });
-}
-function exportarResumen(){
-  const v_=id=>document.getElementById(id)?.value||'—';
-  const txt=`AQUALITY – Resumen de Cosecha
-${'='.repeat(40)}
-Estanque: ${v_('co-e')}
-Fecha: ${v_('co-f')}
-Peso vivo: ${v_('co-v')} kg
-Peso canal: ${v_('co-ca')} kg
-Rendimiento: ${v('rend-box').textContent}
-Destino: ${v_('co-de')}
-Cliente: ${v_('co-cl')}
-Precio/kg: $${v_('co-pr')}
-Generado: ${new Date().toLocaleString('es-CO')}`;
-  const a=document.createElement('a');
-  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
-  a.download='cosecha_aquality.txt';a.click();
+// ── INVENTARIO ──────────────────────────────────────────────
+
+async function crearIns() {
+  const body = { nombre:$('in-n').value.trim(), unidad_medida:$('in-u').value,
+    stock_minimo:parseFloat($('in-m').value)||10, descripcion:$('in-d').value||null };
+  if (!body.nombre) { showMsg('in-ok','in-er',false,'El nombre es obligatorio.'); return; }
+  const r = await http('POST', '/inventario/insumos', body);
+  showMsg('in-ok','in-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadInv();
 }
 
-// ── BIOMASA ──
-function calcBio(){
-  const c=parseFloat(v('bi-c').value)||0,p=parseFloat(v('bi-p').value)||0;
-  if(c&&p) v('bi-calc').textContent=`Biomasa inicial = ${c} peces × ${p}g = ${(c*p/1000).toFixed(2)} kg`;
-}
-function calcMue(){
-  const pp=parseFloat(v('mu-pp').value)||0,pc=parseFloat(v('mu-pc').value)||0;
-  if(pp&&pc) v('mu-calc').textContent=`Biomasa total = ${pc}×${pp}g = ${(pc*pp/1000).toFixed(2)} kg · GDP pendiente de siembra inicial`;
-}
-
-// ── FCR ──
-function calcFCR(){
-  const ac=parseFloat(v('al-ac').value)||0,gp=parseFloat(v('al-gp').value)||0;
-  const fb=v('fcr-box');
-  if(ac&&gp){
-    const fcr=(ac/gp).toFixed(2);
-    const color=fcr<1.3?'var(--grn)':fcr<2?'var(--amb)':'var(--red)';
-    const estado=fcr<1.3?'✓ Excelente':fcr<2?'⚠ Aceptable':'✗ Ineficiente';
-    fb.style.color=color;
-    fb.textContent=`FCR = ${ac}kg ÷ ${gp}kg = ${fcr} — ${estado}`;
-  }else{fb.textContent='FCR = alimento acumulado ÷ ganancia de peso = —';fb.style.color='';}
+async function regMov() {
+  const body = { insumo_id:parseInt($('mv-i').value), usuario_id:STATE.user.id,
+    tipo:$('mv-t').value, cantidad:parseFloat($('mv-c').value), motivo:$('mv-m').value||null };
+  if (!body.insumo_id || isNaN(body.cantidad)) { showMsg('mv-ok','mv-er',false,'Completá los campos.'); return; }
+  const r = await http('POST', '/inventario/movimientos', body);
+  showMsg('mv-ok','mv-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadInv();
 }
 
-// ── RENDIMIENTO ──
-function calcRend(){
-  const vi=parseFloat(v('co-v').value)||0,ca=parseFloat(v('co-ca').value)||0,
-        pr=parseFloat(v('co-pr').value)||0;
-  const rb=v('rend-box');
-  if(vi&&ca){
-    const rend=((ca/vi)*100).toFixed(1);
-    const val=pr?`$${(vi*pr).toLocaleString('es-CO')}`:'—';
-    const color=rend>=80?'var(--grn)':rend>=70?'var(--amb)':'var(--red)';
-    rb.style.color=color;
-    rb.textContent=`Rendimiento en canal = ${rend}%${rend>=80?' ✓ Óptimo':rend>=70?' ⚠ Aceptable':' ✗ Bajo'} · Valor estimado = ${val}`;
-  }else{rb.textContent='Rendimiento en canal = —% · Valor estimado = $—';rb.style.color='';}
-}
-
-// ── INVENTARIO ──
-async function crearIns(){
-  const body={nombre:v('in-n').value.trim(),unidad_medida:v('in-u').value,
-    stock_minimo:parseFloat(v('in-m').value)||10,descripcion:v('in-d').value||null};
-  if(!body.nombre){showMsg('in-ok','in-er',false,'El nombre es obligatorio.');return;}
-  const r=await http('POST','/inventario/insumos',body);
-  showMsg('in-ok','in-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadInv();
-}
-async function regMov(){
-  const body={insumo_id:parseInt(v('mv-i').value),usuario_id:CU.id,
-    tipo:v('mv-t').value,cantidad:parseFloat(v('mv-c').value),motivo:v('mv-m').value||null};
-  if(!body.insumo_id||isNaN(body.cantidad)){showMsg('mv-ok','mv-er',false,'Completá los campos.');return;}
-  const r=await http('POST','/inventario/movimientos',body);
-  showMsg('mv-ok','mv-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadInv();
-}
-async function loadInv(){
-  const r=await http('GET','/inventario/insumos');
-  const el=v('t-inv');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin insumos.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
-  <tbody>${r.d.map(i=>`<tr>
+async function loadInv() {
+  const r = await http('GET', '/inventario/insumos');
+  const el = $('t-inv');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin insumos registrados.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(i=>`<tr>
     <td class="mono">${i.id}</td>
     <td><strong>${i.nombre}</strong>${i.descripcion?`<div style="font-size:11px;color:var(--muted);">${i.descripcion}</div>`:''}</td>
     <td class="mono" style="font-weight:600;">${i.stock_actual}</td>
@@ -1507,22 +1223,25 @@ async function loadInv(){
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── PERSONAL ──
-async function crearPer(){
-  const body={cedula:v('pe-c').value.trim(),nombre:v('pe-n').value.trim(),
-    cargo:v('pe-ca').value.trim(),fecha_ingreso:v('pe-f').value,telefono:v('pe-t').value||null};
-  if(!body.cedula||!body.nombre||!body.cargo||!body.fecha_ingreso){
-    showMsg('pe-ok','pe-er',false,'Completá todos los campos.');return;}
-  const r=await http('POST','/personal/',body);
-  showMsg('pe-ok','pe-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadPer();
+// ── PERSONAL ────────────────────────────────────────────────
+
+async function crearPer() {
+  const body = { cedula:$('pe-c').value.trim(), nombre:$('pe-n').value.trim(),
+    cargo:$('pe-ca').value.trim(), fecha_ingreso:$('pe-f').value, telefono:$('pe-t').value||null };
+  if (!body.cedula||!body.nombre||!body.cargo||!body.fecha_ingreso) {
+    showMsg('pe-ok','pe-er',false,'Completá todos los campos.'); return;
+  }
+  const r = await http('POST', '/personal/', body);
+  showMsg('pe-ok','pe-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadPer();
 }
-async function loadPer(){
-  const r=await http('GET','/personal/');
-  const el=v('t-per');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin colaboradores.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días</th><th>Estado</th></tr></thead>
-  <tbody>${r.d.map(p=>`<tr>
+
+async function loadPer() {
+  const r = await http('GET', '/personal/');
+  const el = $('t-per');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin colaboradores.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(p=>`<tr>
     <td class="mono">${p.cedula}</td><td><strong>${p.nombre}</strong></td>
     <td>${p.cargo}</td><td style="color:var(--muted);">${p.telefono||'—'}</td>
     <td class="mono">${p.dias_laborados}</td>
@@ -1530,279 +1249,216 @@ async function loadPer(){
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── USUARIOS ──
-async function crearUsr(){
-  const body={nombre:v('us-n').value.trim(),email:v('us-e').value.trim(),
-    password:v('us-p').value,rol:v('us-r').value};
-  if(!body.nombre||!body.email||!body.password){showMsg('us-ok','us-er',false,'Completá todos los campos.');return;}
-  const r=await http('POST','/usuarios/',body);
-  showMsg('us-ok','us-er',r.ok,r.d.detail||JSON.stringify(r.d));
-  if(r.ok) loadUsr();
+// ── USUARIOS ────────────────────────────────────────────────
+
+async function crearUsr() {
+  const body = { nombre:$('us-n').value.trim(), email:$('us-e').value.trim(),
+    password:$('us-p').value, rol:$('us-r').value };
+  if (!body.nombre||!body.email||!body.password) { showMsg('us-ok','us-er',false,'Completá todos los campos.'); return; }
+  const r = await http('POST', '/usuarios/', body);
+  showMsg('us-ok','us-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadUsr();
 }
-async function loadUsr(){
-  const r=await http('GET','/usuarios/');
-  const el=v('t-usr');
-  if(!r.ok||!r.d.length){el.innerHTML='<div class="empty">Sin usuarios.</div>';return;}
-  const col={administrador:'cr',supervisor:'ca',operario:'cb'};
-  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
-  <tbody>${r.d.map(u=>`<tr>
+
+async function loadUsr() {
+  const r = await http('GET', '/usuarios/');
+  const el = $('t-usr');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin usuarios.</div>'; return; }
+  const colMap = { administrador:'cr', supervisor:'ca', operario:'cb' };
+  el.innerHTML = `<table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
+  <tbody>${r.data.map(u=>`<tr>
     <td class="mono">${u.id}</td><td><strong>${u.nombre}</strong></td>
     <td style="color:var(--muted);">${u.email}</td>
-    <td><span class="ch ${col[u.rol]||'cb'}">${u.rol}</span></td>
+    <td><span class="ch ${colMap[u.rol]||'cb'}">${u.rol}</span></td>
     <td class="mono" style="font-size:11px;">${u.creado_en?.slice(0,10)||'—'}</td>
   </tr>`).join('')}</tbody></table>`;
 }
 
-// Render charts when navigating to those pages
-document.addEventListener('DOMContentLoaded',()=>{
-  // lazy chart renders
-  const orig=window.goTo;
-  window.goTo=function(pg,el){
-    orig&&orig(pg,el);
-    // handled inline
-    if(pg==='alim') setTimeout(renderFCRChart,100);
-    if(pg==='cosecha') setTimeout(renderCosChart,100);
+// ── BIOMASA (localStorage) ──────────────────────────────────
+
+function calcBio() {
+  const c=parseFloat($('bi-c')?.value)||0, p=parseFloat($('bi-p')?.value)||0;
+  if (c&&p) $('bi-calc').textContent = `Biomasa inicial = ${c} × ${p}g = ${(c*p/1000).toFixed(2)} kg`;
+}
+
+function guardarBioLocal() {
+  const entry = {
+    estanque: $('bi-e').value, fecha: $('bi-f').value,
+    cantidad: $('bi-c').value, pesoInicial: $('bi-p').value,
+    proveedor: $('bi-pr').value, etapa: $('bi-et').value,
+    biomasa: ((parseFloat($('bi-c').value)||0)*(parseFloat($('bi-p').value)||0)/1000).toFixed(2),
+    ts: Date.now()
   };
-});
-
-
-// ═══════════════════════════════════════════════════════════
-// AQUALITY — MÓDULOS AVANZADOS
-// Estado del Cultivo · Mapa · Finanzas · Informes
-// ═══════════════════════════════════════════════════════════
-
-// ── DATOS SIMULADOS (reemplazar con API/localStorage) ──────
-const DATOS_SIM = {
-  biomasa:      { actual: 1240, semanas: [320,480,620,780,920,1080,1240] },
-  peces:        { activos: 8420, inicial: 9000 },
-  mortalidad:   { total: 580, pct: 6.4, porEtapa: [1.2, 3.8, 4.5, 6.4] },
-  oxigeno:      { prom: 9.2, historial: [9.0,9.3,8.8,9.5,9.1,9.4,9.2,8.9,9.3,9.2] },
-  temperatura:  { prom: 14.5, historial: [14.2,14.5,13.8,15.1,14.9,14.3,13.5,14.8,15.2,14.6] },
-  ph:           { prom: 7.3, historial: [7.2,7.3,7.4,7.2,7.1,7.3,7.5,7.2,7.3,7.4] },
-  fcr:          { actual: 1.28, historial: [1.1,1.2,1.15,1.3,1.25,1.18,1.28] },
-  amonio:       { prom: 0.018 },
-  nitritos:     { prom: 0.045 },
-  alimentacion: { porEtapa: [180, 420, 680, 960], totalAcum: 1580 },
-  estanques: [
-    { codigo:'EST-01', nombre:'Estanque Norte',   etapa:'engorde',   estado:'opt', biomasa:380, peces:1200, o2:9.4, temp:14.2 },
-    { codigo:'EST-02', nombre:'Estanque Sur',     etapa:'dedinos',   estado:'pre', biomasa:210, peces:2800, o2:7.8, temp:15.8 },
-    { codigo:'EST-03', nombre:'Estanque Este',    etapa:'alevinaje', estado:'opt', biomasa:85,  peces:3000, o2:9.1, temp:13.9 },
-    { codigo:'EST-04', nombre:'Estanque Oeste',   etapa:'incubacion',estado:'cri', biomasa:12,  peces:4200, o2:6.9, temp:16.5 },
-    { codigo:'EST-05', nombre:'Estanque Central', etapa:'engorde',   estado:'opt', biomasa:553, peces:1420, o2:9.8, temp:14.0 },
-  ],
-};
-
-let periodoCultivo = 'dia';
-let chartsAv = {}; // advanced charts registry
-
-// ── PERÍODO ──────────────────────────────────────────────
-function setPeriodo(p, el) {
-  periodoCultivo = p;
-  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('on'));
-  el.classList.add('on');
-  refreshCultivo();
+  STATE.localBio.push(entry);
+  localStorage.setItem('aq_bio', JSON.stringify(STATE.localBio));
+  showMsg('bi-ok','bi-er',true);
+  renderBioLocal();
 }
 
-// ── NAVEGACIÓN EXTENDIDA ─────────────────────────────────
-const _goToOrig = window.goTo || function(){};
-window.goTo = function(pg, el) {
-  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
-  const pgEl = document.getElementById('pg-' + pg);
-  if (pgEl) pgEl.classList.add('on');
-  if (el) el.classList.add('on');
-  // original page loads
-  if (pg === 'inv')      loadInv && loadInv();
-  if (pg === 'personal') loadPer && loadPer();
-  if (pg === 'usuarios') loadUsr && loadUsr();
-  if (pg === 'estanques')loadEst && loadEst();
-  if (pg === 'agua')     loadAlertas && loadAlertas();
-  if (pg === 'alim')     setTimeout(() => renderFCRChart && renderFCRChart(), 80);
-  if (pg === 'cosecha')  setTimeout(() => renderCosChart && renderCosChart(), 80);
-  // new pages
-  if (pg === 'cultivo')  setTimeout(initCultivo, 80);
-  if (pg === 'mapa')     setTimeout(loadMapa, 80);
-  if (pg === 'finanzas') setTimeout(initFinanzas, 80);
-  if (pg === 'informes') setTimeout(initInformes, 80);
-};
-
-// ═══════════════════════════════════════════════
-// MÓDULO 1: ESTADO DEL CULTIVO
-// ═══════════════════════════════════════════════
-
-function initCultivo() {
-  refreshCultivo();
+function renderBioLocal() {
+  const el = $('t-bio');
+  if (!STATE.localBio.length) { el.innerHTML = '<div class="empty">Sin siembras registradas.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Estanque</th><th>Fecha</th><th>Cantidad</th><th>Peso inicial</th><th>Biomasa</th><th>Proveedor</th></tr></thead>
+  <tbody>${STATE.localBio.slice().reverse().map(b=>`<tr>
+    <td class="mono">#${b.estanque}</td><td>${b.fecha}</td>
+    <td class="mono">${b.cantidad} peces</td><td class="mono">${b.pesoInicial}g</td>
+    <td class="mono" style="font-weight:600;">${b.biomasa} kg</td>
+    <td style="color:var(--muted);">${b.proveedor||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
 }
 
-function refreshCultivo() {
-  const D = DATOS_SIM;
-  
-  // ── KPI CARDS ──
-  const mortPct = D.mortalidad.pct.toFixed(1);
-  const mortClass = mortPct < 3 ? 'trend-up' : mortPct < 8 ? 'trend-ok' : 'trend-dn';
-  
-  setKPI('kpi-biomasa',      D.biomasa.actual + ' kg',     'trend-up',  '↑ +160 kg esta semana');
-  setKPI('kpi-peces',        D.peces.activos.toLocaleString('es-CO'), 'trend-ok', '↔ estable');
-  setKPI('kpi-mort',         mortPct + '%',                 mortClass,   mortPct < 5 ? '✓ controlada' : '⚠ revisar');
-  setKPI('kpi-o2',           D.oxigeno.prom + ' mg/L',     D.oxigeno.prom >= 7 ? 'trend-up' : 'trend-dn', D.oxigeno.prom >= 7 ? '✓ óptimo' : '⚠ bajo');
-  setKPI('kpi-temp',         D.temperatura.prom + ' °C',   D.temperatura.prom <= 18 ? 'trend-ok' : 'trend-dn', D.temperatura.prom <= 18 ? '✓ rango normal' : '⚠ alta');
-  setKPI('kpi-fcr',          D.fcr.actual.toFixed(2),      D.fcr.actual < 1.5 ? 'trend-up' : 'trend-dn', D.fcr.actual < 1.5 ? '✓ eficiente' : '⚠ revisar');
-  setKPI('kpi-ph',           D.ph.prom.toFixed(1),         D.ph.prom >= 6.5 && D.ph.prom <= 8.5 ? 'trend-up' : 'trend-dn', '✓ rango normal');
+// ── ALIMENTACIÓN (localStorage + FCR chart) ─────────────────
 
-  // ── ÍNDICE DE SALUD ──
-  const idx = calcSalud(D);
-  const hs = document.getElementById('health-score');
-  const hl = document.getElementById('health-label');
-  const hb = document.getElementById('health-bar');
-  const hd = document.getElementById('health-detail');
-  if (hs) {
-    hs.textContent = idx.score + '/100';
-    hs.style.color = idx.color;
-    hl.textContent = idx.label;
-    hl.style.color = idx.color;
-    hb.style.width = idx.score + '%';
-    hb.style.background = idx.color;
-    hd.textContent = idx.detalle;
+function calcFCR() {
+  const ac=parseFloat($('al-ac')?.value)||0, gp=parseFloat($('al-gp')?.value)||0;
+  const fb = $('fcr-box');
+  if (ac&&gp) {
+    const fcr = (ac/gp).toFixed(2);
+    const color = fcr<1.3?'var(--grn)':fcr<2?'var(--amb)':'var(--red)';
+    const estado = fcr<1.3?'✓ Excelente':fcr<2?'⚠ Aceptable':'✗ Ineficiente';
+    fb.style.color = color;
+    fb.textContent = `FCR = ${ac}kg ÷ ${gp}kg = ${fcr} — ${estado}`;
+  } else { fb.textContent = 'FCR = alimento acumulado ÷ ganancia de peso = —'; fb.style.color=''; }
+}
+
+function guardarAlimLocal() {
+  const entry = {
+    estanque: $('al-e').value, fecha: $('al-f').value,
+    tipo: $('al-ti').value, cantidad: $('al-c').value,
+    acum: $('al-ac').value, ganancia: $('al-gp').value,
+    fcr: $('al-ac').value && $('al-gp').value ? ($('al-ac').value/$('al-gp').value).toFixed(2) : '—',
+    ts: Date.now()
+  };
+  STATE.localAlim.push(entry);
+  localStorage.setItem('aq_alim', JSON.stringify(STATE.localAlim));
+  showMsg('al-ok','al-er',true);
+  renderAlimLocal();
+  renderFCRChart();
+}
+
+function renderAlimLocal() {
+  // Solo actualiza el chart si hay datos
+  if (STATE.localAlim.length) renderFCRChart();
+}
+
+function renderFCRChart() {
+  const ctx = $('chart-fcr'); if (!ctx) return;
+  const data = STATE.localAlim.filter(a => a.fcr !== '—').slice(-10);
+  if (!data.length) {
+    $('chart-fcr-empty') && ($('chart-fcr-empty').style.display = 'block');
+    return;
   }
-  setKPI('kpi-estado', idx.label, idx.score >= 75 ? 'trend-up' : idx.score >= 50 ? 'trend-ok' : 'trend-dn', 'Score: ' + idx.score + '/100');
+  $('chart-fcr-empty') && ($('chart-fcr-empty').style.display = 'none');
+  const labels = data.map(a => a.fecha || 'Sin fecha');
+  const fcrs   = data.map(a => parseFloat(a.fcr));
+  destroyChart('fcr');
+  STATE.charts['fcr'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'FCR', data:fcrs,
+      backgroundColor: fcrs.map(v => v<1.3?'rgba(22,163,74,.7)':v<2?'rgba(217,119,6,.7)':'rgba(220,38,38,.7)'),
+      borderRadius:6 }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      scales:{y:{min:0,max:3,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}} }
+  });
+}
 
-  // ── SEMÁFORO ──
-  renderSemaforo(D);
+// ── ESTADO CULTIVO (datos reales desde API) ─────────────────
 
-  // ── ALERTAS ──
-  generarAlertas(D);
+async function refreshCultivo() {
+  const [al, est, ins, per] = await Promise.all([
+    http('GET', '/lecturas/alertas'),
+    http('GET', '/estanques/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+  ]);
 
-  // ── RECOMENDACIONES ──
-  generarRecomendaciones(D);
+  const alertas    = al.ok ? al.data : [];
+  const estanques  = est.ok ? est.data : [];
+  const insumos    = ins.ok ? ins.data : [];
+  const personal   = per.ok ? per.data : [];
 
-  // ── GRÁFICOS ──
-  setTimeout(() => {
-    renderBiomasaChart(D);
-    renderMortEtapaChart(D);
-    renderRadarChart(D);
-    renderAlimDistChart(D);
-  }, 50);
+  const activos     = estanques.filter(e => e.estado === 'activo').length;
+  const insOK       = insumos.filter(i => !i.requiere_reabastecimiento).length;
+  const perActivo   = personal.filter(p => p.activo).length;
+  const totalAlert  = alertas.length;
+
+  // KPIs desde alertas reales
+  if (alertas.length > 0) {
+    const temps = alertas.map(l => l.temperatura).filter(Boolean);
+    const phs   = alertas.map(l => l.ph).filter(Boolean);
+    const o2s   = alertas.map(l => l.oxigeno).filter(Boolean);
+    if (temps.length) setKPI('kpi-temp', avg(temps).toFixed(1)+'°C', avg(temps)<=18?'trend-up':'trend-dn', avg(temps)<=18?'✓ en rango':'⚠ fuera de rango');
+    if (phs.length)   setKPI('kpi-ph',   avg(phs).toFixed(1),       (avg(phs)>=6.5&&avg(phs)<=8.5)?'trend-up':'trend-dn', '✓ normal');
+    if (o2s.length)   setKPI('kpi-o2',   avg(o2s).toFixed(1)+' mg/L', avg(o2s)>=7?'trend-up':'trend-dn', avg(o2s)>=7?'✓ óptimo':'⚠ bajo');
+    $('cultivo-banner') && ($('cultivo-banner').style.display = 'none');
+  } else {
+    $('cultivo-banner') && ($('cultivo-banner').style.display = 'flex');
+    ['kpi-temp','kpi-ph','kpi-o2'].forEach(k => setKPI(k,'—','trend-ok','Sin lecturas'));
+  }
+
+  setKPI('kpi-alertas',   totalAlert+'', totalAlert===0?'trend-up':'trend-dn', totalAlert===0?'✓ sin alertas':'⚠ revisar');
+  setKPI('kpi-estanques', activos+'', 'trend-ok', 'en producción');
+  setKPI('kpi-insumos',   insOK+'', insOK===insumos.length?'trend-up':'trend-dn', `${insumos.length-insOK} por reabastecer`);
+  setKPI('kpi-personal',  perActivo+'', 'trend-ok', 'colaboradores');
+  setKPI('kpi-lecturas',  totalAlert+'', 'trend-ok', 'con parámetros fuera de rango');
+
+  // Semáforo con última alerta disponible
+  renderSemaforoReal(alertas[0]);
+  generarRecomendacionesReal(alertas, estanques, insumos);
 }
 
 function setKPI(id, val, trendClass, trendTxt) {
-  const el = document.getElementById(id);
-  const tr = document.getElementById(id + '-trend');
+  const el = $(id), tr = $(id+'-trend');
   if (el) el.textContent = val;
-  if (tr) { tr.textContent = trendTxt; tr.className = 'kpi-trend ' + trendClass; }
+  if (tr) { tr.textContent = trendTxt; tr.className = 'kpi-trend '+trendClass; }
 }
 
-function calcSalud(D) {
-  let score = 0;
-  // Oxígeno (30%)
-  score += D.oxigeno.prom >= 9 ? 30 : D.oxigeno.prom >= 7 ? 20 : 5;
-  // Supervivencia (25%)
-  const surv = 100 - D.mortalidad.pct;
-  score += surv >= 97 ? 25 : surv >= 92 ? 18 : surv >= 85 ? 10 : 3;
-  // Crecimiento/FCR (25%)
-  score += D.fcr.actual <= 1.3 ? 25 : D.fcr.actual <= 1.6 ? 18 : D.fcr.actual <= 2 ? 10 : 3;
-  // Calidad agua pH (20%)
-  score += (D.ph.prom >= 6.5 && D.ph.prom <= 8.5) ? 20 : (D.ph.prom >= 6 && D.ph.prom <= 9) ? 10 : 0;
-  
-  const label = score >= 80 ? 'Excelente' : score >= 65 ? 'Bueno' : score >= 45 ? 'Riesgo' : 'Crítico';
-  const color = score >= 80 ? 'var(--grn)' : score >= 65 ? 'var(--pri)' : score >= 45 ? 'var(--amb)' : 'var(--red)';
-  const detalle = `Oxígeno: ${D.oxigeno.prom}mg/L (${D.oxigeno.prom>=9?'✓':'⚠'}) · Supervivencia: ${(100-D.mortalidad.pct).toFixed(1)}% · FCR: ${D.fcr.actual} · pH: ${D.ph.prom}`;
-  return { score, label, color, detalle };
-}
-
-function renderSemaforo(D) {
-  const wrap = document.getElementById('semaforo-wrap');
-  if (!wrap) return;
+function renderSemaforoReal(lectura) {
+  const wrap = $('semaforo-wrap'); if (!wrap) return;
+  if (!lectura) {
+    wrap.innerHTML = '<div class="empty">Sin lecturas disponibles para analizar.</div>'; return;
+  }
   const params = [
-    { nombre:'Oxígeno',     val:D.oxigeno.prom+' mg/L',   ok: D.oxigeno.prom>=7,    cri: D.oxigeno.prom<5 },
-    { nombre:'Temperatura', val:D.temperatura.prom+' °C',  ok: D.temperatura.prom<=18, cri: D.temperatura.prom>22 },
-    { nombre:'pH',          val:D.ph.prom.toFixed(1),      ok: D.ph.prom>=6.5&&D.ph.prom<=8.5, cri: D.ph.prom<6||D.ph.prom>9 },
-    { nombre:'Mortalidad',  val:D.mortalidad.pct.toFixed(1)+'%', ok: D.mortalidad.pct<5, cri: D.mortalidad.pct>10 },
-    { nombre:'Amonio NH₃',  val:D.amonio.prom+' mg/L',    ok: D.amonio.prom<0.025,   cri: D.amonio.prom>0.1 },
-    { nombre:'Nitritos NO₂',val:D.nitritos.prom+' mg/L',  ok: D.nitritos.prom<0.1,   cri: D.nitritos.prom>0.5 },
+    { nombre:'Oxígeno',     val:lectura.oxigeno+' mg/L',   ok:lectura.oxigeno>=7,     cri:lectura.oxigeno<5 },
+    { nombre:'Temperatura', val:lectura.temperatura+'°C',   ok:lectura.temperatura<=18, cri:lectura.temperatura>22 },
+    { nombre:'pH',          val:lectura.ph.toFixed(1),      ok:lectura.ph>=6.5&&lectura.ph<=8.5, cri:lectura.ph<6||lectura.ph>9 },
+    { nombre:'Alerta',      val:lectura.alerta?'Activa':'Normal', ok:!lectura.alerta, cri:lectura.alerta },
   ];
   wrap.innerHTML = params.map(p => {
-    const cls = p.cri ? 'sem-cri' : p.ok ? 'sem-opt' : 'sem-pre';
+    const cls = p.cri?'sem-cri':p.ok?'sem-opt':'sem-pre';
     return `<div class="sem-row ${cls}"><div class="sem-dot"></div><span class="sem-param">${p.nombre}</span><span class="sem-val">${p.val}</span></div>`;
   }).join('');
 }
 
-function generarAlertas(D) {
-  const wrap = document.getElementById('alertas-inteligentes');
-  if (!wrap) return;
-  const alertas = [];
-  const ahora = new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+function generarRecomendacionesReal(alertas, estanques, insumos) {
+  const wrap = $('recomendaciones-wrap'); if (!wrap) return;
+  const recs = [];
+  const ahora = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
 
-  if (D.oxigeno.prom < 7)
-    alertas.push({ tipo:'cri', icon:'🚨', title:'Oxígeno crítico', msg:`Nivel promedio ${D.oxigeno.prom} mg/L está por debajo del mínimo seguro (7 mg/L). Activar aireación inmediatamente.` });
-  else if (D.oxigeno.prom < 8)
-    alertas.push({ tipo:'pre', icon:'⚠️', title:'Oxígeno bajo', msg:`Nivel ${D.oxigeno.prom} mg/L se aproxima al límite de precaución. Monitorear frecuentemente.` });
+  // Basado en datos reales
+  if (alertas.length > 0) {
+    const o2s = alertas.map(l=>l.oxigeno).filter(Boolean);
+    if (avg(o2s) < 7) recs.push({pri:'rec-pri',icon:'💨',title:'Incrementar aireación urgente',msg:`Oxígeno promedio ${avg(o2s).toFixed(1)} mg/L está bajo el mínimo seguro. Activar aireadores adicionales.`});
+    if (avg(o2s) < 9 && avg(o2s) >= 7) recs.push({pri:'rec-med',icon:'💧',title:'Monitorear oxígeno',msg:`Oxígeno en ${avg(o2s).toFixed(1)} mg/L. Verificar caudal de agua y estado de aireadores.`});
 
-  if (D.temperatura.prom > 20)
-    alertas.push({ tipo:'cri', icon:'🌡', title:'Temperatura alta', msg:`${D.temperatura.prom}°C supera el umbral crítico. Revisar aireación y sombra. Puede afectar alimentación.` });
-  else if (D.temperatura.prom > 18)
-    alertas.push({ tipo:'pre', icon:'🌡', title:'Temperatura elevada', msg:`${D.temperatura.prom}°C fuera del rango óptimo (10–18°C). Ajustar caudal o sombra.` });
-
-  if (D.mortalidad.pct > 10)
-    alertas.push({ tipo:'cri', icon:'💀', title:'Mortalidad alta', msg:`Mortalidad acumulada de ${D.mortalidad.pct}% supera el 10%. Realizar diagnóstico urgente.` });
-  else if (D.mortalidad.pct > 5)
-    alertas.push({ tipo:'pre', icon:'💀', title:'Mortalidad en precaución', msg:`Mortalidad ${D.mortalidad.pct}%. Investigar causas y revisar calidad del agua.` });
-
-  if (D.ph.prom < 6.5 || D.ph.prom > 8.5)
-    alertas.push({ tipo:'cri', icon:'🧪', title:'pH fuera de rango', msg:`pH ${D.ph.prom} fuera del rango seguro (6.5–8.5). Aplicar corrección según indicación técnica.` });
-
-  if (D.amonio.prom > 0.025)
-    alertas.push({ tipo:'pre', icon:'☣️', title:'Amonio elevado', msg:`NH₃ ${D.amonio.prom} mg/L supera el límite. Reducir carga de biomasa o incrementar recambio de agua.` });
-
-  if (D.fcr.actual > 2.0)
-    alertas.push({ tipo:'pre', icon:'🌿', title:'FCR ineficiente', msg:`Factor de conversión ${D.fcr.actual} indica sobrealimentación. Revisar cantidades y frecuencias.` });
-
-  if (alertas.length === 0)
-    alertas.push({ tipo:'inf', icon:'✅', title:'Todos los parámetros normales', msg:'El sistema no detecta situaciones de riesgo en este momento. Continuar monitoreo rutinario.' });
-
-  const badge = document.getElementById('alert-badge');
-  if (badge) {
-    const cris = alertas.filter(a => a.tipo === 'cri').length;
-    badge.textContent = cris > 0 ? `${cris} crítica(s)` : `${alertas.length} activa(s)`;
-    badge.style.background = cris > 0 ? 'var(--red-l)' : 'var(--amb-l)';
-    badge.style.color = cris > 0 ? 'var(--red)' : 'var(--amb)';
+    const temps = alertas.map(l=>l.temperatura).filter(Boolean);
+    if (avg(temps) > 18) recs.push({pri:'rec-pri',icon:'🌡',title:'Temperatura elevada',msg:`Temperatura promedio ${avg(temps).toFixed(1)}°C supera el rango óptimo. Revisar sombreo y caudal.`});
   }
 
-  wrap.innerHTML = alertas.map(a =>
-    `<div class="alert-card alert-${a.tipo}">
-      <div class="alert-icon">${a.icon}</div>
-      <div class="alert-body">
-        <div class="alert-title">${a.title}</div>
-        <div class="alert-msg">${a.msg}</div>
-        <div class="alert-time">${ahora} · generado automáticamente</div>
-      </div>
-    </div>`
-  ).join('');
-}
+  const bajoStock = insumos.filter(i => i.requiere_reabastecimiento);
+  if (bajoStock.length > 0)
+    recs.push({pri:'rec-med',icon:'📦',title:`${bajoStock.length} insumo(s) con stock bajo`,msg:`Reabastecer: ${bajoStock.map(i=>i.nombre).join(', ')}.`});
 
-function generarRecomendaciones(D) {
-  const wrap = document.getElementById('recomendaciones-wrap');
-  if (!wrap) return;
-  const recs = [];
+  if (estanques.length === 0)
+    recs.push({pri:'rec-low',icon:'🏗',title:'Registrar primer estanque',msg:'Aún no hay estanques en el sistema. Comenzá registrando tus unidades de producción.'});
 
-  if (D.oxigeno.prom < 8)
-    recs.push({ pri:'rec-pri', icon:'💨', title:'Incrementar aireación', msg:'Aumentar el caudal de aireación en estanques con O₂ por debajo de 8 mg/L, especialmente en las horas de mayor temperatura.' });
+  recs.push({pri:'rec-low',icon:'📋',title:'Mantener registros diarios',msg:'Registrá lecturas de calidad del agua todos los días para detectar tendencias a tiempo.'});
 
-  if (D.mortalidad.pct > 5)
-    recs.push({ pri:'rec-pri', icon:'🔬', title:'Diagnóstico de mortalidad', msg:'Realizar necropsia de peces muertos y análisis bacteriológico del agua para identificar agentes causales.' });
+  if (!recs.length)
+    recs.push({pri:'rec-low',icon:'✅',title:'Sistema en buen estado',msg:'No se detectan situaciones de riesgo basadas en los datos actuales.'});
 
-  if (D.temperatura.prom > 17)
-    recs.push({ pri:'rec-med', icon:'🌿', title:'Gestión térmica', msg:'Considerar incremento del caudal de agua fresca, instalación de mallas sombreadoras o ajuste de horarios de alimentación a las horas más frescas.' });
-
-  if (D.fcr.actual > 1.5)
-    recs.push({ pri:'rec-med', icon:'🌱', title:'Optimizar alimentación', msg:`FCR de ${D.fcr.actual} indica oportunidad de mejora. Revisar calidad del alimento, ajustar ración al 2–3% de biomasa y verificar frecuencias diarias.` });
-
-  if (D.amonio.prom > 0.015)
-    recs.push({ pri:'rec-med', icon:'💧', title:'Recambio de agua', msg:'Implementar recambios parciales (20–30%) para diluir compuestos nitrogenados. Evaluar densidad de siembra.' });
-
-  recs.push({ pri:'rec-low', icon:'📋', title:'Muestreo semanal', msg:'Mantener el registro periódico de peso promedio para calcular GDP y ajustar la ración alimenticia con precisión.' });
-  recs.push({ pri:'rec-low', icon:'🧹', title:'Limpieza preventiva', msg:'Programar desinfección de equipos, redes y bordas de estanques. Revisar filtros y sistemas de aireación.' });
-
-  wrap.innerHTML = recs.slice(0, 6).map(r =>
+  wrap.innerHTML = recs.slice(0,5).map(r=>
     `<div class="rec-card ${r.pri}">
       <div class="rec-icon">${r.icon}</div>
       <div><div class="rec-title">${r.title}</div><div class="rec-msg">${r.msg}</div></div>
@@ -1810,578 +1466,279 @@ function generarRecomendaciones(D) {
   ).join('');
 }
 
-// ── GRÁFICOS AVANZADOS ──────────────────────────────────
+// ── MAPA DE ESTANQUES (datos reales) ────────────────────────
 
-function renderBiomasaChart(D) {
-  const ctx = document.getElementById('chart-biomasa');
-  if (!ctx) return;
-  if (chartsAv['biomasa']) chartsAv['biomasa'].destroy();
-  const semanas = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7'];
-  chartsAv['biomasa'] = new Chart(ctx, {
-    type: 'line',
-    data: { labels: semanas, datasets: [{
-      label: 'Biomasa (kg)', data: D.biomasa.semanas,
-      borderColor: 'var(--teal)', backgroundColor: 'rgba(14,165,160,.12)',
-      tension: .4, fill: true, pointRadius: 5, pointBackgroundColor: 'var(--teal)',
-    }]},
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
-      scales:{ y:{min:0,grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
-  });
-}
+async function loadMapa() {
+  const r = await http('GET', '/estanques/');
+  const grid = $('mapa-grid'); if (!grid) return;
 
-function renderMortEtapaChart(D) {
-  const ctx = document.getElementById('chart-mort-etapa');
-  if (!ctx) return;
-  if (chartsAv['mort']) chartsAv['mort'].destroy();
-  chartsAv['mort'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['🥚 Incubación','🐟 Alevinaje','🐠 Dedinos','🎣 Engorde'],
-      datasets: [{ label: 'Mortalidad (%)',
-        data: D.mortalidad.porEtapa,
-        backgroundColor: ['rgba(124,58,237,.7)','rgba(14,165,160,.7)','rgba(217,119,6,.7)','rgba(220,38,38,.7)'],
-        borderRadius: 6,
-      }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
-      scales:{ y:{min:0,max:15,grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
-  });
-}
+  if (!r.ok || !r.data.length) {
+    grid.innerHTML = '<div class="empty">Sin estanques registrados. Agregá el primero en la sección Estanques.</div>';
+    return;
+  }
 
-function renderRadarChart(D) {
-  const ctx = document.getElementById('chart-radar');
-  if (!ctx) return;
-  if (chartsAv['radar']) chartsAv['radar'].destroy();
-  // Normalizar a 0–100
-  const normO2   = Math.min(100, (D.oxigeno.prom / 12) * 100);
-  const normTemp = Math.max(0, 100 - Math.abs(D.temperatura.prom - 14) * 10);
-  const normPH   = Math.max(0, 100 - Math.abs(D.ph.prom - 7.2) * 40);
-  const normNH3  = Math.max(0, 100 - (D.amonio.prom / 0.025) * 50);
-  const normNO2  = Math.max(0, 100 - (D.nitritos.prom / 0.1) * 50);
-  chartsAv['radar'] = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: ['Oxígeno','Temperatura','pH','Amonio','Nitritos'],
-      datasets: [{
-        label: 'Estado actual', fill: true,
-        data: [normO2, normTemp, normPH, normNH3, normNO2].map(v => Math.round(v)),
-        backgroundColor: 'rgba(43,127,212,.15)', borderColor: 'var(--pri)',
-        pointBackgroundColor: 'var(--pri)', pointRadius: 4,
-      },{
-        label: 'Óptimo', fill: false,
-        data: [100,100,100,100,100],
-        borderColor: 'rgba(22,163,74,.4)', borderDash: [4,4],
-        pointRadius: 0,
-      }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      scales:{ r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(0,0,0,.06)'}} },
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} } }
-  });
-}
+  const act = r.data.filter(e=>e.estado==='activo').length;
+  const ina = r.data.filter(e=>e.estado!=='activo').length;
 
-function renderAlimDistChart(D) {
-  const ctx = document.getElementById('chart-alim-dist');
-  if (!ctx) return;
-  if (chartsAv['alim']) chartsAv['alim'].destroy();
-  chartsAv['alim'] = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['🥚 Incubación','🐟 Alevinaje','🐠 Dedinos','🎣 Engorde'],
-      datasets: [{ data: D.alimentacion.porEtapa,
-        backgroundColor: ['rgba(124,58,237,.8)','rgba(14,165,160,.8)','rgba(217,119,6,.8)','rgba(22,163,74,.8)'],
-        borderWidth: 2, borderColor: '#fff',
-      }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
-                tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed} kg`}} } }
-  });
-}
+  // Para cada estanque activo, obtener la última lectura
+  const estanquesConDatos = await Promise.all(r.data.map(async e => {
+    const lr = await http('GET', `/lecturas/estanque/${e.id}?limite=1`);
+    const ultima = lr.ok && lr.data.length ? lr.data[0] : null;
+    return { ...e, ultima };
+  }));
 
-// ═══════════════════════════════════════════════
-// MÓDULO 2: MAPA DE ESTANQUES
-// ═══════════════════════════════════════════════
+  // Contar los que tienen alertas
+  const conAlerta = estanquesConDatos.filter(e => e.ultima?.alerta).length;
 
-function loadMapa() {
-  const D = DATOS_SIM;
-  const grid = document.getElementById('mapa-grid');
-  if (!grid) return;
-
-  const opt = D.estanques.filter(e => e.estado === 'opt').length;
-  const pre = D.estanques.filter(e => e.estado === 'pre').length;
-  const cri = D.estanques.filter(e => e.estado === 'cri').length;
-  
-  const sv = id => { const el = document.getElementById(id); if(el) el.textContent = D.estanques.filter(e=>e.estado===id.split('-')[1]).length||'—'; };
-  const sm = document.getElementById('map-opt'); if(sm) sm.textContent = opt;
-  const smp = document.getElementById('map-pre'); if(smp) smp.textContent = pre;
-  const smc = document.getElementById('map-cri'); if(smc) smc.textContent = cri;
-  const smt = document.getElementById('map-tot'); if(smt) smt.textContent = D.estanques.length;
+  $('map-act') && ($('map-act').textContent = act);
+  $('map-ina') && ($('map-ina').textContent = ina);
+  $('map-ale') && ($('map-ale').textContent = conAlerta);
+  $('map-tot') && ($('map-tot').textContent = r.data.length);
 
   const etapaColors = {
-    incubacion: {bg:'var(--pur-l)',color:'var(--pur)',label:'🥚 Incubación'},
-    alevinaje:  {bg:'var(--teal-l)',color:'var(--teal)',label:'🐟 Alevinaje'},
-    dedinos:    {bg:'var(--amb-l)',color:'var(--amb)',label:'🐠 Dedinos'},
-    engorde:    {bg:'var(--grn-l)',color:'var(--grn)',label:'🎣 Engorde'},
+    incubacion:{bg:'var(--pur-l)',color:'var(--pur)',label:'🥚 Incubación'},
+    alevinaje: {bg:'var(--teal-l)',color:'var(--teal)',label:'🐟 Alevinaje'},
+    dedinos:   {bg:'var(--amb-l)',color:'var(--amb)',label:'🐠 Dedinos'},
+    engorde:   {bg:'var(--grn-l)',color:'var(--grn)',label:'🎣 Engorde'},
   };
 
-  grid.innerHTML = D.estanques.map(e => {
-    const ec = etapaColors[e.etapa] || {};
-    const o2Class = e.o2 >= 8 ? 'color:var(--grn)' : e.o2 >= 6 ? 'color:var(--amb)' : 'color:var(--red)';
+  grid.innerHTML = estanquesConDatos.map(e => {
+    const ec = etapaColors[e.etapa] || {bg:'var(--bg)',color:'var(--muted)',label:'Sin etapa'};
+    const estadoClass = e.ultima?.alerta ? 't-cri' : e.estado==='activo' ? 't-opt' : 't-pre';
+    const ul = e.ultima;
     return `
-    <div class="tank-card t-${e.estado}" onclick="verDetalle('${e.codigo}')">
+    <div class="tank-card ${estadoClass}" title="${e.nombre}">
       <div class="tank-status"></div>
       <div class="tank-code">${e.codigo}</div>
       <div class="tank-name">${e.nombre}</div>
       <div class="tank-stage" style="background:${ec.bg};color:${ec.color};">${ec.label}</div>
-      <div class="tank-metric"><span class="tank-metric-label">Biomasa</span><span class="tank-metric-val">${e.biomasa} kg</span></div>
-      <div class="tank-metric"><span class="tank-metric-label">Peces</span><span class="tank-metric-val">${e.peces.toLocaleString('es-CO')}</span></div>
-      <div class="tank-metric"><span class="tank-metric-label">Oxígeno</span><span class="tank-metric-val" style="${o2Class}">${e.o2} mg/L</span></div>
-      <div class="tank-metric"><span class="tank-metric-label">Temperatura</span><span class="tank-metric-val">${e.temp}°C</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Capacidad</span><span class="tank-metric-val">${e.capacidad_kg} kg</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Estado</span><span class="tank-metric-val">${e.estado}</span></div>
+      ${ul ? `
+      <div class="tank-metric"><span class="tank-metric-label">Última T°</span><span class="tank-metric-val" style="color:${ul.temperatura<=18?'var(--grn)':'var(--red)'};">${ul.temperatura}°C</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">O₂</span><span class="tank-metric-val" style="color:${ul.oxigeno>=7?'var(--grn)':'var(--red)'};">${ul.oxigeno} mg/L</span></div>
+      ` : '<div class="tank-metric"><span class="tank-metric-label" style="grid-column:1/-1;color:var(--muted);">Sin lecturas aún</span></div>'}
     </div>`;
   }).join('');
 }
 
-function verDetalle(codigo) {
-  const e = DATOS_SIM.estanques.find(x => x.codigo === codigo);
-  if (!e) return;
-  const estados = { opt:'✅ Óptimo', pre:'⚠️ Precaución', cri:'🚨 Crítico' };
-  alert(`${e.codigo} – ${e.nombre}
-
-Etapa: ${e.etapa}
-Estado: ${estados[e.estado]}
-Biomasa: ${e.biomasa} kg
-Peces: ${e.peces}
-Oxígeno: ${e.o2} mg/L
-Temperatura: ${e.temp}°C`);
-}
-
-// ═══════════════════════════════════════════════
-// MÓDULO 3: CONTROL FINANCIERO
-// ═══════════════════════════════════════════════
-
-function initFinanzas() {
-  calcFinanzas();
-  setTimeout(renderFinanzasCharts, 80);
-}
+// ── FINANZAS ────────────────────────────────────────────────
 
 function calcFinanzas() {
-  const alim  = parseFloat(document.getElementById('fc-alim')?.value) || 5000000;
-  const med   = parseFloat(document.getElementById('fc-med')?.value)  || 500000;
-  const ener  = parseFloat(document.getElementById('fc-ener')?.value)  || 800000;
-  const mano  = parseFloat(document.getElementById('fc-mano')?.value)  || 3000000;
-  const pventa= parseFloat(document.getElementById('fc-pventa')?.value) || 12000;
-  const bio   = parseFloat(document.getElementById('fc-bio')?.value)    || 500;
-
-  const total    = alim + med + ener + mano;
-  const ingresos = pventa * bio;
-  const rent     = ingresos - total;
-  const rentPct  = total > 0 ? ((rent / total) * 100).toFixed(1) : 0;
-
-  const fmt = n => '$' + n.toLocaleString('es-CO');
-  const sv  = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-
-  sv('fin-total', fmt(total));
-  sv('fin-alim',  fmt(alim));
-  sv('fin-med',   fmt(med));
-  sv('fin-ener',  fmt(ener));
-  sv('fin-mano',  fmt(mano));
-  sv('fin-rent',  fmt(rent));
-
-  const rb = document.getElementById('fin-resultado');
-  if (rb) {
-    const color = rent >= 0 ? 'var(--grn)' : 'var(--red)';
-    rb.style.color = color;
-    rb.textContent = rent >= 0
-      ? `✓ Rentabilidad positiva: ${fmt(rent)} (${rentPct}%) · Ingreso estimado: ${fmt(ingresos)}`
-      : `✗ Pérdida proyectada: ${fmt(Math.abs(rent))} · Ingreso estimado: ${fmt(ingresos)}`;
+  const alim  = parseFloat($('fc-alim')?.value) || 0;
+  const med   = parseFloat($('fc-med')?.value)  || 0;
+  const ener  = parseFloat($('fc-ener')?.value)  || 0;
+  const mano  = parseFloat($('fc-mano')?.value)  || 0;
+  const pventa= parseFloat($('fc-pventa')?.value) || 0;
+  const bio   = parseFloat($('fc-bio')?.value)    || 0;
+  const total  = alim+med+ener+mano;
+  const ing    = pventa*bio;
+  const rent   = ing-total;
+  const fmt    = n => fmtCOP(n);
+  $('fin-total') && ($('fin-total').textContent = fmt(total));
+  $('fin-alim')  && ($('fin-alim').textContent  = fmt(alim));
+  $('fin-med')   && ($('fin-med').textContent   = fmt(med));
+  $('fin-ener')  && ($('fin-ener').textContent  = fmt(ener));
+  $('fin-mano')  && ($('fin-mano').textContent  = fmt(mano));
+  $('fin-rent')  && ($('fin-rent').textContent  = fmt(rent));
+  const rb = $('fin-resultado');
+  if (rb && total > 0) {
+    rb.style.color = rent>=0?'var(--grn)':'var(--red)';
+    rb.textContent = rent>=0
+      ? `✓ Rentabilidad: ${fmt(rent)} (${((rent/total)*100).toFixed(1)}%) · Ingresos: ${fmt(ing)}`
+      : `✗ Pérdida: ${fmt(Math.abs(rent))} · Ingresos: ${fmt(ing)}`;
+    renderFinanzasCharts(alim,med,ener,mano,rent);
   }
-  renderFinanzasCharts(alim, med, ener, mano, rent);
 }
 
-function renderFinanzasCharts(alim, med, ener, mano, rent) {
-  alim  = alim  || 5000000;
-  med   = med   || 500000;
-  ener  = ener  || 800000;
-  mano  = mano  || 3000000;
-  rent  = rent  !== undefined ? rent : 2700000;
-
-  const ctx1 = document.getElementById('chart-costos');
-  const ctx2 = document.getElementById('chart-rent');
-  if (!ctx1 || !ctx2) return;
-
-  if (chartsAv['costos']) chartsAv['costos'].destroy();
-  chartsAv['costos'] = new Chart(ctx1, {
-    type: 'doughnut',
-    data: {
-      labels: ['🌿 Alimento','💊 Medicamentos','⚡ Energía','👥 Mano de obra'],
-      datasets: [{ data: [alim, med, ener, mano],
-        backgroundColor: ['rgba(22,163,74,.8)','rgba(220,38,38,.8)','rgba(217,119,6,.8)','rgba(43,127,212,.8)'],
-        borderWidth:2, borderColor:'#fff',
-      }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
-                tooltip:{callbacks:{label:c=>`${c.label}: $${c.parsed.toLocaleString('es-CO')}`}} } }
+function renderFinanzasCharts(alim=0,med=0,ener=0,mano=0,rent=0) {
+  const ctx1 = $('chart-costos'), ctx2 = $('chart-rent');
+  if (!ctx1||!ctx2) return;
+  destroyChart('costos');
+  destroyChart('rent');
+  if (alim+med+ener+mano === 0) return;
+  STATE.charts['costos'] = new Chart(ctx1,{
+    type:'doughnut',
+    data:{labels:['🌿 Alimento','💊 Medicamentos','⚡ Energía','👥 Mano de obra'],
+      datasets:[{data:[alim,med,ener,mano],
+        backgroundColor:['rgba(22,163,74,.8)','rgba(220,38,38,.8)','rgba(217,119,6,.8)','rgba(43,127,212,.8)'],
+        borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:c=>`${c.label}: ${fmtCOP(c.parsed)}`}}}}
   });
-
+  const total = alim+med+ener+mano;
   const meses = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6'];
-  const costoAcum  = meses.map((_,i) => Math.round((alim+med+ener+mano)*(i+1)/6));
-  const ingresoAcum = meses.map((_,i) => i < 5 ? 0 : Math.round((alim+med+ener+mano+rent)));
-  if (chartsAv['rent']) chartsAv['rent'].destroy();
-  chartsAv['rent'] = new Chart(ctx2, {
-    type: 'line',
-    data: {
-      labels: meses,
-      datasets: [
-        { label:'Costo acumulado', data:costoAcum, borderColor:'var(--red)', backgroundColor:'rgba(220,38,38,.08)', fill:true, tension:.4, pointRadius:4 },
-        { label:'Ingreso proyectado', data:ingresoAcum, borderColor:'var(--grn)', backgroundColor:'rgba(22,163,74,.08)', fill:true, tension:.4, pointRadius:4 },
-      ]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
-                tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${c.parsed.y.toLocaleString('es-CO')}`}} },
-      scales:{ y:{grid:{color:'rgba(0,0,0,.04)'}}, x:{grid:{display:false}} } }
+  STATE.charts['rent'] = new Chart(ctx2,{
+    type:'line',
+    data:{labels:meses,datasets:[
+      {label:'Costo acumulado',data:meses.map((_,i)=>Math.round(total*(i+1)/6)),borderColor:'var(--red)',backgroundColor:'rgba(220,38,38,.08)',fill:true,tension:.4,pointRadius:4},
+      {label:'Ingreso proyectado',data:meses.map((_,i)=>i<5?0:Math.round(total+rent)),borderColor:'var(--grn)',backgroundColor:'rgba(22,163,74,.08)',fill:true,tension:.4,pointRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtCOP(c.parsed.y)}`}}},
+      scales:{y:{grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}
   });
 }
 
-// ═══════════════════════════════════════════════
-// MÓDULO 4: INFORMES Y ANALÍTICA
-// ═══════════════════════════════════════════════
+// ── INFORMES (datos reales) ─────────────────────────────────
 
-function initInformes() {
-  generarInforme();
-  calcPrediccion();
-  setTimeout(renderTendencias, 80);
-}
+async function generarInforme() {
+  const el = $('informe-texto'); if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Generando informe desde la base de datos...</div>';
 
-function generarInforme() {
-  const D   = DATOS_SIM;
-  const idx = calcSalud(D);
-  const hoy = new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+  const [us, est, ins, per, al] = await Promise.all([
+    http('GET', '/usuarios/'),
+    http('GET', '/estanques/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+    http('GET', '/lecturas/alertas'),
+  ]);
 
-  const texto = `INFORME TÉCNICO DE PRODUCCIÓN ACUÍCOLA
+  const hoy      = new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+  const nUsr     = us.ok  ? us.data.length  : '—';
+  const nEst     = est.ok ? est.data.length : '—';
+  const nActivos = est.ok ? est.data.filter(e=>e.estado==='activo').length : '—';
+  const nIns     = ins.ok ? ins.data.length : '—';
+  const nBajoSt  = ins.ok ? ins.data.filter(i=>i.requiere_reabastecimiento).length : '—';
+  const nPer     = per.ok ? per.data.filter(p=>p.activo).length : '—';
+  const nAl      = al.ok  ? al.data.length  : '—';
+
+  const alertInfo = al.ok && al.data.length > 0 ? (() => {
+    const temps = al.data.map(l=>l.temperatura);
+    const phs   = al.data.map(l=>l.ph);
+    const o2s   = al.data.map(l=>l.oxigeno);
+    return `Temperatura promedio alertas: ${avg(temps).toFixed(1)}°C\nPH promedio alertas: ${avg(phs).toFixed(1)}\nOxígeno promedio alertas: ${avg(o2s).toFixed(1)} mg/L`;
+  })() : 'Sin lecturas con parámetros fuera de rango registradas.';
+
+  el.textContent = `INFORME TÉCNICO DE PRODUCCIÓN ACUÍCOLA
 Sistema AQUALITY — Generado el ${hoy}
 ${'─'.repeat(52)}
 
-ESTADO GENERAL DEL CULTIVO: ${idx.label.toUpperCase()} (${idx.score}/100)
+RESUMEN DEL SISTEMA
+Usuarios registrados: ${nUsr}
+Estanques totales: ${nEst} (${nActivos} activos)
+Insumos en inventario: ${nIns} (${nBajoSt} con stock bajo)
+Personal activo: ${nPer}
+Alertas hídricas activas: ${nAl}
 
-RESUMEN EJECUTIVO
-Durante el período de análisis, el cultivo presenta condiciones ${idx.label.toLowerCase()} según el índice de salud ponderado. La biomasa total acumulada es de ${D.biomasa.actual} kg distribuida en ${DATOS_SIM.estanques.length} estanques activos, con un total de ${D.peces.activos.toLocaleString('es-CO')} peces en producción.
+ANÁLISIS DE CALIDAD DEL AGUA
+${alertInfo}
 
-PARÁMETROS DE CALIDAD DEL AGUA
-Temperatura promedio: ${D.temperatura.prom}°C ${D.temperatura.prom<=18?'(dentro del rango óptimo 10–18°C)':'(fuera del rango, revisar urgente)'}
-Oxígeno disuelto: ${D.oxigeno.prom} mg/L ${D.oxigeno.prom>=7?'(nivel adecuado)':'(nivel crítico)'}
-pH: ${D.ph.prom} ${(D.ph.prom>=6.5&&D.ph.prom<=8.5)?'(rango normal)':'(fuera de rango)'}
-Amonio NH₃: ${D.amonio.prom} mg/L
-Nitritos NO₂: ${D.nitritos.prom} mg/L
+INVENTARIO
+${ins.ok && ins.data.length ? ins.data.map(i=>`• ${i.nombre}: ${i.stock_actual} ${i.unidad_medida} ${i.requiere_reabastecimiento?'⚠ STOCK BAJO':''}`).join('\n') : 'Sin insumos registrados.'}
 
-INVENTARIO BIOLÓGICO
-Peces activos: ${D.peces.activos.toLocaleString('es-CO')} unidades
-Mortalidad acumulada: ${D.mortalidad.pct}% (${D.mortalidad.total} unidades)
-${D.mortalidad.pct<5?'La mortalidad se encuentra dentro de los rangos aceptables para la especie.':'Se recomienda investigar las causas de mortalidad y aplicar medidas correctivas.'}
+ESTANQUES
+${est.ok && est.data.length ? est.data.map(e=>`• ${e.codigo} – ${e.nombre} [${e.etapa||'sin etapa'}] ${e.estado}`).join('\n') : 'Sin estanques registrados.'}
 
-NUTRICIÓN Y ALIMENTACIÓN
-Factor de Conversión Alimenticia (FCR): ${D.fcr.actual}
-${D.fcr.actual<1.3?'Excelente eficiencia alimenticia. El FCR indica aprovechamiento óptimo del alimento.':
-  D.fcr.actual<1.6?'FCR aceptable. Monitorear para mantener eficiencia en niveles óptimos.':
-  'FCR elevado. Revisar calidad del alimento, ración y frecuencia de suministro.'}
-Alimento suministrado acumulado: ${D.alimentacion.totalAcum} kg
+PERSONAL
+${per.ok && per.data.length ? per.data.filter(p=>p.activo).map(p=>`• ${p.nombre} – ${p.cargo} (${p.dias_laborados} días)`).join('\n') : 'Sin personal registrado.'}
 
-PROYECCIONES
-Biomasa proyectada al cierre: ${Math.round(D.biomasa.actual * 1.15)} kg
-FCR proyectado al cierre: ${(D.fcr.actual * 1.05).toFixed(2)}
-Mortalidad proyectada: ${(D.mortalidad.pct * 1.1).toFixed(1)}%
-
-CONCLUSIONES Y RECOMENDACIONES
-${idx.score>=80?
-'El cultivo se encuentra en condiciones óptimas. Mantener los protocolos actuales de manejo y monitoreo.':
-idx.score>=65?
-'El cultivo muestra condiciones favorables con áreas de mejora identificadas. Se recomienda atención a los parámetros en precaución.':
-'Se requiere atención prioritaria. Revisar parámetros críticos e implementar medidas correctivas inmediatas.'}
+RECOMENDACIONES
+${nAl > 0 ? '⚠ Existen alertas hídricas activas. Revisar parámetros de calidad del agua urgentemente.' : '✓ No hay alertas hídricas activas.'}
+${nBajoSt > 0 ? `⚠ ${nBajoSt} insumo(s) necesitan reabastecimiento.` : '✓ Inventario en niveles adecuados.'}
+• Mantener monitoreo diario de parámetros fisicoquímicos.
+• Registrar observaciones en cada lectura para trazabilidad.
 
 ${'─'.repeat(52)}
 Informe generado automáticamente por AQUALITY v1.0
 Sistema Integral de Gestión Acuícola`;
-
-  const el = document.getElementById('informe-texto');
-  if (el) el.textContent = texto;
 }
 
-function calcPrediccion() {
-  const D = DATOS_SIM;
-  const tasaCrecSemanal = (D.biomasa.actual - D.biomasa.semanas[0]) / D.biomasa.semanas.length;
-  const bioObjetivo = 2000; // kg objetivo de cosecha
-  const semanasRest = Math.ceil((bioObjetivo - D.biomasa.actual) / tasaCrecSemanal);
-  const fechaCosecha = new Date();
-  fechaCosecha.setDate(fechaCosecha.getDate() + semanasRest * 7);
-  
-  const sv = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-  sv('pred-fecha', fechaCosecha.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}));
-  sv('pred-bio',   bioObjetivo.toLocaleString('es-CO') + ' kg');
-  sv('pred-alim',  Math.round(bioObjetivo * D.fcr.actual).toLocaleString('es-CO') + ' kg');
-  sv('pred-mort',  (D.mortalidad.pct * 1.1).toFixed(1) + '%');
-}
-
-function renderTendencias() {
-  const D = DATOS_SIM;
-  const labels = ['L1','L2','L3','L4','L5','L6','L7','L8','L9','L10'];
-
-  const ctxT = document.getElementById('chart-trend-temp');
-  if (ctxT) {
-    if (chartsAv['trendT']) chartsAv['trendT'].destroy();
-    chartsAv['trendT'] = new Chart(ctxT, {
-      type: 'line',
-      data: { labels, datasets: [
-        { label:'Temperatura °C', data: D.temperatura.historial, borderColor:'var(--amb)', backgroundColor:'rgba(217,119,6,.1)', fill:true, tension:.4, pointRadius:3 },
-        { label:'Máx (18°C)', data:Array(10).fill(18), borderColor:'rgba(220,38,38,.5)', borderDash:[4,4], pointRadius:0 },
-        { label:'Mín (10°C)', data:Array(10).fill(10), borderColor:'rgba(43,127,212,.5)', borderDash:[4,4], pointRadius:0 },
-      ]},
-      options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
-        scales:{y:{min:8,max:22,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}} }
-    });
-  }
-
-  const ctxO = document.getElementById('chart-trend-o2');
-  if (ctxO) {
-    if (chartsAv['trendO']) chartsAv['trendO'].destroy();
-    chartsAv['trendO'] = new Chart(ctxO, {
-      type: 'line',
-      data: { labels, datasets: [
-        { label:'O₂ mg/L', data: D.oxigeno.historial, borderColor:'var(--pri)', backgroundColor:'rgba(43,127,212,.1)', fill:true, tension:.4, pointRadius:3 },
-        { label:'Mín seguro (7)', data:Array(10).fill(7), borderColor:'rgba(220,38,38,.5)', borderDash:[4,4], pointRadius:0 },
-      ]},
-      options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
-        scales:{y:{min:4,max:13,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}} }
-    });
-  }
-}
-
-// ═══════════════════════════════════════════════
-// EXPORTACIÓN PDF
-// ═══════════════════════════════════════════════
+// ── EXPORT PDF ──────────────────────────────────────────────
 
 async function exportPDF() {
   const btn = document.querySelector('.bex-pdf');
   if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
-
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-    const D   = DATOS_SIM;
-    const idx = calcSalud(D);
     const hoy = new Date().toLocaleDateString('es-CO');
-    let y = 20;
-
-    // Header
-    doc.setFillColor(15, 25, 41);
-    doc.rect(0, 0, 210, 30, 'F');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(18); doc.setTextColor(255,255,255);
-    doc.text('AQUALITY', 14, 13);
+    const texto = $('informe-texto')?.textContent || 'Sin datos disponibles.';
+    doc.setFillColor(15,25,41); doc.rect(0,0,210,30,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(255,255,255);
+    doc.text('AQUALITY',14,13);
     doc.setFontSize(10); doc.setTextColor(150,180,220);
-    doc.text('Sistema Integral de Gestión Acuícola', 14, 20);
+    doc.text('Sistema Integral de Gestión Acuícola',14,20);
     doc.setFontSize(9); doc.setTextColor(120,150,180);
-    doc.text('Informe generado: ' + hoy, 14, 27);
-    y = 45;
-
-    // Título
-    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(15,25,41);
-    doc.text('INFORME TÉCNICO DE PRODUCCIÓN', 14, y); y += 10;
-
-    // Estado general
-    const stColor = idx.score>=80?[22,163,74]:idx.score>=65?[43,127,212]:idx.score>=45?[217,119,6]:[220,38,38];
-    doc.setFillColor(...stColor);
-    doc.roundedRect(14, y, 182, 14, 3, 3, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
-    doc.text(`Estado: ${idx.label}  ·  Índice de Salud: ${idx.score}/100`, 20, y+9);
-    y += 24;
-
-    // KPIs
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
-    doc.text('INDICADORES CLAVE', 14, y); y += 8;
-    const kpis = [
-      ['Biomasa Total', D.biomasa.actual+' kg'],
-      ['Peces Activos', D.peces.activos.toLocaleString('es-CO')],
-      ['Mortalidad', D.mortalidad.pct+'%'],
-      ['Oxígeno prom.', D.oxigeno.prom+' mg/L'],
-      ['Temperatura prom.', D.temperatura.prom+' °C'],
-      ['FCR', D.fcr.actual.toFixed(2)],
-      ['pH promedio', D.ph.prom.toFixed(1)],
-    ];
-    kpis.forEach((k, i) => {
-      const col = i % 2 === 0 ? 14 : 110;
-      if (i % 2 === 0 && i > 0) y += 10;
-      doc.setFillColor(246,248,252); doc.rect(col, y-5, 88, 9, 'F');
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(107,114,128);
-      doc.text(k[0], col+3, y);
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(15,25,41);
-      doc.text(k[1], col+60, y);
+    doc.text('Informe generado: '+hoy,14,27);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(55,65,81);
+    const lineas = doc.splitTextToSize(texto, 182);
+    let y = 42;
+    lineas.forEach(l => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text(l, 14, y); y += 5;
     });
-    y += 20;
-
-    // Parámetros de calidad
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
-    doc.text('PARÁMETROS DE CALIDAD DEL AGUA', 14, y); y += 8;
-    const params = [
-      ['Temperatura', D.temperatura.prom+'°C', D.temperatura.prom<=18?'Óptimo':'Revisar'],
-      ['Oxígeno disuelto', D.oxigeno.prom+' mg/L', D.oxigeno.prom>=7?'Óptimo':'Crítico'],
-      ['pH', D.ph.prom.toFixed(1), (D.ph.prom>=6.5&&D.ph.prom<=8.5)?'Normal':'Fuera de rango'],
-      ['Amonio NH₃', D.amonio.prom+' mg/L', D.amonio.prom<0.025?'Normal':'Elevado'],
-      ['Nitritos NO₂', D.nitritos.prom+' mg/L', D.nitritos.prom<0.1?'Normal':'Elevado'],
-    ];
-    params.forEach(p => {
-      doc.setFillColor(246,248,252); doc.rect(14, y-5, 182, 9, 'F');
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(55,65,81);
-      doc.text(p[0], 17, y); doc.text(p[1], 80, y); 
-      const ok = p[2]==='Óptimo'||p[2]==='Normal';
-      doc.setTextColor(...(ok?[22,163,74]:[220,38,38]));
-      doc.text('● '+p[2], 140, y);
-      y += 10;
-    });
-    y += 6;
-
-    // Informe texto
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(15,25,41);
-    doc.text('ANÁLISIS TÉCNICO', 14, y); y += 8;
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(55,65,81);
-    const lineas = doc.splitTextToSize(
-      `El cultivo presenta estado ${idx.label.toLowerCase()} con índice de salud ${idx.score}/100. Biomasa acumulada: ${D.biomasa.actual} kg en ${DATOS_SIM.estanques.length} estanques. FCR de ${D.fcr.actual} indica ${D.fcr.actual<1.3?'excelente':'buena'} eficiencia alimenticia. Se recomienda mantener el monitoreo continuo de parámetros fisicoquímicos y ajustar el manejo según las alertas del sistema.`,
-      182
-    );
-    doc.text(lineas, 14, y); y += lineas.length * 5 + 6;
-
-    // Footer
-    doc.setFillColor(246,248,252); doc.rect(0, 280, 210, 17, 'F');
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(107,114,128);
-    doc.text('AQUALITY · Sistema Integral de Gestión Acuícola · Informe generado automáticamente', 14, 288);
-    doc.text('Página 1 de 1', 180, 288);
-
-    doc.save('AQUALITY_Informe_' + hoy.replace(/\//g,'-') + '.pdf');
-  } catch(e) {
-    alert('Error generando PDF: ' + e.message + '. Verificá que el servidor esté activo.');
-  }
-
+    doc.save('AQUALITY_Informe_'+hoy.replace(/\//g,'-')+'.pdf');
+  } catch(e) { alert('Error PDF: '+e.message); }
   if (btn) { btn.textContent = '📄 Descargar PDF'; btn.disabled = false; }
 }
 
-// ═══════════════════════════════════════════════
-// EXPORTACIÓN EXCEL
-// ═══════════════════════════════════════════════
+// ── EXPORT EXCEL ────────────────────────────────────────────
 
-function exportExcel() {
+async function exportExcel() {
   const btn = document.querySelector('.bex-xls');
   if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
-
   try {
-    const D   = DATOS_SIM;
-    const wb  = XLSX.utils.book_new();
+    const [us,est,ins,per,al] = await Promise.all([
+      http('GET','/usuarios/'),http('GET','/estanques/'),
+      http('GET','/inventario/insumos'),http('GET','/personal/'),
+      http('GET','/lecturas/alertas'),
+    ]);
+    const wb = XLSX.utils.book_new();
     const hoy = new Date().toLocaleDateString('es-CO');
-
-    // Hoja 1: Resumen General
-    const resumen = [
-      ['AQUALITY – Informe de Producción', '', hoy],
-      [],
-      ['INDICADORES GENERALES','VALOR','ESTADO'],
-      ['Biomasa Total (kg)', D.biomasa.actual, D.biomasa.actual>1000?'Alto':'Normal'],
-      ['Peces Activos', D.peces.activos, 'Activo'],
-      ['Mortalidad (%)', D.mortalidad.pct, D.mortalidad.pct<5?'Normal':'Revisar'],
-      ['Oxígeno prom (mg/L)', D.oxigeno.prom, D.oxigeno.prom>=7?'Óptimo':'Crítico'],
-      ['Temperatura prom (°C)', D.temperatura.prom, D.temperatura.prom<=18?'Óptimo':'Revisar'],
-      ['FCR', D.fcr.actual, D.fcr.actual<1.5?'Eficiente':'Revisar'],
-      ['pH promedio', D.ph.prom, (D.ph.prom>=6.5&&D.ph.prom<=8.5)?'Normal':'Fuera de rango'],
-      ['Amonio NH₃ (mg/L)', D.amonio.prom, D.amonio.prom<0.025?'Normal':'Elevado'],
-      ['Nitritos NO₂ (mg/L)', D.nitritos.prom, D.nitritos.prom<0.1?'Normal':'Elevado'],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), 'Resumen General');
-
-    // Hoja 2: Biomasa semanal
-    const bioData = [
-      ['CRECIMIENTO DE BIOMASA SEMANAL'],
-      ['Semana','Biomasa (kg)','Incremento (kg)'],
-      ...D.biomasa.semanas.map((b,i) => [
-        'Semana '+(i+1), b, i>0?b-D.biomasa.semanas[i-1]:0
-      ])
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(bioData), 'Biomasa');
-
-    // Hoja 3: Mortalidad por etapa
-    const mortData = [
-      ['MORTALIDAD POR ETAPA PRODUCTIVA'],
-      ['Etapa','Mortalidad (%)','Clasificación'],
-      ['Incubación', D.mortalidad.porEtapa[0], 'Aceptable'],
-      ['Alevinaje',  D.mortalidad.porEtapa[1], 'Aceptable'],
-      ['Dedinos',    D.mortalidad.porEtapa[2], 'Precaución'],
-      ['Engorde',    D.mortalidad.porEtapa[3], 'Precaución'],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mortData), 'Mortalidad');
-
-    // Hoja 4: Historial de parámetros
-    const parData = [
-      ['HISTORIAL PARÁMETROS FISICOQUÍMICOS'],
-      ['Lectura','Temperatura (°C)','Oxígeno (mg/L)','pH'],
-      ...D.temperatura.historial.map((t,i) => [
-        'Lectura '+(i+1), t, D.oxigeno.historial[i], D.ph.historial[i]
-      ])
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(parData), 'Parámetros');
-
-    // Hoja 5: Alimentación
-    const alimData = [
-      ['CONTROL DE ALIMENTACIÓN POR ETAPA'],
-      ['Etapa','Alimento suministrado (kg)','FCR','Eficiencia'],
-      ['Incubación', D.alimentacion.porEtapa[0], 1.0, 'Excelente'],
-      ['Alevinaje',  D.alimentacion.porEtapa[1], 1.15,'Muy buena'],
-      ['Dedinos',    D.alimentacion.porEtapa[2], 1.28,'Buena'],
-      ['Engorde',    D.alimentacion.porEtapa[3], 1.35,'Aceptable'],
-      [],
-      ['TOTAL ACUMULADO', D.alimentacion.totalAcum, D.fcr.actual, ''],
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(alimData), 'Alimentación');
-
-    // Hoja 6: Estanques
-    const estData = [
-      ['MAPA DE ESTANQUES'],
-      ['Código','Nombre','Etapa','Estado','Biomasa (kg)','Peces','O₂ (mg/L)','Temp (°C)'],
-      ...D.estanques.map(e => [
-        e.codigo, e.nombre, e.etapa,
-        e.estado==='opt'?'Óptimo':e.estado==='pre'?'Precaución':'Crítico',
-        e.biomasa, e.peces, e.o2, e.temp
-      ])
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(estData), 'Estanques');
-
-    XLSX.writeFile(wb, 'AQUALITY_Datos_' + hoy.replace(/\//g,'-') + '.xlsx');
-  } catch(e) {
-    alert('Error generando Excel: ' + e.message);
-  }
-
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['AQUALITY','','Exportado: '+hoy],[],
+      ['RESUMEN GENERAL','CANTIDAD'],
+      ['Usuarios',us.ok?us.data.length:'—'],
+      ['Estanques',est.ok?est.data.length:'—'],
+      ['Insumos',ins.ok?ins.data.length:'—'],
+      ['Personal activo',per.ok?per.data.filter(p=>p.activo).length:'—'],
+      ['Alertas activas',al.ok?al.data.length:'—'],
+    ]),'Resumen');
+    if (ins.ok) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['INVENTARIO'],
+      ['Nombre','Unidad','Stock actual','Stock mínimo','¿Reabastecer?'],
+      ...ins.data.map(i=>[i.nombre,i.unidad_medida,i.stock_actual,i.stock_minimo,i.requiere_reabastecimiento?'SÍ':'NO'])
+    ]),'Inventario');
+    if (est.ok) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['ESTANQUES'],
+      ['Código','Nombre','Etapa','Capacidad kg','Volumen m³','Estado'],
+      ...est.data.map(e=>[e.codigo,e.nombre,e.etapa||'—',e.capacidad_kg,e.volumen_m3||'—',e.estado])
+    ]),'Estanques');
+    if (al.ok && al.data.length) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['ALERTAS HÍDRICAS'],
+      ['Estanque ID','Temperatura °C','pH','Oxígeno mg/L','Observación','Fecha'],
+      ...al.data.map(l=>[l.estanque_id,l.temperatura,l.ph,l.oxigeno,l.observacion||'—',fmtDate(l.registrado_en)])
+    ]),'Alertas');
+    XLSX.writeFile(wb,'AQUALITY_'+hoy.replace(/\//g,'-')+'.xlsx');
+  } catch(e) { alert('Error Excel: '+e.message); }
   if (btn) { btn.textContent = '📊 Descargar Excel'; btn.disabled = false; }
 }
 
-// ── RESPONSIVE SIDEBAR (móvil) ───────────────────
-(function initResponsive(){
-  const sb = document.querySelector('.sb');
-  if(!sb) return;
-  let btn = document.getElementById('menu-toggle');
-  if(!btn){
-    btn = document.createElement('button');
-    btn.id = 'menu-toggle';
-    btn.innerHTML = '☰';
-    btn.style.cssText='position:fixed;top:12px;left:12px;z-index:300;display:none;background:var(--ink);color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:18px;cursor:pointer;';
-    document.body.appendChild(btn);
-    btn.addEventListener('click',()=>sb.classList.toggle('open'));
-    document.addEventListener('click',e=>{if(!sb.contains(e.target)&&e.target!==btn)sb.classList.remove('open');});
-  }
-  function checkResponsive(){
-    btn.style.display = window.innerWidth<=900?'block':'none';
-  }
-  window.addEventListener('resize', checkResponsive);
-  checkResponsive();
-})();
+// ── RESPONSIVE ──────────────────────────────────────────────
+
+function checkResponsive() {
+  const btn = $('menu-toggle');
+  if (btn) btn.style.display = window.innerWidth <= 900 ? 'block' : 'none';
+}
+window.addEventListener('resize', checkResponsive);
+checkResponsive();
+
+document.querySelector('.sb')?.addEventListener('click', e => {
+  if (window.innerWidth <= 900)
+    document.querySelector('.sb')?.classList.remove('open');
+});
 
 </script>
+</body>
+<script>
+      
+        const API_URL = 'postgresql://aquality_user:2uBem5HHOI3VjzBNuMfVyMv6Dv26iKg7@dpg-d827hcu7r5hc73e7r4sg-a.oregon-postgres.render.com/aquality';
+
+        // 2. PRUEBA DE CONEXIÓN (Opcional para verificar)
+        console.log("Conectando a la API en:", API_URL);
+    </script>
+</body>
+</html>

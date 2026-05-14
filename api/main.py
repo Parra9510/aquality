@@ -14,6 +14,8 @@ from app.routers.usuarios import router as usuarios_router
 from app.routers.lecturas import router as lecturas_router
 from app.routers.inventario import router as inventario_router
 from app.routers.personal import router as personal_router
+from app.routers.estanques import router as estanques_router
+
 
 # 3. INICIALIZACIÓN DE LA APP
 # Usamos settings. para acceder al título y versión
@@ -40,6 +42,7 @@ app.include_router(usuarios_router)
 app.include_router(lecturas_router)
 app.include_router(inventario_router)
 app.include_router(personal_router)
+app.include_router(estanques_router)
 
 # Ruta de estado
 @app.get("/status", tags=["Root"])
