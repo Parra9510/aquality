@@ -1,13 +1,15 @@
 """
-app/controllers/personal_controller.py
+app/routers/personal.py
 Endpoints REST para administración de personal.
 """
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.models.database import get_db
-from app.models.personal import Personal
+
+# --- IMPORTS CORREGIDOS ---
+from app.core.database import get_db
+from app.domain.personal import Personal  # Antes en app.models
 from app.utils.validaciones import validar_cedula, sanitizar_texto
 
 router = APIRouter(prefix="/personal", tags=["Personal"])
@@ -27,18 +29,15 @@ class PersonalActualizar(BaseModel):
     activo:   bool | None = None
 
 
-def _get_svc(db):
-    """No hay servicio separado; operamos directamente (simplificación pedagógica)."""
-    return db
-
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def crear_personal(datos: PersonalCrear, db: Session = Depends(get_db)):
     if not validar_cedula(datos.cedula):
         raise HTTPException(status_code=400, detail="Cédula inválida (6-10 dígitos).")
+    
     existente = db.query(Personal).filter(Personal.cedula == datos.cedula).first()
     if existente:
         raise HTTPException(status_code=400, detail="Ya existe un colaborador con esa cédula.")
+    
     persona = Personal(
         cedula=datos.cedula,
         nombre=sanitizar_texto(datos.nombre),
@@ -72,9 +71,11 @@ def actualizar_personal(persona_id: int, datos: PersonalActualizar,
     persona = db.get(Personal, persona_id)
     if not persona:
         raise HTTPException(status_code=404, detail="Colaborador no encontrado.")
+    
     if datos.cargo   is not None: persona.cargo   = sanitizar_texto(datos.cargo)
     if datos.telefono is not None: persona.telefono = datos.telefono
-    if datos.activo  is not None: persona.activo  = datos.activo
+    if datos.activo   is not None: persona.activo   = datos.activo
+    
     db.commit()
     db.refresh(persona)
     return {"mensaje": "Colaborador actualizado.", "personal": persona.to_dict()}
@@ -85,6 +86,8 @@ def desactivar_personal(persona_id: int, db: Session = Depends(get_db)):
     persona = db.get(Personal, persona_id)
     if not persona:
         raise HTTPException(status_code=404, detail="Colaborador no encontrado.")
-    persona.desactivar()
+    
+    # Asegúrate de que el modelo Personal en app/domain/personal.py tenga el método desactivar()
+    persona.activo = False 
     db.commit()
     return {"mensaje": f"Colaborador id={persona_id} desactivado."}

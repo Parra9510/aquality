@@ -4,7 +4,7 @@ Lógica de negocio para registro y consulta de usuarios.
 """
 from __future__ import annotations
 from sqlalchemy.orm import Session
-from app.models.usuario import Usuario, RolUsuario
+from app.domain.usuario import Usuario, RolUsuario
 from app.utils.validaciones import validar_email, sanitizar_texto
 
 

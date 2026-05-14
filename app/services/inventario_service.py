@@ -4,7 +4,7 @@ Lógica de negocio para gestión de inventario de insumos.
 """
 from __future__ import annotations
 from sqlalchemy.orm import Session
-from app.models.inventario import Insumo, MovimientoStock, TipoMovimiento
+from app.domain.inventario import Insumo, Movimiento
 
 
 class InventarioService:

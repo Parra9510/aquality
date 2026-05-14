@@ -1,17 +1,19 @@
 """
-app/controllers/inventario_controller.py
+app/routers/inventario.py
 Endpoints REST para gestión de inventario de insumos.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.models.database import get_db
-from app.models.inventario import TipoMovimiento
+
+# --- IMPORTS CORREGIDOS ---
+from app.core.database import get_db
+from app.domain.inventario import TipoMovimiento  # Antes en app.models
 from app.services.inventario_service import InventarioService
 
 router = APIRouter(prefix="/inventario", tags=["Inventario"])
 
-
+# ── Schemas Pydantic ─────────────────────────────────────────────────────────
 class InsumoCrear(BaseModel):
     nombre:        str
     unidad_medida: str = "kg"
@@ -33,6 +35,7 @@ class MovimientoCrear(BaseModel):
     motivo:     str | None = None
 
 
+# ── Endpoints ────────────────────────────────────────────────────────────────
 @router.post("/insumos", status_code=status.HTTP_201_CREATED)
 def crear_insumo(datos: InsumoCrear, db: Session = Depends(get_db)):
     svc = InventarioService(db)

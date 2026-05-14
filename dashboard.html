@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AQUALITY – Control y Calidad</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a3a5c">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ══ VARIABLES ══ */
+:root{
+  --pri:#2B7FD4;--pri-d:#1A5FA8;--pri-l:#EBF4FF;
+  --teal:#0EA5A0;--teal-l:#E0F5F4;
+  --grn:#16A34A;--grn-l:#DCFCE7;
+  --amb:#D97706;--amb-l:#FEF3C7;
+  --red:#DC2626;--red-l:#FEE2E2;
+  --pur:#7C3AED;--pur-l:#EDE9FE;
+  --ink:#0F1929;--ink2:#374151;--muted:#6B7280;
+  --line:#E5E9EF;--bg:#F6F8FC;--white:#fff;
+  --mono:"JetBrains Mono",monospace;
+  --sans:"Plus Jakarta Sans",sans-serif;
+  --r:10px;--sh:0 2px 12px rgba(15,25,41,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;}
+
+/* ══ PANTALLA BIENVENIDA (primer uso) ══ */
+#screen-welcome{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(135deg,#0f2744,#1a4a8a 50%,#0f3d5c);
+  display:flex;align-items:center;justify-content:center;
+}
+.welcome-box{
+  background:#fff;border-radius:24px;padding:0;width:480px;max-width:95vw;
+  box-shadow:0 40px 100px rgba(0,0,0,.35);overflow:hidden;
+}
+.welcome-tabs{display:flex;border-bottom:1px solid var(--line);}
+.wtab{flex:1;padding:18px;text-align:center;font-size:13px;font-weight:700;
+  cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;
+  transition:all .2s;}
+.wtab.on{color:var(--pri);border-bottom-color:var(--pri);}
+.welcome-panel{padding:36px;display:none;}
+.welcome-panel.on{display:block;}
+.welcome-logo{text-align:center;margin-bottom:24px;}
+.welcome-logo-title{font-size:24px;font-weight:800;color:var(--ink);margin-top:10px;}
+.welcome-logo-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+.wf{margin-bottom:14px;}
+.wf label{display:block;font-size:11px;font-weight:700;color:var(--ink2);
+  margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
+.wf input,.wf select{width:100%;padding:10px 14px;border:1.5px solid var(--line);
+  border-radius:8px;font-family:var(--sans);font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s;background:var(--bg);}
+.wf input:focus,.wf select:focus{border-color:var(--pri);background:#fff;
+  box-shadow:0 0 0 3px rgba(43,127,212,.1);}
+.wbtn{width:100%;padding:13px;background:var(--pri);color:#fff;border:none;
+  border-radius:8px;font-family:var(--sans);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;margin-top:4px;}
+.wbtn:hover{background:var(--pri-d);transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(43,127,212,.4);}
+.wbtn.secondary{background:transparent;color:var(--pri);
+  border:1.5px solid var(--pri);margin-top:10px;}
+.wbtn.secondary:hover{background:var(--pri-l);transform:none;box-shadow:none;}
+.werr{color:var(--red);font-size:13px;margin-top:10px;text-align:center;
+  display:none;padding:8px;background:var(--red-l);border-radius:6px;}
+.wok{color:var(--grn);font-size:13px;margin-top:10px;text-align:center;
+  display:none;padding:8px;background:var(--grn-l);border-radius:6px;}
+.welcome-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;
+  padding-top:16px;border-top:1px solid var(--line);line-height:1.6;}
+
+/* ══ APP SHELL ══ */
+#app{display:none;}
+.sb{position:fixed;top:0;left:0;height:100vh;width:245px;
+  background:var(--ink);display:flex;flex-direction:column;z-index:200;overflow-y:auto;}
+.sb-hdr{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.sb-tag{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;
+  letter-spacing:.08em;text-transform:uppercase;}
+.ep{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ep-lbl{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:6px;}
+.ep-pills{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.pill{padding:5px 8px;border-radius:6px;font-size:11px;font-weight:700;
+  cursor:pointer;border:1.5px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.5);transition:all .15s;text-align:center;}
+.pill:hover{border-color:rgba(255,255,255,.35);color:#fff;}
+.p-inc.on{background:var(--pur);border-color:var(--pur);color:#fff;}
+.p-ale.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.p-ded.on{background:var(--amb);border-color:var(--amb);color:#fff;}
+.p-eng.on{background:var(--grn);border-color:var(--grn);color:#fff;}
+.ns{padding:8px 16px 3px;font-size:10px;color:rgba(255,255,255,.28);
+  text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;
+  color:rgba(255,255,255,.55);font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .15s;border-left:3px solid transparent;}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.ni:hover{color:#fff;background:rgba(255,255,255,.06);}
+.ni.on{color:#fff;background:rgba(43,127,212,.18);border-left-color:var(--pri);}
+.ni.on svg{opacity:1;}
+.sb-ft{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
+.urow{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.av{width:32px;height:32px;border-radius:50%;background:var(--pri);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.unm{font-size:13px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.urol{font-size:11px;color:rgba(255,255,255,.4);}
+.blogout{width:100%;padding:7px;background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);
+  border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;font-family:var(--sans);}
+.blogout:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+/* ══ MAIN ══ */
+.mn{margin-left:245px;padding:26px 30px;min-height:100vh;}
+.pg{display:none;}
+.pg.on{display:block;animation:fu .2s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.pt{font-size:22px;font-weight:800;}
+.ps{font-size:13px;color:var(--muted);margin-top:3px;}
+
+/* ══ STATS ══ */
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:#fff;border-radius:var(--r);padding:16px 18px;
+  border:1px solid var(--line);box-shadow:var(--sh);}
+.si{width:34px;height:34px;border-radius:8px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:10px;font-size:17px;}
+.sl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.sv{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1;}
+.ss{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* ══ CARDS ══ */
+.cd{background:#fff;border-radius:var(--r);padding:20px 22px;
+  border:1px solid var(--line);box-shadow:var(--sh);margin-bottom:16px;}
+.ct{font-size:14px;font-weight:700;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.ctl{display:flex;align-items:center;gap:7px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+
+/* ══ FORM ══ */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg3{grid-template-columns:1fr 1fr 1fr;}
+.ff{display:flex;flex-direction:column;gap:4px;}
+.ff.full{grid-column:1/-1;}
+.ff label{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;}
+.ff input,.ff select,.ff textarea{padding:8px 11px;border:1.5px solid var(--line);border-radius:7px;
+  font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--bg);
+  outline:none;transition:border-color .2s,box-shadow .2s;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--pri);background:#fff;
+  box-shadow:0 0 0 3px rgba(43,127,212,.08);}
+.ff textarea{resize:vertical;min-height:65px;}
+.fn{font-size:11px;color:var(--muted);margin-top:2px;}
+.fro{background:#f0f4f8!important;color:var(--muted);}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;
+  cursor:pointer;border:none;transition:all .15s;}
+.bp{background:var(--pri);color:#fff;}
+.bp:hover{background:var(--pri-d);transform:translateY(-1px);box-shadow:0 4px 12px rgba(43,127,212,.3);}
+.bg_{background:transparent;color:var(--muted);border:1.5px solid var(--line);}
+.bg_:hover{border-color:var(--pri);color:var(--pri);}
+.bd{background:var(--red);color:#fff;}
+.bd:hover{background:#b91c1c;}
+.bsm{padding:6px 12px;font-size:12px;}
+.btn:active{transform:scale(.97);}
+.bg{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+
+/* ══ TABLE ══ */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:9px 13px;font-size:11px;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1.5px solid var(--line);white-space:nowrap;}
+td{padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg);}
+.mono{font-family:var(--mono);font-size:12px;}
+
+/* ══ CHIPS ══ */
+.ch{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;
+  border-radius:99px;font-size:11px;font-weight:700;}
+.cg{background:var(--grn-l);color:var(--grn);}
+.cr{background:var(--red-l);color:var(--red);}
+.ca{background:var(--amb-l);color:var(--amb);}
+.cb{background:var(--pri-l);color:var(--pri-d);}
+.cp{background:var(--pur-l);color:var(--pur);}
+.ct_{background:var(--teal-l);color:var(--teal);}
+
+/* ══ MSG ══ */
+.msg{padding:9px 13px;border-radius:7px;font-size:13px;margin-top:9px;display:none;font-weight:500;}
+.mok{background:var(--grn-l);color:var(--grn);}
+.mer{background:var(--red-l);color:var(--red);}
+.empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
+
+/* ══ LOADING ══ */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:32px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2.5px solid var(--line);
+  border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ══ KPI CARDS ══ */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi-card{background:#fff;border-radius:var(--r);padding:16px 18px;
+  border:1px solid var(--line);box-shadow:var(--sh);position:relative;overflow:hidden;}
+.kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi-c-blue::before{background:var(--pri);}
+.kpi-c-grn::before{background:var(--grn);}
+.kpi-c-red::before{background:var(--red);}
+.kpi-c-amb::before{background:var(--amb);}
+.kpi-c-pur::before{background:var(--pur);}
+.kpi-c-teal::before{background:var(--teal);}
+.kpi-c-ink::before{background:var(--ink);}
+.kpi-icon{font-size:22px;margin-bottom:8px;}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.kpi-value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink);line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kpi-trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;
+  padding:2px 6px;border-radius:99px;margin-top:6px;}
+.trend-up{background:var(--grn-l);color:var(--grn);}
+.trend-dn{background:var(--red-l);color:var(--red);}
+.trend-ok{background:var(--pri-l);color:var(--pri);}
+
+/* ══ SEMÁFORO ══ */
+.semaforo-wrap{display:flex;flex-direction:column;gap:10px;}
+.sem-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-radius:8px;border:1px solid var(--line);}
+.sem-param{font-size:13px;font-weight:600;}
+.sem-val{font-family:var(--mono);font-size:13px;}
+.sem-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.sem-opt .sem-dot{background:var(--grn);}
+.sem-pre .sem-dot{background:var(--amb);}
+.sem-cri .sem-dot{background:var(--red);}
+.sem-opt{background:var(--grn-l);border-color:rgba(22,163,74,.2);}
+.sem-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);}
+.sem-cri{background:var(--red-l);border-color:rgba(220,38,38,.2);}
+
+/* ══ ALERTAS ══ */
+.alert-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:12px;border:1px solid transparent;}
+.alert-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.alert-body{flex:1;}
+.alert-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.alert-msg{font-size:12px;opacity:.85;line-height:1.5;}
+.alert-time{font-size:11px;opacity:.6;margin-top:4px;}
+.alert-cri{background:var(--red-l);border-color:rgba(220,38,38,.2);color:#7F1D1D;}
+.alert-pre{background:var(--amb-l);border-color:rgba(217,119,6,.2);color:#78350F;}
+.alert-inf{background:var(--pri-l);border-color:rgba(43,127,212,.2);color:#1E3A5F;}
+
+/* ══ RECOMENDACIONES ══ */
+.rec-card{border-radius:8px;padding:12px 16px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:12px;background:var(--bg);border:1px solid var(--line);}
+.rec-icon{font-size:20px;flex-shrink:0;}
+.rec-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.rec-msg{font-size:12px;color:var(--muted);line-height:1.5;}
+.rec-pri{border-left:3px solid var(--red);}
+.rec-med{border-left:3px solid var(--amb);}
+.rec-low{border-left:3px solid var(--pri);}
+
+/* ══ TANKS ══ */
+.tank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.tank-card{background:#fff;border-radius:var(--r);padding:16px;border:2px solid var(--line);
+  position:relative;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.tank-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.tank-card.t-opt{border-color:var(--grn);}
+.tank-card.t-pre{border-color:var(--amb);}
+.tank-card.t-cri{border-color:var(--red);}
+.tank-status{position:absolute;top:10px;right:10px;width:10px;height:10px;
+  border-radius:50%;animation:pulse 2s infinite;}
+.t-opt .tank-status{background:var(--grn);}
+.t-pre .tank-status{background:var(--amb);}
+.t-cri .tank-status{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.tank-code{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px;}
+.tank-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.tank-stage{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-bottom:10px;}
+.tank-metric{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--line);}
+.tank-metric:last-child{border:none;}
+.tank-metric-label{color:var(--muted);}
+.tank-metric-val{font-family:var(--mono);font-weight:600;}
+
+/* ══ MISC ══ */
+.kb{margin-bottom:12px;}
+.kh{display:flex;justify-content:space-between;margin-bottom:4px;}
+.kn{font-size:12px;font-weight:600;color:var(--ink2);}
+.kv{font-family:var(--mono);font-size:12px;}
+.tk{height:6px;background:var(--line);border-radius:99px;overflow:hidden;}
+.fk{height:100%;border-radius:99px;transition:width .5s;}
+.fb{background:var(--pri-l);border:1px solid rgba(43,127,212,.2);border-radius:8px;
+  padding:12px 16px;font-family:var(--mono);font-size:13px;color:var(--pri-d);margin:10px 0;text-align:center;}
+.ab{display:none;background:var(--red-l);border:1px solid #FCA5A5;border-radius:var(--r);
+  padding:12px 16px;margin-bottom:16px;}
+.ab strong{color:var(--red);font-size:13px;}
+.ab p{color:#7F1D1D;font-size:12px;margin-top:2px;}
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.cc{background:var(--bg);border-radius:8px;padding:13px;text-align:center;}
+.cv{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--pri);}
+.cl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.ecard{padding:11px;border-radius:8px;margin-bottom:8px;}
+.ec-t{font-size:12px;font-weight:700;margin-bottom:3px;}
+.ec-s{font-size:12px;color:var(--muted);}
+.chart-wrap{position:relative;height:200px;}
+.health-ring{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;}
+.health-score{font-family:var(--mono);font-size:48px;font-weight:700;}
+.health-label{font-size:14px;font-weight:700;}
+.health-bar-wrap{width:100%;height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:4px;}
+.health-bar-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+.pred-card{background:var(--ink);border-radius:var(--r);padding:20px 22px;color:#fff;}
+.pred-title{font-size:13px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.pred-val{font-family:var(--mono);font-size:28px;font-weight:700;color:#fff;}
+.pred-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;}
+.fin-total{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--ink);}
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.fin-row:last-child{border:none;}
+.fin-label{color:var(--ink2);}
+.fin-amount{font-family:var(--mono);font-weight:600;}
+.fin-positive{color:var(--grn);}
+.fin-negative{color:var(--red);}
+.informe-texto{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:20px 24px;font-size:13px;line-height:1.8;color:var(--ink2);
+  white-space:pre-line;font-family:Georgia,serif;}
+.period-tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:8px;
+  border:1px solid var(--line);width:fit-content;}
+.ptab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;
+  cursor:pointer;color:var(--muted);transition:all .15s;}
+.ptab.on{background:#fff;color:var(--pri);box-shadow:var(--sh);}
+.export-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.btn-export{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
+  border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;
+  cursor:pointer;border:none;transition:all .15s;}
+.bex-pdf{background:#DC2626;color:#fff;}
+.bex-pdf:hover{background:#b91c1c;transform:translateY(-1px);}
+.bex-xls{background:#16A34A;color:#fff;}
+.bex-xls:hover{background:#15803d;transform:translateY(-1px);}
+.bex-print{background:var(--ink);color:#fff;}
+.bex-print:hover{background:#1f2937;transform:translateY(-1px);}
+
+/* ══ BANNER "SIN DATOS REALES" ══ */
+.demo-banner{background:linear-gradient(90deg,var(--amb-l),#fffbeb);
+  border:1px solid var(--amb);border-radius:8px;padding:10px 16px;
+  font-size:12px;color:#78350F;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){
+  .sb{transform:translateX(-245px);transition:transform .3s;}
+  .sb.open{transform:translateX(0);}
+  .mn{margin-left:0;padding:16px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+  .sg{grid-template-columns:repeat(2,1fr);}
+  .tank-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}.g4{grid-template-columns:1fr 1fr;}.mn{padding:12px;}}
+</style>
+</head>
+<body>
+
+<!-- ════ PANTALLA DE BIENVENIDA (login + registro) ════ -->
+<div id="screen-welcome">
+ <div class="welcome-box">
+  <div class="welcome-tabs">
+   <div class="wtab on" id="tab-login" onclick="switchTab('login')">Iniciar sesión</div>
+   <div class="wtab" id="tab-register" onclick="switchTab('register')">Crear cuenta</div>
+  </div>
+
+  <!-- Panel Login -->
+  <div class="welcome-panel on" id="panel-login">
+   <div class="welcome-logo">
+    <div style="font-size:40px;">🐟</div>
+    <div class="welcome-logo-title">AQUALITY</div>
+    <div class="welcome-logo-sub">Control y Calidad · Sistema Acuícola Integral</div>
+   </div>
+   <div class="wf"><label>Correo electrónico</label>
+    <input type="email" id="lem" placeholder="usuario@aquality.co" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <div class="wf"><label>Contraseña</label>
+    <input type="password" id="lpw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <button class="wbtn" onclick="doLogin()">Iniciar sesión</button>
+   <div class="werr" id="lerr">Correo o contraseña incorrectos.</div>
+   <div class="welcome-hint">
+    ¿Primera vez en el sistema?<br>
+    <span style="color:var(--pri);cursor:pointer;font-weight:600;" onclick="switchTab('register')">Crear una cuenta nueva →</span>
+   </div>
+  </div>
+
+  <!-- Panel Registro -->
+  <div class="welcome-panel" id="panel-register">
+   <div class="welcome-logo">
+    <div style="font-size:36px;">👤</div>
+    <div class="welcome-logo-title">Crear cuenta</div>
+    <div class="welcome-logo-sub">Registrá el primer usuario administrador</div>
+   </div>
+   <div class="wf"><label>Nombre completo</label>
+    <input id="rn" placeholder="Juan García">
+   </div>
+   <div class="wf"><label>Correo electrónico</label>
+    <input type="email" id="re" placeholder="juan@aquality.co">
+   </div>
+   <div class="wf"><label>Contraseña (mín. 8 caracteres)</label>
+    <input type="password" id="rp" placeholder="••••••••">
+   </div>
+   <div class="wf"><label>Rol</label>
+    <select id="rr">
+     <option value="administrador">Administrador — Acceso total</option>
+     <option value="supervisor">Supervisor — Lectura y escritura</option>
+     <option value="operario">Operario — Solo registro</option>
+    </select>
+   </div>
+   <button class="wbtn" onclick="doRegister()">Registrar y entrar</button>
+   <button class="wbtn secondary" onclick="switchTab('login')">← Ya tengo cuenta</button>
+   <div class="werr" id="rerr"></div>
+   <div class="wok" id="rok">✓ Cuenta creada. Entrando al sistema...</div>
+  </div>
+ </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+<div class="sb">
+ <div class="sb-hdr">
+  <div class="sb-logo">🐟 AQUALITY</div>
+  <div class="sb-tag">Control y calidad</div>
+ </div>
+ <div class="ep">
+  <div class="ep-lbl">Etapa productiva</div>
+  <div class="ep-pills">
+   <div class="pill p-inc" onclick="setEtapa('incubacion',this)">🥚 Incubación</div>
+   <div class="pill p-ale" onclick="setEtapa('alevinaje',this)">🐟 Alevinaje</div>
+   <div class="pill p-ded" onclick="setEtapa('dedinos',this)">🐠 Dedinos</div>
+   <div class="pill p-eng" onclick="setEtapa('engorde',this)">🎣 Engorde</div>
+  </div>
+ </div>
+ <div class="ns">Principal</div>
+ <div class="ni on" onclick="goTo('dash',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
+ <div class="ni" onclick="goTo('estanques',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Estanques</div>
+ <div class="ns">Producción</div>
+ <div class="ni" onclick="goTo('agua',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6 8 4 12 4 15a8 8 0 0016 0c0-3-2-7-8-13z"/></svg>Calidad del Agua</div>
+ <div class="ni" onclick="goTo('biomasa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12s1-3 4-3 4 3 4 3"/><path d="M9 9l1 1M15 9l-1 1"/></svg>Biomasa</div>
+ <div class="ni" onclick="goTo('alim',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Alimentación</div>
+ <div class="ns">Gestión</div>
+ <div class="ni" onclick="goTo('inv',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Inventario</div>
+ <div class="ni" onclick="goTo('personal',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Personal</div>
+ <div class="ni" onclick="goTo('usuarios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuarios</div>
+ <div class="ns">Inteligencia</div>
+ <div class="ni" onclick="goTo('cultivo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>Estado del Cultivo</div>
+ <div class="ni" onclick="goTo('mapa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Mapa de Estanques</div>
+ <div class="ni" onclick="goTo('finanzas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Control Financiero</div>
+ <div class="ni" onclick="goTo('informes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Informes</div>
+ <div class="sb-ft">
+  <div class="urow">
+   <div class="av" id="uav">--</div>
+   <div><div class="unm" id="unm">Usuario</div><div class="urol" id="urol">rol</div></div>
+  </div>
+  <button class="blogout" onclick="doLogout()">Cerrar sesión</button>
+ </div>
+</div>
+
+<div class="mn">
+
+<!-- DASHBOARD -->
+<div class="pg on" id="pg-dash">
+ <div class="ph">
+  <div><div class="pt">Dashboard</div><div class="ps" id="dash-sub">Resumen operativo</div></div>
+  <button class="btn bg_ bsm" onclick="loadDash()">↻ Actualizar</button>
+ </div>
+ <div class="ab" id="abanner"><strong>⚠ Parámetros fuera de rango</strong><p id="abanner-txt"></p></div>
+ <div class="sg">
+  <div class="sc"><div class="si" style="background:var(--pri-l)">👤</div><div class="sl">Usuarios</div><div class="sv" id="s-u">—</div><div class="ss">registrados</div></div>
+  <div class="sc"><div class="si" style="background:var(--teal-l)">🐟</div><div class="sl">Estanques</div><div class="sv" id="s-e">—</div><div class="ss">activos</div></div>
+  <div class="sc"><div class="si" style="background:var(--grn-l)">📦</div><div class="sl">Insumos</div><div class="sv" id="s-i">—</div><div class="ss">en stock</div></div>
+  <div class="sc"><div class="si" style="background:var(--amb-l)">👥</div><div class="sl">Personal</div><div class="sv" id="s-p">—</div><div class="ss">activos</div></div>
+  <div class="sc"><div class="si" style="background:var(--red-l)">⚠</div><div class="sl">Alertas</div><div class="sv" id="s-a">—</div><div class="ss">hídricas</div></div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct"><div class="ctl">🌤 Clima – Santa Rosa de Cabal</div><span style="font-size:11px;color:var(--muted);font-weight:400;">Open-Meteo API</span></div>
+   <div id="clima-box"><div class="loading"><div class="spinner"></div>Cargando clima...</div></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📊 Rangos seguros – Trucha arcoíris</div>
+   <div class="kb"><div class="kh"><span class="kn">Temperatura</span><span class="kv">10–18°C</span></div><div class="tk"><div class="fk" style="width:60%;background:var(--pri)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">pH</span><span class="kv">6.5–8.5</span></div><div class="tk"><div class="fk" style="width:72%;background:var(--grn)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Oxígeno disuelto</span><span class="kv">7–12 mg/L</span></div><div class="tk"><div class="fk" style="width:55%;background:var(--pri)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Amonio NH₃</span><span class="kv">&lt;0.025 mg/L</span></div><div class="tk"><div class="fk" style="width:80%;background:var(--grn)"></div></div></div>
+   <div class="kb"><div class="kh"><span class="kn">Nitritos NO₂</span><span class="kv">&lt;0.1 mg/L</span></div><div class="tk"><div class="fk" style="width:45%;background:var(--amb)"></div></div></div>
+  </div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">📈 Últimas lecturas de temperatura</div>
+   <div class="chart-wrap"><canvas id="chart-temp"></canvas></div>
+   <div id="chart-temp-empty" class="empty" style="display:none;">Sin lecturas aún. Registrá la primera en Calidad del Agua.</div>
+  </div>
+  <div class="cd">
+   <div class="ct">🚨 Alertas hídricas recientes</div>
+   <div id="alertas-r"><div class="empty">Sin alertas activas ✓</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- ESTANQUES -->
+<div class="pg" id="pg-estanques">
+ <div class="ph"><div><div class="pt">Infraestructura y Estanques</div><div class="ps">Registro de unidades de producción</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar estanque</div>
+   <div class="fg fg3">
+    <div class="ff"><label>Código</label><input id="ec" placeholder="EST-01"></div>
+    <div class="ff"><label>Nombre</label><input id="en" placeholder="Estanque Norte"></div>
+    <div class="ff"><label>Etapa</label>
+     <select id="ee"><option value="incubacion">🥚 Incubación</option><option value="alevinaje">🐟 Alevinaje</option><option value="dedinos">🐠 Dedinos</option><option value="engorde">🎣 Engorde</option></select>
+    </div>
+    <div class="ff"><label>Largo (m)</label><input type="number" id="el" placeholder="10" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Ancho (m)</label><input type="number" id="ea" placeholder="5" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Profundidad (m)</label><input type="number" id="ep2" placeholder="1.5" step="0.1" oninput="calcEst()"></div>
+    <div class="ff"><label>Capacidad (kg)</label><input type="number" id="ecap" placeholder="500" oninput="calcEst()"></div>
+    <div class="ff"><label>Densidad calc.</label><input id="edens" class="fro" readonly></div>
+   </div>
+   <div class="fb" id="e-calc">Complete las dimensiones para calcular el volumen</div>
+   <div class="bg"><button class="btn bp" onclick="regEstanque()">Registrar estanque</button></div>
+   <div class="msg mok" id="e-ok">✓ Estanque registrado.</div>
+   <div class="msg mer" id="e-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Guía por etapa</div>
+   <div class="ecard" style="background:var(--pur-l);"><div class="ec-t" style="color:var(--pur)">🥚 Incubación</div><div class="ec-s">T: 8–12°C · Alta sensibilidad al O₂ · Oscuridad parcial</div></div>
+   <div class="ecard" style="background:var(--teal-l);"><div class="ec-t" style="color:var(--teal)">🐟 Alevinaje</div><div class="ec-s">0–3 meses · Alta densidad · Vigilancia diaria</div></div>
+   <div class="ecard" style="background:var(--amb-l);"><div class="ec-t" style="color:var(--amb)">🐠 Dedinos</div><div class="ec-s">3–6 meses · Transición alimentaria · Separación por tallas</div></div>
+   <div class="ecard" style="background:var(--grn-l);"><div class="ec-t" style="color:var(--grn)">🎣 Engorde</div><div class="ec-s">6+ meses · FCR crítico · Monitoreo de biomasa</div></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Estanques registrados <button class="btn bg_ bsm" onclick="loadEst()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-est"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- AGUA -->
+<div class="pg" id="pg-agua">
+ <div class="ph"><div><div class="pt">Calidad del Agua</div><div class="ps">Monitoreo fisicoquímico diario</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Nueva lectura</div>
+   <div class="fg fg3">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="ag-e" placeholder="1"></div>
+    <div class="ff"><label>Temperatura (°C)</label><input type="number" id="ag-t" placeholder="14.0" step="0.1"></div>
+    <div class="ff"><label>pH</label><input type="number" id="ag-ph" placeholder="7.2" step="0.1"></div>
+    <div class="ff"><label>Oxígeno mg/L</label><input type="number" id="ag-o2" placeholder="9.0" step="0.1"></div>
+    <div class="ff full"><label>Observaciones</label><input id="ag-obs" placeholder="Sin novedad"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="regLectura()">Registrar lectura</button></div>
+   <div class="msg mok" id="ag-ok">✓ Lectura registrada.</div>
+   <div class="msg mer" id="ag-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Alertas activas <span id="al-cnt" style="font-size:12px;font-weight:400;color:var(--muted);">—</span></div>
+   <div id="al-box"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Historial por estanque
+   <div style="display:flex;gap:8px;align-items:center;">
+    <input type="number" id="ag-bid" placeholder="ID estanque" style="padding:6px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;width:110px;outline:none;">
+    <button class="btn bp bsm" onclick="buscarLect()">Buscar</button>
+   </div>
+  </div>
+  <div class="tw"><div id="t-lect"><div class="empty">Ingresá un ID de estanque.</div></div></div>
+ </div>
+</div>
+
+<!-- BIOMASA (local — aún sin API) -->
+<div class="pg" id="pg-biomasa">
+ <div class="ph"><div><div class="pt">Biomasa e Inventario Biológico</div><div class="ps">Siembra, muestreos y mortalidad</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los datos de biomasa se guardarán localmente hasta que se conecte el endpoint correspondiente en la API.</div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar siembra</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="bi-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha de siembra</label><input type="date" id="bi-f"></div>
+    <div class="ff"><label>Cantidad de alevinos</label><input type="number" id="bi-c" placeholder="5000" oninput="calcBio()"></div>
+    <div class="ff"><label>Peso inicial prom (g)</label><input type="number" id="bi-p" placeholder="5.0" step="0.1" oninput="calcBio()"></div>
+    <div class="ff"><label>Proveedor</label><input id="bi-pr" placeholder="Piscícola XYZ"></div>
+    <div class="ff"><label>Etapa</label><select id="bi-et"><option value="incubacion">Incubación</option><option value="alevinaje">Alevinaje</option><option value="dedinos">Dedinos</option><option value="engorde">Engorde</option></select></div>
+   </div>
+   <div class="fb" id="bi-calc">Biomasa inicial = cant × peso = — kg</div>
+   <div class="bg"><button class="btn bp" onclick="guardarBioLocal()">Registrar siembra</button></div>
+   <div class="msg mok" id="bi-ok">✓ Siembra guardada localmente.</div>
+   <div class="msg mer" id="bi-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Siembras registradas</div>
+   <div id="t-bio"><div class="empty">Sin siembras registradas.</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- ALIMENTACIÓN (local) -->
+<div class="pg" id="pg-alim">
+ <div class="ph"><div><div class="pt">Alimentación y Nutrición</div><div class="ps">Control de raciones y FCR</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los registros de alimentación se guardan localmente por ahora.</div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar ración diaria</div>
+   <div class="fg">
+    <div class="ff"><label>ID Estanque</label><input type="number" id="al-e" placeholder="1"></div>
+    <div class="ff"><label>Fecha</label><input type="date" id="al-f"></div>
+    <div class="ff"><label>Tipo de alimento</label>
+     <select id="al-ti"><option value="iniciacion">Iniciación &lt;1g · 50–55% prot</option><option value="levante">Levante 1–10g · 45–50% prot</option><option value="engorde">Engorde &gt;10g · 38–42% prot</option></select>
+    </div>
+    <div class="ff"><label>Cantidad hoy (kg)</label><input type="number" id="al-c" placeholder="12.5" step="0.1" oninput="calcFCR()"></div>
+    <div class="ff"><label>Alimento acum. (kg)</label><input type="number" id="al-ac" placeholder="250" oninput="calcFCR()"></div>
+    <div class="ff"><label>Ganancia de peso (kg)</label><input type="number" id="al-gp" placeholder="100" oninput="calcFCR()"></div>
+   </div>
+   <div class="fb" id="fcr-box">FCR = alimento acumulado ÷ ganancia de peso = —</div>
+   <div class="bg"><button class="btn bp" onclick="guardarAlimLocal()">Registrar alimentación</button></div>
+   <div class="msg mok" id="al-ok">✓ Ración registrada localmente.</div>
+   <div class="msg mer" id="al-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">📈 Evolución FCR</div>
+   <div class="chart-wrap"><canvas id="chart-fcr"></canvas></div>
+   <div id="chart-fcr-empty" class="empty" style="display:none;">Sin datos de FCR aún.</div>
+  </div>
+ </div>
+</div>
+
+<!-- INVENTARIO -->
+<div class="pg" id="pg-inv">
+ <div class="ph"><div><div class="pt">Inventario de Insumos</div><div class="ps">Alimentos, medicamentos y materiales</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Nuevo insumo</div>
+   <div class="fg">
+    <div class="ff"><label>Nombre</label><input id="in-n" placeholder="Alimento pelletizado"></div>
+    <div class="ff"><label>Unidad</label><select id="in-u"><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="unidad">unidad</option></select></div>
+    <div class="ff"><label>Stock mínimo</label><input type="number" id="in-m" placeholder="10"></div>
+    <div class="ff"><label>Descripción</label><input id="in-d" placeholder="Opcional"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearIns()">Crear insumo</button></div>
+   <div class="msg mok" id="in-ok">✓ Insumo creado.</div>
+   <div class="msg mer" id="in-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Movimiento de stock</div>
+   <div class="fg">
+    <div class="ff"><label>ID Insumo</label><input type="number" id="mv-i" placeholder="1"></div>
+    <div class="ff"><label>Tipo</label><select id="mv-t"><option value="entrada">Entrada</option><option value="salida">Salida</option><option value="ajuste">Ajuste</option></select></div>
+    <div class="ff"><label>Cantidad</label><input type="number" id="mv-c" placeholder="50" step="0.1"></div>
+    <div class="ff"><label>Motivo</label><input id="mv-m" placeholder="Compra semanal"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="regMov()">Registrar movimiento</button></div>
+   <div class="msg mok" id="mv-ok">✓ Movimiento registrado.</div>
+   <div class="msg mer" id="mv-er"></div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Inventario actual <button class="btn bg_ bsm" onclick="loadInv()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-inv"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- PERSONAL -->
+<div class="pg" id="pg-personal">
+ <div class="ph"><div><div class="pt">Personal</div><div class="ps">Colaboradores de la unidad productiva</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar colaborador</div>
+   <div class="fg">
+    <div class="ff"><label>Cédula</label><input id="pe-c" placeholder="1234567890"></div>
+    <div class="ff"><label>Nombre completo</label><input id="pe-n" placeholder="Juan García"></div>
+    <div class="ff"><label>Cargo</label><input id="pe-ca" placeholder="Técnico acuícola"></div>
+    <div class="ff"><label>Teléfono</label><input id="pe-t" placeholder="3001234567"></div>
+    <div class="ff full"><label>Fecha de ingreso</label><input type="date" id="pe-f"></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearPer()">Registrar colaborador</button></div>
+   <div class="msg mok" id="pe-ok">✓ Colaborador registrado.</div>
+   <div class="msg mer" id="pe-er"></div>
+  </div>
+  <div class="cd" style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+   <div style="font-size:52px;margin-bottom:14px;">👥</div>
+   <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Gestión de planta</div>
+   <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.7;max-width:260px;">Registrá todos los colaboradores para mantener el control del personal activo en la piscifactoría.</div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Colaboradores <button class="btn bg_ bsm" onclick="loadPer()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-per"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- USUARIOS -->
+<div class="pg" id="pg-usuarios">
+ <div class="ph"><div><div class="pt">Usuarios del sistema</div><div class="ps">Registro y control de accesos</div></div></div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">Registrar usuario</div>
+   <div class="fg">
+    <div class="ff"><label>Nombre</label><input id="us-n" placeholder="Ana López"></div>
+    <div class="ff"><label>Email</label><input type="email" id="us-e" placeholder="ana@aquality.co"></div>
+    <div class="ff"><label>Contraseña</label><input type="password" id="us-p" placeholder="mínimo 8 caracteres"></div>
+    <div class="ff"><label>Rol</label><select id="us-r"><option value="operario">Operario</option><option value="supervisor">Supervisor</option><option value="administrador">Administrador</option></select></div>
+   </div>
+   <div class="bg"><button class="btn bp" onclick="crearUsr()">Registrar usuario</button></div>
+   <div class="msg mok" id="us-ok">✓ Usuario registrado.</div>
+   <div class="msg mer" id="us-er"></div>
+  </div>
+  <div class="cd">
+   <div class="ct">Roles del sistema</div>
+   <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--red-l);"><div><div style="font-size:13px;font-weight:700;color:var(--red);">Administrador</div><div style="font-size:12px;color:var(--muted);">Acceso total</div></div><span class="ch cr">Admin</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--amb-l);"><div><div style="font-size:13px;font-weight:700;color:var(--amb);">Supervisor</div><div style="font-size:12px;color:var(--muted);">Lectura y escritura</div></div><span class="ch ca">Supervisor</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border-radius:8px;background:var(--pri-l);"><div><div style="font-size:13px;font-weight:700;color:var(--pri);">Operario</div><div style="font-size:12px;color:var(--muted);">Solo registro</div></div><span class="ch cb">Operario</span></div>
+   </div>
+  </div>
+ </div>
+ <div class="cd">
+  <div class="ct">Usuarios registrados <button class="btn bg_ bsm" onclick="loadUsr()">↻ Actualizar</button></div>
+  <div class="tw"><div id="t-usr"><div class="loading"><div class="spinner"></div>Cargando...</div></div></div>
+ </div>
+</div>
+
+<!-- ESTADO CULTIVO -->
+<div class="pg" id="pg-cultivo">
+ <div class="ph">
+  <div><div class="pt">Estado del Cultivo</div><div class="ps">Monitoreo inteligente — datos reales de la API</div></div>
+  <button class="btn bg_ bsm" onclick="refreshCultivo()">↻ Actualizar</button>
+ </div>
+ <div class="demo-banner" id="cultivo-banner" style="display:none;">⚠️ <strong>Sin lecturas registradas.</strong> Registrá lecturas en Calidad del Agua para ver métricas reales aquí.</div>
+ <div class="kpi-grid" id="kpi-grid">
+  <div class="kpi-card kpi-c-teal"><div class="kpi-icon">💧</div><div class="kpi-label">Oxígeno prom.</div><div class="kpi-value" id="kpi-o2">—</div><div class="kpi-sub">mg/L promedio</div><div class="kpi-trend trend-ok" id="kpi-o2-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-amb"><div class="kpi-icon">🌡</div><div class="kpi-label">Temperatura prom.</div><div class="kpi-value" id="kpi-temp">—</div><div class="kpi-sub">°C promedio</div><div class="kpi-trend trend-ok" id="kpi-temp-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-pur"><div class="kpi-icon">🧪</div><div class="kpi-label">pH promedio</div><div class="kpi-value" id="kpi-ph">—</div><div class="kpi-sub">unidades de pH</div><div class="kpi-trend trend-ok" id="kpi-ph-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-red"><div class="kpi-icon">🚨</div><div class="kpi-label">Alertas activas</div><div class="kpi-value" id="kpi-alertas">—</div><div class="kpi-sub">parámetros fuera rango</div><div class="kpi-trend trend-ok" id="kpi-alertas-trend">Sin datos</div></div>
+  <div class="kpi-card kpi-c-blue"><div class="kpi-icon">🐟</div><div class="kpi-label">Estanques activos</div><div class="kpi-value" id="kpi-estanques">—</div><div class="kpi-sub">unidades en producción</div><div class="kpi-trend trend-ok" id="kpi-estanques-trend">—</div></div>
+  <div class="kpi-card kpi-c-grn"><div class="kpi-icon">📦</div><div class="kpi-label">Insumos OK</div><div class="kpi-value" id="kpi-insumos">—</div><div class="kpi-sub">con stock suficiente</div><div class="kpi-trend trend-ok" id="kpi-insumos-trend">—</div></div>
+  <div class="kpi-card kpi-c-ink"><div class="kpi-icon">👥</div><div class="kpi-label">Personal activo</div><div class="kpi-value" id="kpi-personal">—</div><div class="kpi-sub">colaboradores</div><div class="kpi-trend trend-ok" id="kpi-personal-trend">—</div></div>
+  <div class="kpi-card kpi-c-amb"><div class="kpi-icon">⭐</div><div class="kpi-label">Total lecturas</div><div class="kpi-value" id="kpi-lecturas">—</div><div class="kpi-sub">registros hídricos</div><div class="kpi-trend trend-ok" id="kpi-lecturas-trend">—</div></div>
+ </div>
+ <div class="g2">
+  <div class="cd">
+   <div class="ct">🚦 Semáforo de parámetros (última lectura)</div>
+   <div class="semaforo-wrap" id="semaforo-wrap"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+  </div>
+  <div class="cd">
+   <div class="ct">💡 Recomendaciones automáticas</div>
+   <div id="recomendaciones-wrap"><div class="loading"><div class="spinner"></div>Analizando...</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- MAPA -->
+<div class="pg" id="pg-mapa">
+ <div class="ph">
+  <div><div class="pt">Mapa Visual de Estanques</div><div class="ps">Estado en tiempo real</div></div>
+  <button class="btn bg_ bsm" onclick="loadMapa()">↻ Actualizar</button>
+ </div>
+ <div class="cd" style="margin-bottom:16px;">
+  <div class="ct">Resumen</div>
+  <div class="g4" id="mapa-resumen">
+   <div class="sc"><div class="si" style="background:var(--grn-l)">✅</div><div class="sl">Activos</div><div class="sv" id="map-act">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--red-l)">❌</div><div class="sl">Inactivos</div><div class="sv" id="map-ina">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--amb-l)">⚠️</div><div class="sl">Con alertas</div><div class="sv" id="map-ale">—</div></div>
+   <div class="sc"><div class="si" style="background:var(--pri-l)">📊</div><div class="sl">Total</div><div class="sv" id="map-tot">—</div></div>
+  </div>
+ </div>
+ <div class="tank-grid" id="mapa-grid"><div class="loading"><div class="spinner"></div>Cargando estanques...</div></div>
+</div>
+
+<!-- FINANZAS -->
+<div class="pg" id="pg-finanzas">
+ <div class="ph"><div><div class="pt">Control Financiero</div><div class="ps">Proyección económica del ciclo</div></div></div>
+ <div class="demo-banner">⚠️ <strong>Módulo proyección:</strong> ingresá los costos del ciclo para calcular la rentabilidad estimada.</div>
+ <div class="g2" style="margin-bottom:16px;">
+  <div class="cd">
+   <div class="ct">💰 Resumen de Costos</div>
+   <div class="fin-total" id="fin-total">$0</div>
+   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Costo total acumulado</div>
+   <div class="fin-row"><span class="fin-label">🌿 Alimento</span><span class="fin-amount fin-negative" id="fin-alim">$—</span></div>
+   <div class="fin-row"><span class="fin-label">💊 Medicamentos</span><span class="fin-amount fin-negative" id="fin-med">$—</span></div>
+   <div class="fin-row"><span class="fin-label">⚡ Energía</span><span class="fin-amount fin-negative" id="fin-ener">$—</span></div>
+   <div class="fin-row"><span class="fin-label">👥 Mano de obra</span><span class="fin-amount fin-negative" id="fin-mano">$—</span></div>
+   <div class="fin-row" style="border-top:2px solid var(--line);margin-top:8px;padding-top:12px;font-weight:700;">
+    <span class="fin-label">📈 Rentabilidad proyectada</span>
+    <span class="fin-amount fin-positive" id="fin-rent">$—</span>
+   </div>
+  </div>
+  <div class="cd">
+   <div class="ct">Ingresar costos del ciclo</div>
+   <div class="fg">
+    <div class="ff"><label>Alimento ($/ciclo)</label><input type="number" id="fc-alim" placeholder="5000000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Medicamentos ($)</label><input type="number" id="fc-med" placeholder="500000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Energía ($)</label><input type="number" id="fc-ener" placeholder="800000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Mano de obra ($)</label><input type="number" id="fc-mano" placeholder="3000000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Precio venta ($/kg)</label><input type="number" id="fc-pventa" placeholder="12000" oninput="calcFinanzas()"></div>
+    <div class="ff"><label>Biomasa cosecha (kg)</label><input type="number" id="fc-bio" placeholder="500" oninput="calcFinanzas()"></div>
+   </div>
+   <div class="fb" id="fin-resultado">Completá los datos para ver la proyección</div>
+  </div>
+ </div>
+ <div class="g2">
+  <div class="cd"><div class="ct">📊 Distribución de Costos</div><div class="chart-wrap" style="height:250px;"><canvas id="chart-costos"></canvas></div></div>
+  <div class="cd"><div class="ct">📈 Proyección de Rentabilidad</div><div class="chart-wrap" style="height:250px;"><canvas id="chart-rent"></canvas></div></div>
+ </div>
+</div>
+
+<!-- INFORMES -->
+<div class="pg" id="pg-informes">
+ <div class="ph"><div><div class="pt">Informes y Analítica</div><div class="ps">Reportes basados en datos reales de la API</div></div></div>
+ <div class="export-bar">
+  <button class="btn-export bex-pdf" onclick="exportPDF()">📄 Descargar PDF</button>
+  <button class="btn-export bex-xls" onclick="exportExcel()">📊 Descargar Excel</button>
+  <button class="btn-export bex-print" onclick="window.print()">🖨 Imprimir</button>
+ </div>
+ <div class="cd" id="informe-section">
+  <div class="ct">📋 Informe Técnico <button class="btn bg_ bsm" onclick="generarInforme()">↻ Regenerar</button></div>
+  <div class="informe-texto" id="informe-texto"><div class="loading"><div class="spinner"></div>Generando informe...</div></div>
+ </div>
+</div>
+
+</div><!-- /mn -->
+</div><!-- /app -->
+
+<!-- ════ MOBILE MENU TOGGLE ════ -->
+<button id="menu-toggle" style="display:none;position:fixed;top:12px;left:12px;z-index:300;background:var(--ink);color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:18px;cursor:pointer;" onclick="document.querySelector('.sb').classList.toggle('open')">☰</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// AQUALITY — JavaScript Modular
+// Separado en: Config, Utils, Auth, Nav, API modules
+// ══════════════════════════════════════════════════════════════
+
+// ── CONFIG ──────────────────────────────────────────────────
+const CFG = {
+  // Cambiá esta URL cuando despliegues en Render
+  API: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000'
+    : 'https://TU-APP.onrender.com', // ← reemplazar con tu URL real
+};
+
+// Estado global de la app
+const STATE = {
+  user: null,
+  charts: {},
+  localBio: JSON.parse(localStorage.getItem('aq_bio') || '[]'),
+  localAlim: JSON.parse(localStorage.getItem('aq_alim') || '[]'),
+};
+
+// ── UTILS ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmtDate = s => s ? s.slice(0,16).replace('T',' ') : '—';
+const fmtCOP = n => '$' + (n||0).toLocaleString('es-CO');
+const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+
+async function http(method, path, body) {
+  try {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(CFG.API + path, opts);
+    const data = await res.json();
+    return { ok: res.ok, data, status: res.status };
+  } catch(e) {
+    return { ok: false, data: { detail: 'Sin conexión con el servidor.' }, status: 0 };
+  }
+}
+
+function showMsg(okId, errId, ok, msg = '') {
+  $(okId) && ($(okId).style.display = 'none');
+  $(errId) && ($(errId).style.display = 'none');
+  if (ok) {
+    $(okId) && ($(okId).style.display = 'block');
+  } else {
+    if ($(errId)) { $(errId).textContent = '✗ ' + msg; $(errId).style.display = 'block'; }
+  }
+  setTimeout(() => {
+    $(okId) && ($(okId).style.display = 'none');
+    $(errId) && ($(errId).style.display = 'none');
+  }, 4500);
+}
+
+function destroyChart(key) {
+  if (STATE.charts[key]) { STATE.charts[key].destroy(); delete STATE.charts[key]; }
+}
+
+// ── AUTH ────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  ['login','register'].forEach(t => {
+    $('tab-'+t).classList.toggle('on', t === tab);
+    $('panel-'+t).classList.toggle('on', t === tab);
+  });
+}
+
+async function doLogin() {
+  const em = $('lem').value.trim(), pw = $('lpw').value;
+  if (!em || !pw) return;
+  const r = await http('POST', '/usuarios/login', {
+  email: em,
+  password: pw
+});
+  if (r.ok) {
+    enterApp(r.data.usuario);
+  } else {
+    $('lerr').style.display = 'block';
+  }
+}
+
+async function doRegister() {
+  const nombre = $('rn').value.trim();
+  const email  = $('re').value.trim();
+  const pw     = $('rp').value;
+  const rol    = $('rr').value;
+  $('rerr').style.display = 'none';
+  $('rok').style.display = 'none';
+
+  if (!nombre || !email || !pw) {
+    $('rerr').textContent = '✗ Completá todos los campos.';
+    $('rerr').style.display = 'block'; return;
+  }
+  if (pw.length < 8) {
+    $('rerr').textContent = '✗ La contraseña debe tener al menos 8 caracteres.';
+    $('rerr').style.display = 'block'; return;
+  }
+
+  const r = await http('POST', '/usuarios/', { nombre, email, password: pw, rol });
+  if (r.ok) {
+    $('rok').style.display = 'block';
+    // Hacer login automático
+    setTimeout(async () => {
+      const login = await http('POST', '/usuarios/login', {
+  email,
+  password: pw
+});
+      if (login.ok) enterApp(login.data.usuario);
+    }, 1200);
+  } else {
+    const msg = r.data.detail || JSON.stringify(r.data);
+    $('rerr').textContent = '✗ ' + msg;
+    $('rerr').style.display = 'block';
+  }
+}
+
+function enterApp(user) {
+  STATE.user = user;
+  $('screen-welcome').style.display = 'none';
+  $('app').style.display = 'block';
+  const ini = user.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  $('uav').textContent = ini;
+  $('unm').textContent = user.nombre;
+  $('urol').textContent = user.rol;
+  loadDash();
+}
+
+function doLogout() {
+  STATE.user = null;
+  $('app').style.display = 'none';
+  $('screen-welcome').style.display = 'flex';
+  switchTab('login');
+}
+
+// ── NAVEGACIÓN ──────────────────────────────────────────────
+
+function goTo(pg, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  $('pg-' + pg) && $('pg-' + pg).classList.add('on');
+  if (el) el.classList.add('on');
+  // Cargar datos según sección
+  const loaders = {
+    dash:      loadDash,
+    inv:       loadInv,
+    personal:  loadPer,
+    usuarios:  loadUsr,
+    estanques: loadEst,
+    agua:      loadAlertas,
+    cultivo:   refreshCultivo,
+    mapa:      loadMapa,
+    finanzas:  () => { calcFinanzas(); setTimeout(renderFinanzasCharts, 80); },
+    informes:  generarInforme,
+    biomasa:   renderBioLocal,
+    alim:      () => { renderAlimLocal(); setTimeout(renderFCRChart, 80); },
+  };
+  if (loaders[pg]) setTimeout(loaders[pg], 50);
+}
+
+function setEtapa(e, el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+
+async function loadDash() {
+  const [us, ins, per, al, cl, est] = await Promise.all([
+    http('GET', '/usuarios/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+    http('GET', '/lecturas/alertas'),
+    http('GET', '/lecturas/clima/actual'),
+    http('GET', '/estanques/'),
+  ]);
+
+  if (us.ok)  $('s-u').textContent = us.data.length;
+  if (est.ok) $('s-e').textContent = est.data.filter(e => e.estado === 'activo').length;
+  if (ins.ok) $('s-i').textContent = ins.data.length;
+  if (per.ok) $('s-p').textContent = per.data.filter(p => p.activo).length;
+
+  if (al.ok) {
+    $('s-a').textContent = al.data.length;
+    if (al.data.length > 0) {
+      $('abanner').style.display = 'block';
+      $('abanner-txt').textContent = `${al.data.length} lectura(s) con parámetros fuera del rango seguro.`;
+      $('alertas-r').innerHTML = al.data.slice(0,5).map(l => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);">
+          <div><div style="font-size:13px;font-weight:600;">Estanque #${l.estanque_id}</div>
+          <div style="font-size:12px;color:var(--muted);">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div></div>
+          <span class="ch cr">⚠ Alerta</span>
+        </div>`).join('');
+    } else {
+      $('abanner').style.display = 'none';
+      $('alertas-r').innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
+    }
+  }
+
+  // Clima
+  const cb = $('clima-box');
+  if (cl.ok) {
+    const d = cl.data;
+    cb.innerHTML = `<div class="cg2">
+      <div class="cc"><div class="cv">${d.temperatura_ambiente_c ?? '—'}°C</div><div class="cl">Temperatura</div></div>
+      <div class="cc"><div class="cv" style="color:var(--teal);">${d.humedad_relativa_pct ?? '—'}%</div><div class="cl">Humedad</div></div>
+      <div class="cc"><div class="cv" style="color:var(--ink);font-size:18px;">${d.precipitacion_mm ?? 0}mm</div><div class="cl">Precipitación</div></div>
+      <div class="cc"><div class="cv" style="color:var(--grn);font-size:18px;">${d.temperatura_agua_estimada_c ?? '—'}°C</div><div class="cl">Agua estimada</div></div>
+    </div><div style="font-size:11px;color:var(--muted);margin-top:8px;">Actualizado: ${d.hora_lectura ?? ''}</div>`;
+  } else {
+    cb.innerHTML = '<div class="empty">API de clima no disponible.</div>';
+  }
+
+  // Gráfico temperatura desde lecturas reales
+  await renderTempChartFromAPI();
+}
+
+// ── CHART TEMPERATURA (datos reales desde API) ──────────────
+
+async function renderTempChartFromAPI() {
+  // Intenta obtener lecturas del primer estanque disponible, luego estanques activos
+  const estR = await http('GET', '/estanques/');
+  const activos = estR.ok ? estR.data.filter(e => e.estado === 'activo') : [];
+
+  let lecturas = [];
+  for (const est of activos.slice(0, 3)) {
+    const r = await http('GET', `/lecturas/estanque/${est.id}?limite=10`);
+    if (r.ok && r.data.length) { lecturas = r.data; break; }
+  }
+
+  const ctx = $('chart-temp');
+  if (!ctx) return;
+
+  if (!lecturas.length) {
+    ctx.style.display = 'none';
+    $('chart-temp-empty') && ($('chart-temp-empty').style.display = 'block');
+    return;
+  }
+
+  ctx.style.display = 'block';
+  $('chart-temp-empty') && ($('chart-temp-empty').style.display = 'none');
+
+  const labels = lecturas.reverse().map(l => fmtDate(l.registrado_en).slice(5,16));
+  const temps  = lecturas.map(l => l.temperatura);
+  const phs    = lecturas.map(l => l.ph);
+  const o2s    = lecturas.map(l => l.oxigeno);
+
+  destroyChart('temp');
+  STATE.charts['temp'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Temperatura °C', data: temps, borderColor:'#2B7FD4', backgroundColor:'rgba(43,127,212,.1)', tension:.4, fill:true, pointRadius:4, yAxisID:'y' },
+      { label:'pH', data: phs, borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,.05)', tension:.4, fill:false, pointRadius:3, yAxisID:'y2' },
+      { label:'O₂ mg/L', data: o2s, borderColor:'#0EA5A0', backgroundColor:'rgba(14,165,160,.05)', tension:.4, fill:false, pointRadius:3, yAxisID:'y3' },
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}} },
+      scales:{
+        y:  { min:8, max:22, grid:{color:'rgba(0,0,0,.04)'}, title:{display:true,text:'°C',font:{size:10}} },
+        y2: { min:5, max:10, position:'right', grid:{display:false}, title:{display:true,text:'pH',font:{size:10}} },
+        y3: { min:0, max:15, position:'right', grid:{display:false}, display:false },
+        x:  { grid:{color:'rgba(0,0,0,.04)'} }
+      }
+    }
+  });
+}
+
+// ── ESTANQUES ───────────────────────────────────────────────
+
+function calcEst() {
+  const l=parseFloat($('el')?.value)||0, a=parseFloat($('ea')?.value)||0,
+        p=parseFloat($('ep2')?.value)||0, cap=parseFloat($('ecap')?.value)||0;
+  if (l&&a&&p) {
+    const vol = l*a*p;
+    $('e-calc').textContent = `Volumen = ${l}×${a}×${p} = ${vol.toFixed(2)} m³`;
+    if (cap > 0) $('edens').value = (cap/vol).toFixed(1) + ' kg/m³';
+  }
+}
+
+async function regEstanque() {
+  const cap = parseFloat($('ecap')?.value);
+  const l=parseFloat($('el')?.value)||null, a=parseFloat($('ea')?.value)||null, p=parseFloat($('ep2')?.value)||null;
+  const vol = l&&a&&p ? +(l*a*p).toFixed(2) : null;
+  const body = { codigo:$('ec').value.trim(), nombre:$('en').value.trim(), capacidad_kg:cap, volumen_m3:vol, etapa:$('ee').value };
+  if (!body.codigo || !body.nombre || !cap) { showMsg('e-ok','e-er',false,'Completá código, nombre y capacidad.'); return; }
+  const r = await http('POST', '/estanques/', body);
+  showMsg('e-ok','e-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) { loadEst(); loadDash(); }
+}
+
+async function loadEst() {
+  const r = await http('GET', '/estanques/');
+  const el = $('t-est');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin estanques registrados.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Código</th><th>Nombre</th><th>Etapa</th><th>Capacidad</th><th>Volumen</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(e=>`<tr>
+    <td class="mono">${e.codigo}</td><td><strong>${e.nombre}</strong></td>
+    <td>${e.etapa || '—'}</td>
+    <td class="mono">${e.capacidad_kg} kg</td><td class="mono">${e.volumen_m3 ?? '—'} m³</td>
+    <td><span class="ch ${e.estado==='activo'?'cg':'cr'}">${e.estado}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── LECTURAS DE AGUA ────────────────────────────────────────
+
+async function regLectura() {
+  const body = {
+    estanque_id: parseInt($('ag-e').value),
+    usuario_id:  STATE.user.id,
+    temperatura: parseFloat($('ag-t').value),
+    ph:          parseFloat($('ag-ph').value),
+    oxigeno:     parseFloat($('ag-o2').value),
+    observacion: $('ag-obs').value || null,
+  };
+  if (!body.estanque_id || isNaN(body.temperatura) || isNaN(body.ph) || isNaN(body.oxigeno)) {
+    showMsg('ag-ok','ag-er',false,'Completá todos los campos numéricos.'); return;
+  }
+  const r = await http('POST', '/lecturas/', body);
+  showMsg('ag-ok','ag-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadAlertas();
+}
+
+async function loadAlertas() {
+  const r = await http('GET', '/lecturas/alertas');
+  const el = $('al-box'), cnt = $('al-cnt');
+  if (!r.ok || !r.data.length) {
+    el.innerHTML = '<div class="empty">Sin alertas activas ✓</div>';
+    cnt && (cnt.textContent = '(0)'); return;
+  }
+  cnt && (cnt.textContent = `(${r.data.length})`);
+  el.innerHTML = r.data.slice(0,6).map(l=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--line);">
+      <div style="display:flex;justify-content:space-between;">
+        <strong style="font-size:13px;">Estanque #${l.estanque_id}</strong>
+        <span class="ch cr">⚠ Alerta</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">T:${l.temperatura}°C · pH:${l.ph} · O₂:${l.oxigeno}mg/L</div>
+    </div>`).join('');
+}
+
+async function buscarLect() {
+  const id = $('ag-bid').value; if (!id) return;
+  const r = await http('GET', `/lecturas/estanque/${id}?limite=20`);
+  const el = $('t-lect');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin lecturas para este estanque.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Fecha</th><th>Temperatura</th><th>pH</th><th>O₂</th><th>Estado</th><th>Observación</th></tr></thead>
+  <tbody>${r.data.map(l=>`<tr>
+    <td class="mono">${fmtDate(l.registrado_en)}</td>
+    <td>${l.temperatura}°C</td><td>${l.ph}</td><td>${l.oxigeno}mg/L</td>
+    <td><span class="ch ${l.alerta?'cr':'cg'}">${l.alerta?'⚠ Alerta':'✓ Normal'}</span></td>
+    <td style="color:var(--muted);">${l.observacion||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── INVENTARIO ──────────────────────────────────────────────
+
+async function crearIns() {
+  const body = { nombre:$('in-n').value.trim(), unidad_medida:$('in-u').value,
+    stock_minimo:parseFloat($('in-m').value)||10, descripcion:$('in-d').value||null };
+  if (!body.nombre) { showMsg('in-ok','in-er',false,'El nombre es obligatorio.'); return; }
+  const r = await http('POST', '/inventario/insumos', body);
+  showMsg('in-ok','in-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadInv();
+}
+
+async function regMov() {
+  const body = { insumo_id:parseInt($('mv-i').value), usuario_id:STATE.user.id,
+    tipo:$('mv-t').value, cantidad:parseFloat($('mv-c').value), motivo:$('mv-m').value||null };
+  if (!body.insumo_id || isNaN(body.cantidad)) { showMsg('mv-ok','mv-er',false,'Completá los campos.'); return; }
+  const r = await http('POST', '/inventario/movimientos', body);
+  showMsg('mv-ok','mv-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadInv();
+}
+
+async function loadInv() {
+  const r = await http('GET', '/inventario/insumos');
+  const el = $('t-inv');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin insumos registrados.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>ID</th><th>Nombre</th><th>Stock actual</th><th>Mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(i=>`<tr>
+    <td class="mono">${i.id}</td>
+    <td><strong>${i.nombre}</strong>${i.descripcion?`<div style="font-size:11px;color:var(--muted);">${i.descripcion}</div>`:''}</td>
+    <td class="mono" style="font-weight:600;">${i.stock_actual}</td>
+    <td class="mono">${i.stock_minimo}</td><td>${i.unidad_medida}</td>
+    <td><span class="ch ${i.requiere_reabastecimiento?'cr':'cg'}">${i.requiere_reabastecimiento?'⚠ Reabastecer':'✓ OK'}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── PERSONAL ────────────────────────────────────────────────
+
+async function crearPer() {
+  const body = { cedula:$('pe-c').value.trim(), nombre:$('pe-n').value.trim(),
+    cargo:$('pe-ca').value.trim(), fecha_ingreso:$('pe-f').value, telefono:$('pe-t').value||null };
+  if (!body.cedula||!body.nombre||!body.cargo||!body.fecha_ingreso) {
+    showMsg('pe-ok','pe-er',false,'Completá todos los campos.'); return;
+  }
+  const r = await http('POST', '/personal/', body);
+  showMsg('pe-ok','pe-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadPer();
+}
+
+async function loadPer() {
+  const r = await http('GET', '/personal/');
+  const el = $('t-per');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin colaboradores.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Cédula</th><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Días</th><th>Estado</th></tr></thead>
+  <tbody>${r.data.map(p=>`<tr>
+    <td class="mono">${p.cedula}</td><td><strong>${p.nombre}</strong></td>
+    <td>${p.cargo}</td><td style="color:var(--muted);">${p.telefono||'—'}</td>
+    <td class="mono">${p.dias_laborados}</td>
+    <td><span class="ch ${p.activo?'cg':'cr'}">${p.activo?'Activo':'Inactivo'}</span></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── USUARIOS ────────────────────────────────────────────────
+
+async function crearUsr() {
+  const body = { nombre:$('us-n').value.trim(), email:$('us-e').value.trim(),
+    password:$('us-p').value, rol:$('us-r').value };
+  if (!body.nombre||!body.email||!body.password) { showMsg('us-ok','us-er',false,'Completá todos los campos.'); return; }
+  const r = await http('POST', '/usuarios/', body);
+  showMsg('us-ok','us-er',r.ok, r.data.detail || JSON.stringify(r.data));
+  if (r.ok) loadUsr();
+}
+
+async function loadUsr() {
+  const r = await http('GET', '/usuarios/');
+  const el = $('t-usr');
+  if (!r.ok || !r.data.length) { el.innerHTML = '<div class="empty">Sin usuarios.</div>'; return; }
+  const colMap = { administrador:'cr', supervisor:'ca', operario:'cb' };
+  el.innerHTML = `<table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Creado</th></tr></thead>
+  <tbody>${r.data.map(u=>`<tr>
+    <td class="mono">${u.id}</td><td><strong>${u.nombre}</strong></td>
+    <td style="color:var(--muted);">${u.email}</td>
+    <td><span class="ch ${colMap[u.rol]||'cb'}">${u.rol}</span></td>
+    <td class="mono" style="font-size:11px;">${u.creado_en?.slice(0,10)||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── BIOMASA (localStorage) ──────────────────────────────────
+
+function calcBio() {
+  const c=parseFloat($('bi-c')?.value)||0, p=parseFloat($('bi-p')?.value)||0;
+  if (c&&p) $('bi-calc').textContent = `Biomasa inicial = ${c} × ${p}g = ${(c*p/1000).toFixed(2)} kg`;
+}
+
+function guardarBioLocal() {
+  const entry = {
+    estanque: $('bi-e').value, fecha: $('bi-f').value,
+    cantidad: $('bi-c').value, pesoInicial: $('bi-p').value,
+    proveedor: $('bi-pr').value, etapa: $('bi-et').value,
+    biomasa: ((parseFloat($('bi-c').value)||0)*(parseFloat($('bi-p').value)||0)/1000).toFixed(2),
+    ts: Date.now()
+  };
+  STATE.localBio.push(entry);
+  localStorage.setItem('aq_bio', JSON.stringify(STATE.localBio));
+  showMsg('bi-ok','bi-er',true);
+  renderBioLocal();
+}
+
+function renderBioLocal() {
+  const el = $('t-bio');
+  if (!STATE.localBio.length) { el.innerHTML = '<div class="empty">Sin siembras registradas.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Estanque</th><th>Fecha</th><th>Cantidad</th><th>Peso inicial</th><th>Biomasa</th><th>Proveedor</th></tr></thead>
+  <tbody>${STATE.localBio.slice().reverse().map(b=>`<tr>
+    <td class="mono">#${b.estanque}</td><td>${b.fecha}</td>
+    <td class="mono">${b.cantidad} peces</td><td class="mono">${b.pesoInicial}g</td>
+    <td class="mono" style="font-weight:600;">${b.biomasa} kg</td>
+    <td style="color:var(--muted);">${b.proveedor||'—'}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ── ALIMENTACIÓN (localStorage + FCR chart) ─────────────────
+
+function calcFCR() {
+  const ac=parseFloat($('al-ac')?.value)||0, gp=parseFloat($('al-gp')?.value)||0;
+  const fb = $('fcr-box');
+  if (ac&&gp) {
+    const fcr = (ac/gp).toFixed(2);
+    const color = fcr<1.3?'var(--grn)':fcr<2?'var(--amb)':'var(--red)';
+    const estado = fcr<1.3?'✓ Excelente':fcr<2?'⚠ Aceptable':'✗ Ineficiente';
+    fb.style.color = color;
+    fb.textContent = `FCR = ${ac}kg ÷ ${gp}kg = ${fcr} — ${estado}`;
+  } else { fb.textContent = 'FCR = alimento acumulado ÷ ganancia de peso = —'; fb.style.color=''; }
+}
+
+function guardarAlimLocal() {
+  const entry = {
+    estanque: $('al-e').value, fecha: $('al-f').value,
+    tipo: $('al-ti').value, cantidad: $('al-c').value,
+    acum: $('al-ac').value, ganancia: $('al-gp').value,
+    fcr: $('al-ac').value && $('al-gp').value ? ($('al-ac').value/$('al-gp').value).toFixed(2) : '—',
+    ts: Date.now()
+  };
+  STATE.localAlim.push(entry);
+  localStorage.setItem('aq_alim', JSON.stringify(STATE.localAlim));
+  showMsg('al-ok','al-er',true);
+  renderAlimLocal();
+  renderFCRChart();
+}
+
+function renderAlimLocal() {
+  // Solo actualiza el chart si hay datos
+  if (STATE.localAlim.length) renderFCRChart();
+}
+
+function renderFCRChart() {
+  const ctx = $('chart-fcr'); if (!ctx) return;
+  const data = STATE.localAlim.filter(a => a.fcr !== '—').slice(-10);
+  if (!data.length) {
+    $('chart-fcr-empty') && ($('chart-fcr-empty').style.display = 'block');
+    return;
+  }
+  $('chart-fcr-empty') && ($('chart-fcr-empty').style.display = 'none');
+  const labels = data.map(a => a.fecha || 'Sin fecha');
+  const fcrs   = data.map(a => parseFloat(a.fcr));
+  destroyChart('fcr');
+  STATE.charts['fcr'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'FCR', data:fcrs,
+      backgroundColor: fcrs.map(v => v<1.3?'rgba(22,163,74,.7)':v<2?'rgba(217,119,6,.7)':'rgba(220,38,38,.7)'),
+      borderRadius:6 }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      scales:{y:{min:0,max:3,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}} }
+  });
+}
+
+// ── ESTADO CULTIVO (datos reales desde API) ─────────────────
+
+async function refreshCultivo() {
+  const [al, est, ins, per] = await Promise.all([
+    http('GET', '/lecturas/alertas'),
+    http('GET', '/estanques/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+  ]);
+
+  const alertas    = al.ok ? al.data : [];
+  const estanques  = est.ok ? est.data : [];
+  const insumos    = ins.ok ? ins.data : [];
+  const personal   = per.ok ? per.data : [];
+
+  const activos     = estanques.filter(e => e.estado === 'activo').length;
+  const insOK       = insumos.filter(i => !i.requiere_reabastecimiento).length;
+  const perActivo   = personal.filter(p => p.activo).length;
+  const totalAlert  = alertas.length;
+
+  // KPIs desde alertas reales
+  if (alertas.length > 0) {
+    const temps = alertas.map(l => l.temperatura).filter(Boolean);
+    const phs   = alertas.map(l => l.ph).filter(Boolean);
+    const o2s   = alertas.map(l => l.oxigeno).filter(Boolean);
+    if (temps.length) setKPI('kpi-temp', avg(temps).toFixed(1)+'°C', avg(temps)<=18?'trend-up':'trend-dn', avg(temps)<=18?'✓ en rango':'⚠ fuera de rango');
+    if (phs.length)   setKPI('kpi-ph',   avg(phs).toFixed(1),       (avg(phs)>=6.5&&avg(phs)<=8.5)?'trend-up':'trend-dn', '✓ normal');
+    if (o2s.length)   setKPI('kpi-o2',   avg(o2s).toFixed(1)+' mg/L', avg(o2s)>=7?'trend-up':'trend-dn', avg(o2s)>=7?'✓ óptimo':'⚠ bajo');
+    $('cultivo-banner') && ($('cultivo-banner').style.display = 'none');
+  } else {
+    $('cultivo-banner') && ($('cultivo-banner').style.display = 'flex');
+    ['kpi-temp','kpi-ph','kpi-o2'].forEach(k => setKPI(k,'—','trend-ok','Sin lecturas'));
+  }
+
+  setKPI('kpi-alertas',   totalAlert+'', totalAlert===0?'trend-up':'trend-dn', totalAlert===0?'✓ sin alertas':'⚠ revisar');
+  setKPI('kpi-estanques', activos+'', 'trend-ok', 'en producción');
+  setKPI('kpi-insumos',   insOK+'', insOK===insumos.length?'trend-up':'trend-dn', `${insumos.length-insOK} por reabastecer`);
+  setKPI('kpi-personal',  perActivo+'', 'trend-ok', 'colaboradores');
+  setKPI('kpi-lecturas',  totalAlert+'', 'trend-ok', 'con parámetros fuera de rango');
+
+  // Semáforo con última alerta disponible
+  renderSemaforoReal(alertas[0]);
+  generarRecomendacionesReal(alertas, estanques, insumos);
+}
+
+function setKPI(id, val, trendClass, trendTxt) {
+  const el = $(id), tr = $(id+'-trend');
+  if (el) el.textContent = val;
+  if (tr) { tr.textContent = trendTxt; tr.className = 'kpi-trend '+trendClass; }
+}
+
+function renderSemaforoReal(lectura) {
+  const wrap = $('semaforo-wrap'); if (!wrap) return;
+  if (!lectura) {
+    wrap.innerHTML = '<div class="empty">Sin lecturas disponibles para analizar.</div>'; return;
+  }
+  const params = [
+    { nombre:'Oxígeno',     val:lectura.oxigeno+' mg/L',   ok:lectura.oxigeno>=7,     cri:lectura.oxigeno<5 },
+    { nombre:'Temperatura', val:lectura.temperatura+'°C',   ok:lectura.temperatura<=18, cri:lectura.temperatura>22 },
+    { nombre:'pH',          val:lectura.ph.toFixed(1),      ok:lectura.ph>=6.5&&lectura.ph<=8.5, cri:lectura.ph<6||lectura.ph>9 },
+    { nombre:'Alerta',      val:lectura.alerta?'Activa':'Normal', ok:!lectura.alerta, cri:lectura.alerta },
+  ];
+  wrap.innerHTML = params.map(p => {
+    const cls = p.cri?'sem-cri':p.ok?'sem-opt':'sem-pre';
+    return `<div class="sem-row ${cls}"><div class="sem-dot"></div><span class="sem-param">${p.nombre}</span><span class="sem-val">${p.val}</span></div>`;
+  }).join('');
+}
+
+function generarRecomendacionesReal(alertas, estanques, insumos) {
+  const wrap = $('recomendaciones-wrap'); if (!wrap) return;
+  const recs = [];
+  const ahora = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+
+  // Basado en datos reales
+  if (alertas.length > 0) {
+    const o2s = alertas.map(l=>l.oxigeno).filter(Boolean);
+    if (avg(o2s) < 7) recs.push({pri:'rec-pri',icon:'💨',title:'Incrementar aireación urgente',msg:`Oxígeno promedio ${avg(o2s).toFixed(1)} mg/L está bajo el mínimo seguro. Activar aireadores adicionales.`});
+    if (avg(o2s) < 9 && avg(o2s) >= 7) recs.push({pri:'rec-med',icon:'💧',title:'Monitorear oxígeno',msg:`Oxígeno en ${avg(o2s).toFixed(1)} mg/L. Verificar caudal de agua y estado de aireadores.`});
+
+    const temps = alertas.map(l=>l.temperatura).filter(Boolean);
+    if (avg(temps) > 18) recs.push({pri:'rec-pri',icon:'🌡',title:'Temperatura elevada',msg:`Temperatura promedio ${avg(temps).toFixed(1)}°C supera el rango óptimo. Revisar sombreo y caudal.`});
+  }
+
+  const bajoStock = insumos.filter(i => i.requiere_reabastecimiento);
+  if (bajoStock.length > 0)
+    recs.push({pri:'rec-med',icon:'📦',title:`${bajoStock.length} insumo(s) con stock bajo`,msg:`Reabastecer: ${bajoStock.map(i=>i.nombre).join(', ')}.`});
+
+  if (estanques.length === 0)
+    recs.push({pri:'rec-low',icon:'🏗',title:'Registrar primer estanque',msg:'Aún no hay estanques en el sistema. Comenzá registrando tus unidades de producción.'});
+
+  recs.push({pri:'rec-low',icon:'📋',title:'Mantener registros diarios',msg:'Registrá lecturas de calidad del agua todos los días para detectar tendencias a tiempo.'});
+
+  if (!recs.length)
+    recs.push({pri:'rec-low',icon:'✅',title:'Sistema en buen estado',msg:'No se detectan situaciones de riesgo basadas en los datos actuales.'});
+
+  wrap.innerHTML = recs.slice(0,5).map(r=>
+    `<div class="rec-card ${r.pri}">
+      <div class="rec-icon">${r.icon}</div>
+      <div><div class="rec-title">${r.title}</div><div class="rec-msg">${r.msg}</div></div>
+    </div>`
+  ).join('');
+}
+
+// ── MAPA DE ESTANQUES (datos reales) ────────────────────────
+
+async function loadMapa() {
+  const r = await http('GET', '/estanques/');
+  const grid = $('mapa-grid'); if (!grid) return;
+
+  if (!r.ok || !r.data.length) {
+    grid.innerHTML = '<div class="empty">Sin estanques registrados. Agregá el primero en la sección Estanques.</div>';
+    return;
+  }
+
+  const act = r.data.filter(e=>e.estado==='activo').length;
+  const ina = r.data.filter(e=>e.estado!=='activo').length;
+
+  // Para cada estanque activo, obtener la última lectura
+  const estanquesConDatos = await Promise.all(r.data.map(async e => {
+    const lr = await http('GET', `/lecturas/estanque/${e.id}?limite=1`);
+    const ultima = lr.ok && lr.data.length ? lr.data[0] : null;
+    return { ...e, ultima };
+  }));
+
+  // Contar los que tienen alertas
+  const conAlerta = estanquesConDatos.filter(e => e.ultima?.alerta).length;
+
+  $('map-act') && ($('map-act').textContent = act);
+  $('map-ina') && ($('map-ina').textContent = ina);
+  $('map-ale') && ($('map-ale').textContent = conAlerta);
+  $('map-tot') && ($('map-tot').textContent = r.data.length);
+
+  const etapaColors = {
+    incubacion:{bg:'var(--pur-l)',color:'var(--pur)',label:'🥚 Incubación'},
+    alevinaje: {bg:'var(--teal-l)',color:'var(--teal)',label:'🐟 Alevinaje'},
+    dedinos:   {bg:'var(--amb-l)',color:'var(--amb)',label:'🐠 Dedinos'},
+    engorde:   {bg:'var(--grn-l)',color:'var(--grn)',label:'🎣 Engorde'},
+  };
+
+  grid.innerHTML = estanquesConDatos.map(e => {
+    const ec = etapaColors[e.etapa] || {bg:'var(--bg)',color:'var(--muted)',label:'Sin etapa'};
+    const estadoClass = e.ultima?.alerta ? 't-cri' : e.estado==='activo' ? 't-opt' : 't-pre';
+    const ul = e.ultima;
+    return `
+    <div class="tank-card ${estadoClass}" title="${e.nombre}">
+      <div class="tank-status"></div>
+      <div class="tank-code">${e.codigo}</div>
+      <div class="tank-name">${e.nombre}</div>
+      <div class="tank-stage" style="background:${ec.bg};color:${ec.color};">${ec.label}</div>
+      <div class="tank-metric"><span class="tank-metric-label">Capacidad</span><span class="tank-metric-val">${e.capacidad_kg} kg</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">Estado</span><span class="tank-metric-val">${e.estado}</span></div>
+      ${ul ? `
+      <div class="tank-metric"><span class="tank-metric-label">Última T°</span><span class="tank-metric-val" style="color:${ul.temperatura<=18?'var(--grn)':'var(--red)'};">${ul.temperatura}°C</span></div>
+      <div class="tank-metric"><span class="tank-metric-label">O₂</span><span class="tank-metric-val" style="color:${ul.oxigeno>=7?'var(--grn)':'var(--red)'};">${ul.oxigeno} mg/L</span></div>
+      ` : '<div class="tank-metric"><span class="tank-metric-label" style="grid-column:1/-1;color:var(--muted);">Sin lecturas aún</span></div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── FINANZAS ────────────────────────────────────────────────
+
+function calcFinanzas() {
+  const alim  = parseFloat($('fc-alim')?.value) || 0;
+  const med   = parseFloat($('fc-med')?.value)  || 0;
+  const ener  = parseFloat($('fc-ener')?.value)  || 0;
+  const mano  = parseFloat($('fc-mano')?.value)  || 0;
+  const pventa= parseFloat($('fc-pventa')?.value) || 0;
+  const bio   = parseFloat($('fc-bio')?.value)    || 0;
+  const total  = alim+med+ener+mano;
+  const ing    = pventa*bio;
+  const rent   = ing-total;
+  const fmt    = n => fmtCOP(n);
+  $('fin-total') && ($('fin-total').textContent = fmt(total));
+  $('fin-alim')  && ($('fin-alim').textContent  = fmt(alim));
+  $('fin-med')   && ($('fin-med').textContent   = fmt(med));
+  $('fin-ener')  && ($('fin-ener').textContent  = fmt(ener));
+  $('fin-mano')  && ($('fin-mano').textContent  = fmt(mano));
+  $('fin-rent')  && ($('fin-rent').textContent  = fmt(rent));
+  const rb = $('fin-resultado');
+  if (rb && total > 0) {
+    rb.style.color = rent>=0?'var(--grn)':'var(--red)';
+    rb.textContent = rent>=0
+      ? `✓ Rentabilidad: ${fmt(rent)} (${((rent/total)*100).toFixed(1)}%) · Ingresos: ${fmt(ing)}`
+      : `✗ Pérdida: ${fmt(Math.abs(rent))} · Ingresos: ${fmt(ing)}`;
+    renderFinanzasCharts(alim,med,ener,mano,rent);
+  }
+}
+
+function renderFinanzasCharts(alim=0,med=0,ener=0,mano=0,rent=0) {
+  const ctx1 = $('chart-costos'), ctx2 = $('chart-rent');
+  if (!ctx1||!ctx2) return;
+  destroyChart('costos');
+  destroyChart('rent');
+  if (alim+med+ener+mano === 0) return;
+  STATE.charts['costos'] = new Chart(ctx1,{
+    type:'doughnut',
+    data:{labels:['🌿 Alimento','💊 Medicamentos','⚡ Energía','👥 Mano de obra'],
+      datasets:[{data:[alim,med,ener,mano],
+        backgroundColor:['rgba(22,163,74,.8)','rgba(220,38,38,.8)','rgba(217,119,6,.8)','rgba(43,127,212,.8)'],
+        borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:c=>`${c.label}: ${fmtCOP(c.parsed)}`}}}}
+  });
+  const total = alim+med+ener+mano;
+  const meses = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6'];
+  STATE.charts['rent'] = new Chart(ctx2,{
+    type:'line',
+    data:{labels:meses,datasets:[
+      {label:'Costo acumulado',data:meses.map((_,i)=>Math.round(total*(i+1)/6)),borderColor:'var(--red)',backgroundColor:'rgba(220,38,38,.08)',fill:true,tension:.4,pointRadius:4},
+      {label:'Ingreso proyectado',data:meses.map((_,i)=>i<5?0:Math.round(total+rent)),borderColor:'var(--grn)',backgroundColor:'rgba(22,163,74,.08)',fill:true,tension:.4,pointRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtCOP(c.parsed.y)}`}}},
+      scales:{y:{grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}
+  });
+}
+
+// ── INFORMES (datos reales) ─────────────────────────────────
+
+async function generarInforme() {
+  const el = $('informe-texto'); if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Generando informe desde la base de datos...</div>';
+
+  const [us, est, ins, per, al] = await Promise.all([
+    http('GET', '/usuarios/'),
+    http('GET', '/estanques/'),
+    http('GET', '/inventario/insumos'),
+    http('GET', '/personal/'),
+    http('GET', '/lecturas/alertas'),
+  ]);
+
+  const hoy      = new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+  const nUsr     = us.ok  ? us.data.length  : '—';
+  const nEst     = est.ok ? est.data.length : '—';
+  const nActivos = est.ok ? est.data.filter(e=>e.estado==='activo').length : '—';
+  const nIns     = ins.ok ? ins.data.length : '—';
+  const nBajoSt  = ins.ok ? ins.data.filter(i=>i.requiere_reabastecimiento).length : '—';
+  const nPer     = per.ok ? per.data.filter(p=>p.activo).length : '—';
+  const nAl      = al.ok  ? al.data.length  : '—';
+
+  const alertInfo = al.ok && al.data.length > 0 ? (() => {
+    const temps = al.data.map(l=>l.temperatura);
+    const phs   = al.data.map(l=>l.ph);
+    const o2s   = al.data.map(l=>l.oxigeno);
+    return `Temperatura promedio alertas: ${avg(temps).toFixed(1)}°C\nPH promedio alertas: ${avg(phs).toFixed(1)}\nOxígeno promedio alertas: ${avg(o2s).toFixed(1)} mg/L`;
+  })() : 'Sin lecturas con parámetros fuera de rango registradas.';
+
+  el.textContent = `INFORME TÉCNICO DE PRODUCCIÓN ACUÍCOLA
+Sistema AQUALITY — Generado el ${hoy}
+${'─'.repeat(52)}
+
+RESUMEN DEL SISTEMA
+Usuarios registrados: ${nUsr}
+Estanques totales: ${nEst} (${nActivos} activos)
+Insumos en inventario: ${nIns} (${nBajoSt} con stock bajo)
+Personal activo: ${nPer}
+Alertas hídricas activas: ${nAl}
+
+ANÁLISIS DE CALIDAD DEL AGUA
+${alertInfo}
+
+INVENTARIO
+${ins.ok && ins.data.length ? ins.data.map(i=>`• ${i.nombre}: ${i.stock_actual} ${i.unidad_medida} ${i.requiere_reabastecimiento?'⚠ STOCK BAJO':''}`).join('\n') : 'Sin insumos registrados.'}
+
+ESTANQUES
+${est.ok && est.data.length ? est.data.map(e=>`• ${e.codigo} – ${e.nombre} [${e.etapa||'sin etapa'}] ${e.estado}`).join('\n') : 'Sin estanques registrados.'}
+
+PERSONAL
+${per.ok && per.data.length ? per.data.filter(p=>p.activo).map(p=>`• ${p.nombre} – ${p.cargo} (${p.dias_laborados} días)`).join('\n') : 'Sin personal registrado.'}
+
+RECOMENDACIONES
+${nAl > 0 ? '⚠ Existen alertas hídricas activas. Revisar parámetros de calidad del agua urgentemente.' : '✓ No hay alertas hídricas activas.'}
+${nBajoSt > 0 ? `⚠ ${nBajoSt} insumo(s) necesitan reabastecimiento.` : '✓ Inventario en niveles adecuados.'}
+• Mantener monitoreo diario de parámetros fisicoquímicos.
+• Registrar observaciones en cada lectura para trazabilidad.
+
+${'─'.repeat(52)}
+Informe generado automáticamente por AQUALITY v1.0
+Sistema Integral de Gestión Acuícola`;
+}
+
+// ── EXPORT PDF ──────────────────────────────────────────────
+
+async function exportPDF() {
+  const btn = document.querySelector('.bex-pdf');
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+    const hoy = new Date().toLocaleDateString('es-CO');
+    const texto = $('informe-texto')?.textContent || 'Sin datos disponibles.';
+    doc.setFillColor(15,25,41); doc.rect(0,0,210,30,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(255,255,255);
+    doc.text('AQUALITY',14,13);
+    doc.setFontSize(10); doc.setTextColor(150,180,220);
+    doc.text('Sistema Integral de Gestión Acuícola',14,20);
+    doc.setFontSize(9); doc.setTextColor(120,150,180);
+    doc.text('Informe generado: '+hoy,14,27);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(55,65,81);
+    const lineas = doc.splitTextToSize(texto, 182);
+    let y = 42;
+    lineas.forEach(l => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text(l, 14, y); y += 5;
+    });
+    doc.save('AQUALITY_Informe_'+hoy.replace(/\//g,'-')+'.pdf');
+  } catch(e) { alert('Error PDF: '+e.message); }
+  if (btn) { btn.textContent = '📄 Descargar PDF'; btn.disabled = false; }
+}
+
+// ── EXPORT EXCEL ────────────────────────────────────────────
+
+async function exportExcel() {
+  const btn = document.querySelector('.bex-xls');
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+  try {
+    const [us,est,ins,per,al] = await Promise.all([
+      http('GET','/usuarios/'),http('GET','/estanques/'),
+      http('GET','/inventario/insumos'),http('GET','/personal/'),
+      http('GET','/lecturas/alertas'),
+    ]);
+    const wb = XLSX.utils.book_new();
+    const hoy = new Date().toLocaleDateString('es-CO');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['AQUALITY','','Exportado: '+hoy],[],
+      ['RESUMEN GENERAL','CANTIDAD'],
+      ['Usuarios',us.ok?us.data.length:'—'],
+      ['Estanques',est.ok?est.data.length:'—'],
+      ['Insumos',ins.ok?ins.data.length:'—'],
+      ['Personal activo',per.ok?per.data.filter(p=>p.activo).length:'—'],
+      ['Alertas activas',al.ok?al.data.length:'—'],
+    ]),'Resumen');
+    if (ins.ok) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['INVENTARIO'],
+      ['Nombre','Unidad','Stock actual','Stock mínimo','¿Reabastecer?'],
+      ...ins.data.map(i=>[i.nombre,i.unidad_medida,i.stock_actual,i.stock_minimo,i.requiere_reabastecimiento?'SÍ':'NO'])
+    ]),'Inventario');
+    if (est.ok) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['ESTANQUES'],
+      ['Código','Nombre','Etapa','Capacidad kg','Volumen m³','Estado'],
+      ...est.data.map(e=>[e.codigo,e.nombre,e.etapa||'—',e.capacidad_kg,e.volumen_m3||'—',e.estado])
+    ]),'Estanques');
+    if (al.ok && al.data.length) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+      ['ALERTAS HÍDRICAS'],
+      ['Estanque ID','Temperatura °C','pH','Oxígeno mg/L','Observación','Fecha'],
+      ...al.data.map(l=>[l.estanque_id,l.temperatura,l.ph,l.oxigeno,l.observacion||'—',fmtDate(l.registrado_en)])
+    ]),'Alertas');
+    XLSX.writeFile(wb,'AQUALITY_'+hoy.replace(/\//g,'-')+'.xlsx');
+  } catch(e) { alert('Error Excel: '+e.message); }
+  if (btn) { btn.textContent = '📊 Descargar Excel'; btn.disabled = false; }
+}
+
+// ── RESPONSIVE ──────────────────────────────────────────────
+
+function checkResponsive() {
+  const btn = $('menu-toggle');
+  if (btn) btn.style.display = window.innerWidth <= 900 ? 'block' : 'none';
+}
+window.addEventListener('resize', checkResponsive);
+checkResponsive();
+
+document.querySelector('.sb')?.addEventListener('click', e => {
+  if (window.innerWidth <= 900)
+    document.querySelector('.sb')?.classList.remove('open');
+});
+
+</script>
+</body>
+<script>
+      
+        const API_URL = 'postgresql://aquality_user:2uBem5HHOI3VjzBNuMfVyMv6Dv26iKg7@dpg-d827hcu7r5hc73e7r4sg-a.oregon-postgres.render.com/aquality';
+
+        // 2. PRUEBA DE CONEXIÓN (Opcional para verificar)
+        console.log("Conectando a la API en:", API_URL);
+    </script>
+</body>
+</html>

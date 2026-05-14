@@ -1,12 +1,15 @@
 """
-app/controllers/usuarios_controller.py
+app/routers/usuarios.py
 Endpoints REST para el módulo de usuarios (registro, login, CRUD).
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
-from app.models.database import get_db
-from app.models.usuario import RolUsuario
+
+# --- NUEVOS IMPORTS CORREGIDOS ---
+from app.domain.usuario import Usuario, RolUsuario  # Antes en app.models
+from app.core.database import get_db                # Antes en app.models.database
 from app.services.usuario_service import UsuarioService
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
@@ -30,21 +33,23 @@ class UsuarioRolActualizar(BaseModel):
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
-@router.post("/", status_code=status.HTTP_201_CREATED)
-def registrar_usuario(datos: UsuarioCrear, db: Session = Depends(get_db)):
-    """Registra un nuevo usuario en el sistema."""
-    svc = UsuarioService(db)
-    try:
-        usuario = svc.registrar(
-            nombre=datos.nombre,
-            email=datos.email,
-            password=datos.password,
-            rol=datos.rol,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    return {"mensaje": "Usuario registrado correctamente.", "usuario": usuario.to_dict()}
+@router.post("/")  # Quitamos "/usuarios" porque ya está en el prefix del router
+def registrar_usuario(
+    datos: UsuarioCrear,
+    db: Session = Depends(get_db)
+):
+    nuevo_usuario = Usuario(
+        nombre=datos.nombre,
+        email=datos.email,
+        password=datos.password,
+        rol=datos.rol
+    )
 
+    db.add(nuevo_usuario)
+    db.commit()
+    db.refresh(nuevo_usuario)
+
+    return nuevo_usuario
 
 @router.post("/login")
 def login(datos: UsuarioLogin, db: Session = Depends(get_db)):
