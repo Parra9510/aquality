@@ -4,21 +4,17 @@ Lógica de negocio para gestión de inventario de insumos.
 """
 from __future__ import annotations
 from sqlalchemy.orm import Session
-from app.domain.inventario import Insumo, Movimiento
+from app.domain.inventario import Insumo, Movimiento, TipoMovimiento
 
 
 class InventarioService:
-    """Servicio de dominio para CRUD de insumos y movimientos de stock."""
 
     def __init__(self, db: Session) -> None:
         self._db = db
 
-    # ── Insumos ──────────────────────────────────────────────────────────────
     def crear_insumo(self, nombre: str, unidad_medida: str = "kg",
                      stock_minimo: float = 10.0, descripcion: str = None) -> Insumo:
-        """CRUD – CREATE insumo."""
-        existente = self._db.query(Insumo).filter(Insumo.nombre == nombre).first()
-        if existente:
+        if self._db.query(Insumo).filter(Insumo.nombre == nombre).first():
             raise ValueError(f"Ya existe un insumo con el nombre '{nombre}'.")
         insumo = Insumo(nombre=nombre, unidad_medida=unidad_medida,
                         stock_minimo=stock_minimo, descripcion=descripcion)
@@ -28,27 +24,23 @@ class InventarioService:
         return insumo
 
     def listar_insumos(self) -> list[Insumo]:
-        """CRUD – READ todos los insumos."""
         return self._db.query(Insumo).order_by(Insumo.nombre).all()
 
     def obtener_insumo(self, insumo_id: int) -> Insumo | None:
         return self._db.get(Insumo, insumo_id)
 
     def actualizar_insumo(self, insumo_id: int, **kwargs) -> Insumo:
-        """CRUD – UPDATE campos del insumo."""
         insumo = self._db.get(Insumo, insumo_id)
         if not insumo:
             raise ValueError(f"Insumo id={insumo_id} no encontrado.")
-        campos_permitidos = {"nombre", "unidad_medida", "stock_minimo", "descripcion"}
-        for campo, valor in kwargs.items():
-            if campo in campos_permitidos:
-                setattr(insumo, campo, valor)
+        for campo in ("nombre", "unidad_medida", "stock_minimo", "descripcion"):
+            if campo in kwargs:
+                setattr(insumo, campo, kwargs[campo])
         self._db.commit()
         self._db.refresh(insumo)
         return insumo
 
     def eliminar_insumo(self, insumo_id: int) -> bool:
-        """CRUD – DELETE insumo (solo si stock = 0)."""
         insumo = self._db.get(Insumo, insumo_id)
         if not insumo:
             return False
@@ -58,30 +50,29 @@ class InventarioService:
         self._db.commit()
         return True
 
-    # ── Movimientos de stock ─────────────────────────────────────────────────
     def registrar_movimiento(self, insumo_id: int, usuario_id: int,
                               tipo: str, cantidad: float,
-                              motivo: str = None) -> MovimientoStock:
-        """Registra entrada, salida o ajuste de stock y actualiza el saldo."""
+                              motivo: str = None) -> Movimiento:
         insumo = self._db.get(Insumo, insumo_id)
         if not insumo:
             raise ValueError(f"Insumo id={insumo_id} no encontrado.")
+        if cantidad <= 0:
+            raise ValueError("La cantidad debe ser positiva.")
 
-        mov = MovimientoStock(insumo_id=insumo_id, usuario_id=usuario_id,
-                              tipo=tipo, cantidad=cantidad, motivo=motivo)
+        mov = Movimiento(insumo_id=insumo_id, usuario_id=usuario_id,
+                         tipo=tipo, cantidad=cantidad, motivo=motivo)
 
-        # Actualizar stock según tipo
-        if tipo == TipoMovimiento.ENTRADA:
+        if tipo == TipoMovimiento.ENTRADA or tipo == "entrada":
             insumo.stock_actual += cantidad
-        elif tipo == TipoMovimiento.SALIDA:
+        elif tipo == TipoMovimiento.SALIDA or tipo == "salida":
             if insumo.stock_actual < cantidad:
                 raise ValueError(
                     f"Stock insuficiente: disponible={insumo.stock_actual}, "
                     f"solicitado={cantidad}."
                 )
             insumo.stock_actual -= cantidad
-        elif tipo == TipoMovimiento.AJUSTE:
-            insumo.stock_actual = cantidad  # ajuste manual al valor exacto
+        elif tipo == TipoMovimiento.AJUSTE or tipo == "ajuste":
+            insumo.stock_actual = cantidad
 
         self._db.add(mov)
         self._db.commit()
@@ -89,5 +80,4 @@ class InventarioService:
         return mov
 
     def insumos_bajo_stock(self) -> list[Insumo]:
-        """Retorna insumos que requieren reabastecimiento."""
-        return [i for i in self.listar_insumos() if i.requiere_reabastecimiento]
+        return [i for i in self.listar_insumos() if i.stock_actual <= i.stock_minimo]

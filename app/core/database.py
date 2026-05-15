@@ -1,36 +1,36 @@
 """
 app/core/database.py
-Configuración de SQLAlchemy.
-Soporta PostgreSQL (producción) y SQLite (desarrollo local).
+Configuración de SQLAlchemy para PostgreSQL.
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from app.core.config import settings
 
-# Usamos settings.DATABASE_URL para obtener la ruta
 db_url = settings.DATABASE_URL
+_connect_args = {"check_same_thread": False} if db_url and db_url.startswith("sqlite") else {}
 
-# SQLite necesita check_same_thread=False; PostgreSQL no lo acepta
-_connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
-
-engine = create_engine(db_url, connect_args=_connect_args)
+engine = create_engine(
+    db_url,
+    connect_args=_connect_args,
+    pool_pre_ping=True,   # detecta conexiones caídas antes de usarlas
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 class Base(DeclarativeBase):
-    """Clase base para todos los modelos ORM."""
     pass
 
+
 def get_db():
-    """Generador de sesión para inyección de dependencias en FastAPI."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+
 def init_db() -> None:
     """Crea todas las tablas si no existen."""
-    # IMPORTANTE: Ahora los modelos se importan desde app.domain
-    from app.domain import usuario, lectura, inventario, personal  # noqa: F401
+    from app.domain import usuario, lectura, inventario, personal, estanque  # noqa: F401
     Base.metadata.create_all(bind=engine)
