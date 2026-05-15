@@ -10,8 +10,13 @@ from app.core.config import settings
 # Usamos settings.DATABASE_URL para obtener la ruta
 db_url = settings.DATABASE_URL
 
-# SQLite necesita check_same_thread=False; PostgreSQL no lo acepta
-_connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+# SQLite necesita check_same_thread=False; PostgreSQL en nube suele requerir SSL.
+if db_url.startswith("sqlite"):
+    _connect_args = {"check_same_thread": False}
+elif db_url.startswith("postgresql"):
+    _connect_args = {"sslmode": "require"}
+else:
+    _connect_args = {}
 
 engine = create_engine(db_url, connect_args=_connect_args)
 
@@ -31,6 +36,6 @@ def get_db():
 
 def init_db() -> None:
     """Crea todas las tablas si no existen."""
-    # IMPORTANTE: Ahora los modelos se importan desde app.domain
-    from app.domain import usuario, lectura, inventario, personal  # noqa: F401
+    # Importar todos los modelos registra sus tablas y relaciones en metadata.
+    from app.domain import usuario, estanque, lectura, inventario, personal  # noqa: F401
     Base.metadata.create_all(bind=engine)
