@@ -843,10 +843,10 @@ tbody tr:hover td{background:var(--bg);}
 
 // ── CONFIG ──────────────────────────────────────────────────
 const CFG = {
-  // Cambiá esta URL cuando despliegues en Render
+  // En local usa Uvicorn; desplegado usa el mismo dominio de Vercel.
   API: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
     ? 'http://127.0.0.1:8000'
-    : 'https://TU-APP.onrender.com', // ← reemplazar con tu URL real
+    : '',
 };
 
 // Estado global de la app
@@ -1732,13 +1732,5 @@ document.querySelector('.sb')?.addEventListener('click', e => {
 });
 
 </script>
-</body>
-<script>
-      
-        const API_URL = 'postgresql://aquality_user:2uBem5HHOI3VjzBNuMfVyMv6Dv26iKg7@dpg-d827hcu7r5hc73e7r4sg-a.oregon-postgres.render.com/aquality';
-
-        // 2. PRUEBA DE CONEXIÓN (Opcional para verificar)
-        console.log("Conectando a la API en:", API_URL);
-    </script>
 </body>
 </html>
