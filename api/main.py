@@ -13,9 +13,8 @@ from app.routers.inventario import router as inventario_router
 from app.routers.personal   import router as personal_router
 from app.routers.estanques  import router as estanques_router
 from app.routers.fincas     import router as fincas_router
+from app.routers.biomasa    import router as biomasa_router   # ← NUEVO
 
-# Ruta absoluta a la raíz del proyecto (carpeta "aquality/")
-# api/main.py → api/ → aquality/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 app = FastAPI(title=settings.APP_TITLE, version=settings.APP_VERSION)
@@ -34,13 +33,13 @@ def startup_event():
     except Exception as e:
         print(f"[AQUALITY] Warning DB: {e}")
 
-# Routers de la API
 app.include_router(usuarios_router)
 app.include_router(lecturas_router)
 app.include_router(inventario_router)
 app.include_router(personal_router)
 app.include_router(estanques_router)
 app.include_router(fincas_router)
+app.include_router(biomasa_router)   # ← NUEVO
 
 @app.get("/status", tags=["Root"])
 def status():
@@ -50,7 +49,6 @@ def status():
 def health():
     return {"ok": True}
 
-# Servir el dashboard HTML usando ruta absoluta
 @app.get("/", include_in_schema=False)
 async def read_index():
     html_path = os.path.join(BASE_DIR, "dashboard.html")
@@ -58,6 +56,5 @@ async def read_index():
         return FileResponse(html_path)
     return HTMLResponse("<h1>AQUALITY API</h1><p>Docs: <a href='/docs'>/docs</a></p>")
 
-# Archivos estáticos usando ruta absoluta
 if os.path.isdir(BASE_DIR):
     app.mount("/", StaticFiles(directory=BASE_DIR), name="static")

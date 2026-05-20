@@ -32,6 +32,6 @@ def get_db():
 
 def init_db() -> None:
     """Crea todas las tablas si no existen."""
-    # Importar en orden: Finca primero (tabla padre de todo)
     from app.domain import finca, usuario, lectura, inventario, personal, estanque  # noqa: F401
+    from app.domain import biomasa  # noqa: F401  ← tablas siembras y alimentacion
     Base.metadata.create_all(bind=engine)

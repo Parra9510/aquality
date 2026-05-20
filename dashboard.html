@@ -602,7 +602,7 @@ tbody tr:hover td{background:var(--bg);}
 <!-- BIOMASA (local — aún sin API) -->
 <div class="pg" id="pg-biomasa">
  <div class="ph"><div><div class="pt">Biomasa e Inventario Biológico</div><div class="ps">Siembra, muestreos y mortalidad</div></div></div>
- <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los datos de biomasa se guardarán localmente hasta que se conecte el endpoint correspondiente en la API.</div>
+
  <div class="g2">
   <div class="cd">
    <div class="ct">Registrar siembra</div>
@@ -615,7 +615,7 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Etapa</label><select id="bi-et"><option value="incubacion">Incubación</option><option value="alevinaje">Alevinaje</option><option value="dedinos">Dedinos</option><option value="engorde">Engorde</option></select></div>
    </div>
    <div class="fb" id="bi-calc">Biomasa inicial = cant × peso = — kg</div>
-   <div class="bg"><button class="btn bp" onclick="guardarBioLocal()">Registrar siembra</button></div>
+   <div class="bg"><button class="btn bp" onclick="guardarBioAPI()">Registrar siembra</button></div>
    <div class="msg mok" id="bi-ok">✓ Siembra guardada localmente.</div>
    <div class="msg mer" id="bi-er"></div>
   </div>
@@ -629,7 +629,7 @@ tbody tr:hover td{background:var(--bg);}
 <!-- ALIMENTACIÓN (local) -->
 <div class="pg" id="pg-alim">
  <div class="ph"><div><div class="pt">Alimentación y Nutrición</div><div class="ps">Control de raciones y FCR</div></div></div>
- <div class="demo-banner">⚠️ <strong>Módulo en desarrollo:</strong> los registros de alimentación se guardan localmente por ahora.</div>
+
  <div class="g2">
   <div class="cd">
    <div class="ct">Registrar ración diaria</div>
@@ -644,7 +644,7 @@ tbody tr:hover td{background:var(--bg);}
     <div class="ff"><label>Ganancia de peso (kg)</label><input type="number" id="al-gp" placeholder="100" oninput="calcFCR()"></div>
    </div>
    <div class="fb" id="fcr-box">FCR = alimento acumulado ÷ ganancia de peso = —</div>
-   <div class="bg"><button class="btn bp" onclick="guardarAlimLocal()">Registrar alimentación</button></div>
+   <div class="bg"><button class="btn bp" onclick="guardarAlimAPI()">Registrar alimentación</button></div>
    <div class="msg mok" id="al-ok">✓ Ración registrada localmente.</div>
    <div class="msg mer" id="al-er"></div>
   </div>
@@ -1052,8 +1052,8 @@ function goTo(pg, el) {
     mapa:      loadMapa,
     finanzas:  () => { calcFinanzas(); setTimeout(renderFinanzasCharts, 80); },
     informes:  generarInforme,
-    biomasa:   renderBioLocal,
-    alim:      () => { renderAlimLocal(); setTimeout(renderFCRChart, 80); },
+    biomasa:   renderBioAPI,
+    alim:      () => { renderAlimAPI(); setTimeout(renderFCRChart, 80); },
   };
   if (loaders[pg]) setTimeout(loaders[pg], 50);
 }
@@ -1374,40 +1374,55 @@ async function loadUsr() {
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── BIOMASA (localStorage) ──────────────────────────────────
+// ── BIOMASA (API) ────────────────────────────────────────────
 
 function calcBio() {
   const c=parseFloat($('bi-c')?.value)||0, p=parseFloat($('bi-p')?.value)||0;
   if (c&&p) $('bi-calc').textContent = `Biomasa inicial = ${c} × ${p}g = ${(c*p/1000).toFixed(2)} kg`;
 }
 
-function guardarBioLocal() {
-  const entry = {
-    estanque: $('bi-e').value, fecha: $('bi-f').value,
-    cantidad: $('bi-c').value, pesoInicial: $('bi-p').value,
-    proveedor: $('bi-pr').value, etapa: $('bi-et').value,
-    biomasa: ((parseFloat($('bi-c').value)||0)*(parseFloat($('bi-p').value)||0)/1000).toFixed(2),
-    ts: Date.now()
+async function guardarBioAPI() {
+  const estanque_id = parseInt($('bi-e').value);
+  const cantidad    = parseInt($('bi-c').value);
+  const peso        = parseFloat($('bi-p').value);
+  if (!estanque_id || !cantidad || !peso || !$('bi-f').value) {
+    showMsg('bi-ok','bi-er',false,'Completá todos los campos obligatorios.');
+    return;
+  }
+  const body = {
+    estanque_id,
+    fecha:          $('bi-f').value,
+    cantidad,
+    peso_inicial_g: peso,
+    proveedor:      $('bi-pr').value || null,
+    etapa:          $('bi-et').value,
   };
-  STATE.localBio.push(entry);
-  localStorage.setItem('aq_bio', JSON.stringify(STATE.localBio));
-  showMsg('bi-ok','bi-er',true);
-  renderBioLocal();
+  const r = await http('POST', '/biomasa/siembras', body);
+  if (r.ok) {
+    showMsg('bi-ok','bi-er',true);
+    await renderBioAPI();
+  } else {
+    showMsg('bi-ok','bi-er',false, r.data?.detail || 'Error al guardar.');
+  }
 }
 
-function renderBioLocal() {
+async function renderBioAPI() {
   const el = $('t-bio');
-  if (!STATE.localBio.length) { el.innerHTML = '<div class="empty">Sin siembras registradas.</div>'; return; }
+  const r  = await http('GET', '/biomasa/siembras');
+  if (!r.ok || !r.data.length) {
+    el.innerHTML = '<div class="empty">Sin siembras registradas.</div>';
+    return;
+  }
   el.innerHTML = `<table><thead><tr><th>Estanque</th><th>Fecha</th><th>Cantidad</th><th>Peso inicial</th><th>Biomasa</th><th>Proveedor</th></tr></thead>
-  <tbody>${STATE.localBio.slice().reverse().map(b=>`<tr>
-    <td class="mono">#${b.estanque}</td><td>${b.fecha}</td>
-    <td class="mono">${b.cantidad} peces</td><td class="mono">${b.pesoInicial}g</td>
-    <td class="mono" style="font-weight:600;">${b.biomasa} kg</td>
+  <tbody>${r.data.map(b=>`<tr>
+    <td class="mono">#${b.estanque_id}</td><td>${b.fecha}</td>
+    <td class="mono">${b.cantidad} peces</td><td class="mono">${b.peso_inicial_g}g</td>
+    <td class="mono" style="font-weight:600;">${b.biomasa_kg} kg</td>
     <td style="color:var(--muted);">${b.proveedor||'—'}</td>
   </tr>`).join('')}</tbody></table>`;
 }
 
-// ── ALIMENTACIÓN (localStorage + FCR chart) ─────────────────
+// ── ALIMENTACIÓN (API + FCR chart) ──────────────────────────
 
 function calcFCR() {
   const ac=parseFloat($('al-ac')?.value)||0, gp=parseFloat($('al-gp')?.value)||0;
@@ -1421,24 +1436,39 @@ function calcFCR() {
   } else { fb.textContent = 'FCR = alimento acumulado ÷ ganancia de peso = —'; fb.style.color=''; }
 }
 
-function guardarAlimLocal() {
-  const entry = {
-    estanque: $('al-e').value, fecha: $('al-f').value,
-    tipo: $('al-ti').value, cantidad: $('al-c').value,
-    acum: $('al-ac').value, ganancia: $('al-gp').value,
-    fcr: $('al-ac').value && $('al-gp').value ? ($('al-ac').value/$('al-gp').value).toFixed(2) : '—',
-    ts: Date.now()
+async function guardarAlimAPI() {
+  const estanque_id = parseInt($('al-e').value);
+  const cantidad_kg = parseFloat($('al-c').value);
+  if (!estanque_id || !cantidad_kg || !$('al-f').value) {
+    showMsg('al-ok','al-er',false,'Completá los campos obligatorios.');
+    return;
+  }
+  const body = {
+    estanque_id,
+    fecha:            $('al-f').value,
+    tipo_alimento:    $('al-ti').value,
+    cantidad_kg,
+    alimento_acum_kg: parseFloat($('al-ac').value) || null,
+    ganancia_peso_kg: parseFloat($('al-gp').value) || null,
   };
-  STATE.localAlim.push(entry);
-  localStorage.setItem('aq_alim', JSON.stringify(STATE.localAlim));
-  showMsg('al-ok','al-er',true);
-  renderAlimLocal();
-  renderFCRChart();
+  const r = await http('POST', '/biomasa/alimentacion', body);
+  if (r.ok) {
+    showMsg('al-ok','al-er',true);
+    await renderAlimAPI();
+  } else {
+    showMsg('al-ok','al-er',false, r.data?.detail || 'Error al guardar.');
+  }
 }
 
-function renderAlimLocal() {
-  // Solo actualiza el chart si hay datos
-  if (STATE.localAlim.length) renderFCRChart();
+async function renderAlimAPI() {
+  const r = await http('GET', '/biomasa/alimentacion');
+  if (r.ok && r.data.length) {
+    STATE.localAlim = r.data.map(a => ({
+      fecha: a.fecha,
+      fcr:   a.fcr !== null ? String(a.fcr) : '—',
+    }));
+    renderFCRChart();
+  }
 }
 
 function renderFCRChart() {
