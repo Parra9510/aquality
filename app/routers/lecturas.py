@@ -14,6 +14,7 @@ from app.domain.lectura  import Lectura
 from app.domain.estanque import Estanque
 from app.domain.usuario  import Usuario
 from app.services.lectura_service import LecturaService
+from app.services.clima_service import ClimaService, ClimaAPIError
 
 router = APIRouter(prefix="/lecturas", tags=["Lecturas"])
 
@@ -40,6 +41,23 @@ def _verificar_estanque(db: Session, estanque_id: int, user: Usuario) -> Estanqu
 
 
 # ─── Endpoints ──────────────────────────────────────────────────────────────
+
+@router.get("/clima/actual", summary="Clima actual de la piscifactoría")
+def clima_actual(
+    current_user: Usuario = Depends(get_current_active_user),
+):
+    """
+    Devuelve temperatura ambiente, humedad, precipitación, viento
+    y temperatura estimada del agua desde Open-Meteo.
+    """
+    svc = ClimaService()
+    try:
+        datos = svc.obtener_clima_actual()
+        datos["temperatura_agua_estimada_c"] = svc.estimar_temperatura_agua()
+        return datos
+    except ClimaAPIError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
 
 @router.post("/", summary="Registrar lectura en un estanque de mi finca")
 def registrar_lectura(
