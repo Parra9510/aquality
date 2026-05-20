@@ -1,17 +1,15 @@
 """
 app/core/security.py
 JWT, hashing de contraseñas y dependencias de autenticación con soporte multi-tenant.
-
-SUPERADMIN: vm.parra10@ciaf.edu.co — accede a todo, no está restringido a ninguna finca.
 """
 from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Optional
 
+from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -20,10 +18,11 @@ from app.domain.usuario import Usuario, RolUsuario
 
 SUPERADMIN_EMAIL = "vm.parra10@ciaf.edu.co"
 
-pwd_context    = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme  = OAuth2PasswordBearer(tokenUrl="/usuarios/login")
-
 ALGORITHM      = "HS256"
+
+# Contexto de hashing — bcrypt gestionado por passlib (compatible con Vercel)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 # ─── Contraseñas ────────────────────────────────────────────────────────────
@@ -33,7 +32,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    try:
+        return pwd_context.verify(plain, hashed)
+    except Exception:
+        return False
 
 
 # ─── JWT ────────────────────────────────────────────────────────────────────
@@ -83,7 +85,6 @@ def get_current_active_user(
 def require_admin(
     current_user: Usuario = Depends(get_current_active_user),
 ) -> Usuario:
-    """Solo ADMIN o SUPERADMIN pueden pasar."""
     if not current_user.es_admin:
         raise HTTPException(status_code=403, detail="Se requiere rol ADMIN o superior")
     return current_user
@@ -92,7 +93,6 @@ def require_admin(
 def require_superadmin(
     current_user: Usuario = Depends(get_current_active_user),
 ) -> Usuario:
-    """Solo el SUPERADMIN puede pasar."""
     if not current_user.es_superadmin:
         raise HTTPException(status_code=403, detail="Acceso exclusivo para SUPERADMIN")
     return current_user
@@ -101,13 +101,8 @@ def require_superadmin(
 # ─── Helpers de aislamiento ─────────────────────────────────────────────────
 
 def get_finca_id_or_raise(user: Usuario) -> int:
-    """
-    Devuelve el finca_id del usuario.
-    Si el usuario es SUPERADMIN y no tiene finca, lanza error descriptivo
-    (el SUPERADMIN debe pasar finca_id explícitamente en los endpoints que lo requieran).
-    """
     if user.es_superadmin:
-        return None  # SUPERADMIN no tiene restricción de finca
+        return None
     if user.finca_id is None:
         raise HTTPException(
             status_code=400,
@@ -117,10 +112,6 @@ def get_finca_id_or_raise(user: Usuario) -> int:
 
 
 def assert_same_finca(user: Usuario, finca_id: int) -> None:
-    """
-    Verifica que el recurso pertenece a la finca del usuario.
-    SUPERADMIN siempre pasa.
-    """
     if user.es_superadmin:
         return
     if user.finca_id != finca_id:
