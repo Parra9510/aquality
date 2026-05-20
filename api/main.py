@@ -12,6 +12,7 @@ from app.routers.lecturas   import router as lecturas_router
 from app.routers.inventario import router as inventario_router
 from app.routers.personal   import router as personal_router
 from app.routers.estanques  import router as estanques_router
+from app.routers.fincas     import router as fincas_router
 
 # Ruta absoluta a la raíz del proyecto (carpeta "aquality/")
 # api/main.py → api/ → aquality/
@@ -39,6 +40,7 @@ app.include_router(lecturas_router)
 app.include_router(inventario_router)
 app.include_router(personal_router)
 app.include_router(estanques_router)
+app.include_router(fincas_router)
 
 @app.get("/status", tags=["Root"])
 def status():

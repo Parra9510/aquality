@@ -399,7 +399,7 @@ tbody tr:hover td{background:var(--bg);}
    <div class="welcome-logo">
     <div style="font-size:36px;">👤</div>
     <div class="welcome-logo-title">Crear cuenta</div>
-    <div class="welcome-logo-sub">Registrá el primer usuario administrador</div>
+    <div class="welcome-logo-sub">Creá tu cuenta — el superadmin asignará el rol</div>
    </div>
    <div class="wf"><label>Nombre completo</label>
     <input id="rn" placeholder="Juan García">
@@ -410,13 +410,10 @@ tbody tr:hover td{background:var(--bg);}
    <div class="wf"><label>Contraseña (mín. 8 caracteres)</label>
     <input type="password" id="rp" placeholder="••••••••">
    </div>
-   <div class="wf"><label>Rol</label>
-    <select id="rr">
-     <option value="administrador">Administrador — Acceso total</option>
-     <option value="supervisor">Supervisor — Lectura y escritura</option>
-     <option value="operario">Operario — Solo registro</option>
-    </select>
+   <div class="wf"><label>Nombre de tu finca (opcional)</label>
+    <input id="rf" placeholder="Ej: Piscícola Los Pinos">
    </div>
+   <!-- El rol es asignado por el superadmin. El registro público siempre crea un ADMIN de su propia finca. -->
    <button class="wbtn" onclick="doRegister()">Registrar y entrar</button>
    <button class="wbtn secondary" onclick="switchTab('login')">← Ya tengo cuenta</button>
    <div class="werr" id="rerr"></div>
@@ -473,6 +470,29 @@ tbody tr:hover td{background:var(--bg);}
  <div class="ph">
   <div><div class="pt">Dashboard</div><div class="ps" id="dash-sub">Resumen operativo</div></div>
   <button class="btn bg_ bsm" onclick="loadDash()">↻ Actualizar</button>
+ </div>
+ <!-- ── Tarjeta Mi Finca ── -->
+ <div class="cd" id="card-finca" style="margin-bottom:16px;display:none;">
+  <div class="ct" style="display:flex;justify-content:space-between;align-items:center;">
+   <span>🏡 Mi Finca</span>
+   <button class="btn bg_ bsm" onclick="toggleEditFinca()">✏️ Editar</button>
+  </div>
+  <div id="finca-view">
+   <div style="font-size:18px;font-weight:700;color:var(--pri);margin:8px 0 4px;" id="finca-nombre-display">—</div>
+   <div style="font-size:13px;color:var(--muted);" id="finca-desc-display">Sin descripción</div>
+  </div>
+  <div id="finca-edit" style="display:none;margin-top:10px;">
+   <div class="fg">
+    <div class="ff"><label>Nombre de la finca</label><input id="finca-edit-nombre" placeholder="Nombre de la finca"></div>
+    <div class="ff"><label>Descripción (opcional)</label><input id="finca-edit-desc" placeholder="Descripción breve"></div>
+   </div>
+   <div class="bg" style="margin-top:8px;">
+    <button class="btn bp bsm" onclick="guardarFinca()">Guardar cambios</button>
+    <button class="btn bg_ bsm" onclick="toggleEditFinca()">Cancelar</button>
+   </div>
+   <div class="msg mok" id="finca-ok" style="display:none;">✓ Finca actualizada.</div>
+   <div class="msg mer" id="finca-er" style="display:none;"></div>
+  </div>
  </div>
  <div class="ab" id="abanner"><strong>⚠ Parámetros fuera de rango</strong><p id="abanner-txt"></p></div>
  <div class="sg">
@@ -852,6 +872,8 @@ const CFG = {
 // Estado global de la app
 const STATE = {
   user: null,
+  token: null,
+  finca: null,
   charts: {},
   localBio: JSON.parse(localStorage.getItem('aq_bio') || '[]'),
   localAlim: JSON.parse(localStorage.getItem('aq_alim') || '[]'),
@@ -865,7 +887,10 @@ const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
 
 async function http(method, path, body) {
   try {
-    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const headers = {'Content-Type':'application/json'};
+    const token = STATE && STATE.token ? STATE.token : null;
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const opts = { method, headers };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(CFG.API + path, opts);
     const data = await res.json();
@@ -905,13 +930,22 @@ function switchTab(tab) {
 async function doLogin() {
   const em = $('lem').value.trim(), pw = $('lpw').value;
   if (!em || !pw) return;
-  const r = await http('POST', '/usuarios/login', {
-  email: em,
-  password: pw
-});
-  if (r.ok) {
-    enterApp(r.data.usuario);
-  } else {
+  // OAuth2 requiere form-data (no JSON)
+  const form = new URLSearchParams();
+  form.append('username', em);
+  form.append('password', pw);
+  try {
+    const res = await fetch(CFG.API + '/usuarios/login', { method: 'POST', body: form });
+    const data = await res.json();
+    if (res.ok) {
+      STATE.token = data.access_token;
+      // Cargar perfil completo (incluye finca)
+      const me = await http('GET', '/usuarios/me');
+      enterApp(me.ok ? me.data : data);
+    } else {
+      $('lerr').style.display = 'block';
+    }
+  } catch(e) {
     $('lerr').style.display = 'block';
   }
 }
@@ -920,7 +954,6 @@ async function doRegister() {
   const nombre = $('rn').value.trim();
   const email  = $('re').value.trim();
   const pw     = $('rp').value;
-  const rol    = $('rr').value;
   $('rerr').style.display = 'none';
   $('rok').style.display = 'none';
 
@@ -933,16 +966,24 @@ async function doRegister() {
     $('rerr').style.display = 'block'; return;
   }
 
-  const r = await http('POST', '/usuarios/', { nombre, email, password: pw, rol });
+  const nombre_finca = $('rf').value.trim() || null;
+  const r = await http('POST', '/usuarios/registro', { nombre, email, password: pw, nombre_finca });
   if (r.ok) {
     $('rok').style.display = 'block';
     // Hacer login automático
     setTimeout(async () => {
-      const login = await http('POST', '/usuarios/login', {
-  email,
-  password: pw
-});
-      if (login.ok) enterApp(login.data.usuario);
+      const form = new URLSearchParams();
+      form.append('username', email);
+      form.append('password', pw);
+      try {
+        const res = await fetch(CFG.API + '/usuarios/login', { method: 'POST', body: form });
+        const loginData = await res.json();
+        if (res.ok) {
+          STATE.token = loginData.access_token;
+          const me = await http('GET', '/usuarios/me');
+          enterApp(me.ok ? me.data : loginData);
+        }
+      } catch(e) {}
     }, 1200);
   } else {
     const msg = r.data.detail || JSON.stringify(r.data);
@@ -951,7 +992,7 @@ async function doRegister() {
   }
 }
 
-function enterApp(user) {
+async function enterApp(user) {
   STATE.user = user;
   $('screen-welcome').style.display = 'none';
   $('app').style.display = 'block';
@@ -959,11 +1000,34 @@ function enterApp(user) {
   $('uav').textContent = ini;
   $('unm').textContent = user.nombre;
   $('urol').textContent = user.rol;
+  // Cargar datos de finca si el usuario tiene una asignada
+  if (user.finca_id) {
+    const rf = await http('GET', '/usuarios/me');
+    if (rf.ok && rf.data.finca) {
+      STATE.finca = rf.data.finca;
+      updateFincaUI(rf.data.finca);
+    }
+  }
   loadDash();
+}
+
+function updateFincaUI(finca) {
+  // Actualizar subtítulo del dashboard con nombre de finca
+  const sub = $('dash-sub');
+  if (sub) sub.textContent = finca.nombre + ' — Resumen operativo';
+  // Mostrar y actualizar tarjeta de finca
+  const card = $('card-finca');
+  if (card) card.style.display = 'block';
+  const fnm = $('finca-nombre-display');
+  if (fnm) fnm.textContent = finca.nombre;
+  const fdesc = $('finca-desc-display');
+  if (fdesc) fdesc.textContent = finca.descripcion || 'Sin descripción';
 }
 
 function doLogout() {
   STATE.user = null;
+  STATE.token = null;
+  STATE.finca = null;
   $('app').style.display = 'none';
   $('screen-welcome').style.display = 'flex';
   switchTab('login');
@@ -1000,6 +1064,42 @@ function setEtapa(e, el) {
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────
+
+// ── FINCA ────────────────────────────────────────────────────
+
+function toggleEditFinca() {
+  const view = $('finca-view');
+  const edit = $('finca-edit');
+  const editing = edit.style.display !== 'none';
+  view.style.display = editing ? 'block' : 'none';
+  edit.style.display = editing ? 'none' : 'block';
+  if (!editing && STATE.finca) {
+    $('finca-edit-nombre').value = STATE.finca.nombre || '';
+    $('finca-edit-desc').value = STATE.finca.descripcion || '';
+  }
+  $('finca-ok').style.display = 'none';
+  $('finca-er').style.display = 'none';
+}
+
+async function guardarFinca() {
+  if (!STATE.finca) return;
+  const nombre = $('finca-edit-nombre').value.trim();
+  const descripcion = $('finca-edit-desc').value.trim();
+  if (!nombre) { $('finca-er').textContent = '✗ El nombre es obligatorio.'; $('finca-er').style.display = 'block'; return; }
+  const r = await http('PUT', '/fincas/' + STATE.finca.id, { nombre, descripcion });
+  if (r.ok) {
+    STATE.finca = r.data;
+    updateFincaUI(r.data);
+    $('finca-ok').style.display = 'block';
+    $('finca-er').style.display = 'none';
+    setTimeout(() => { $('finca-ok').style.display = 'none'; toggleEditFinca(); }, 1500);
+  } else {
+    const msg = r.data.detail || 'Error al guardar';
+    $('finca-er').textContent = '✗ ' + msg;
+    $('finca-er').style.display = 'block';
+    $('finca-ok').style.display = 'none';
+  }
+}
 
 async function loadDash() {
   const [us, ins, per, al, cl, est] = await Promise.all([
@@ -1255,7 +1355,7 @@ async function crearUsr() {
   const body = { nombre:$('us-n').value.trim(), email:$('us-e').value.trim(),
     password:$('us-p').value, rol:$('us-r').value };
   if (!body.nombre||!body.email||!body.password) { showMsg('us-ok','us-er',false,'Completá todos los campos.'); return; }
-  const r = await http('POST', '/usuarios/', body);
+  const r = await http('POST', '/usuarios/registro', body);
   showMsg('us-ok','us-er',r.ok, r.data.detail || JSON.stringify(r.data));
   if (r.ok) loadUsr();
 }

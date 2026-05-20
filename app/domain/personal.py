@@ -1,6 +1,6 @@
 """
 app/domain/personal.py
-Modelo ORM de Personal.
+Modelo ORM de Personal, aislado por finca.
 """
 from __future__ import annotations
 from datetime import datetime, date
@@ -13,16 +13,20 @@ class Personal(Base):
     __tablename__ = "personal"
 
     id            = Column(Integer, primary_key=True, index=True)
-    cedula        = Column(String(20), unique=True, nullable=False, index=True)
+    cedula        = Column(String(20), nullable=False, index=True)
     nombre        = Column(String(100), nullable=False)
     cargo         = Column(String(80), nullable=False, default="")
     telefono      = Column(String(20), nullable=True)
     fecha_ingreso = Column(Date, nullable=True)
     activo        = Column(Boolean, default=True)
     creado_en     = Column(DateTime, default=datetime.utcnow)
-    # FK opcional — no bloquea si no existe usuario
-    usuario_id    = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
 
+    # FK a Finca — OBLIGATORIA (aislamiento multi-tenant)
+    finca_id      = Column(Integer, ForeignKey("fincas.id"), nullable=False, index=True)
+    finca         = relationship("Finca", back_populates="personal")
+
+    # FK opcional al usuario responsable
+    usuario_id    = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
     usuario_responsable = relationship("Usuario", back_populates="personal_asignado")
 
     def desactivar(self) -> None:
@@ -44,4 +48,5 @@ class Personal(Base):
             "fecha_ingreso":  self.fecha_ingreso.isoformat() if self.fecha_ingreso else None,
             "activo":         self.activo,
             "dias_laborados": self.dias_laborados,
+            "finca_id":       self.finca_id,
         }

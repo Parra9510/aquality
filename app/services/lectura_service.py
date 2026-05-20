@@ -1,6 +1,7 @@
 """
 app/services/lectura_service.py
 Lógica de negocio para el módulo de monitoreo hídrico.
+El aislamiento por finca se hace en el router (verificando estanque.finca_id).
 """
 from __future__ import annotations
 from sqlalchemy.orm import Session
@@ -51,14 +52,13 @@ class LecturaService:
         self._db.commit()
         return True
 
-    def alertas_activas(self) -> list[Lectura]:
-        return (
-            self._db.query(Lectura)
-            .filter(Lectura.alerta.is_(True))
-            .order_by(Lectura.registrado_en.desc())
-            .limit(100)
-            .all()
-        )
+    def alertas_activas(self, finca_id: int = None) -> list[Lectura]:
+        q = self._db.query(Lectura).filter(Lectura.alerta.is_(True))
+        if finca_id is not None:
+            q = q.join(Estanque, Lectura.estanque_id == Estanque.id).filter(
+                Estanque.finca_id == finca_id
+            )
+        return q.order_by(Lectura.registrado_en.desc()).limit(100).all()
 
     def resumen_estanque(self, estanque_id: int) -> dict:
         lecturas = self.listar_por_estanque(estanque_id, limite=50)

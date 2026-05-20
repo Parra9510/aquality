@@ -1,59 +1,73 @@
+"""
+app/domain/inventario.py
+Modelos ORM de Inventario (Insumo + Movimiento), aislados por finca.
+"""
 from __future__ import annotations
 from datetime import datetime
-from enum import Enum
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+import enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
-# --- ESTO ES LO QUE FALTABA ---
-class TipoMovimiento(str, Enum):
+
+class TipoMovimiento(str, enum.Enum):
     ENTRADA = "entrada"
-    SALIDA = "salida"
-    AJUSTE = "ajuste"
+    SALIDA  = "salida"
+    AJUSTE  = "ajuste"
+
 
 class Insumo(Base):
     __tablename__ = "insumos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String(100), nullable=False, unique=True)
+    id            = Column(Integer, primary_key=True, index=True)
+    nombre        = Column(String(150), nullable=False, index=True)
+    descripcion   = Column(Text, nullable=True)
     unidad_medida = Column(String(20), default="kg")
-    stock_actual = Column(Float, default=0.0)
-    stock_minimo = Column(Float, default=10.0)
-    descripcion = Column(String(255), nullable=True)
+    stock_actual  = Column(Float, default=0.0)
+    stock_minimo  = Column(Float, default=10.0)
+    creado_en     = Column(DateTime, default=datetime.utcnow)
 
-    # Relación con movimientos
-    movimientos = relationship("Movimiento", back_populates="insumo", cascade="all, delete-orphan")
+    # FK a Finca — OBLIGATORIA
+    finca_id      = Column(Integer, ForeignKey("fincas.id"), nullable=False, index=True)
+    finca         = relationship("Finca", back_populates="insumos")
+
+    movimientos   = relationship("Movimiento", back_populates="insumo",
+                                  cascade="all, delete-orphan")
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "nombre": self.nombre,
+            "id":            self.id,
+            "nombre":        self.nombre,
+            "descripcion":   self.descripcion,
             "unidad_medida": self.unidad_medida,
-            "stock_actual": self.stock_actual,
-            "stock_minimo": self.stock_minimo,
-            "alerta_stock": self.stock_actual <= self.stock_minimo
+            "stock_actual":  self.stock_actual,
+            "stock_minimo":  self.stock_minimo,
+            "finca_id":      self.finca_id,
+            "bajo_stock":    self.stock_actual <= self.stock_minimo,
         }
 
+
 class Movimiento(Base):
-    __tablename__ = "movimientos_inventario"
+    __tablename__ = "movimientos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    insumo_id = Column(Integer, ForeignKey("insumos.id"), nullable=False)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    cantidad = Column(Float, nullable=False)
-    tipo = Column(String(20), default=TipoMovimiento.ENTRADA) 
-    motivo = Column(String(255), nullable=True)
-    fecha = Column(DateTime, default=datetime.utcnow)
+    id           = Column(Integer, primary_key=True, index=True)
+    insumo_id    = Column(Integer, ForeignKey("insumos.id"),   nullable=False, index=True)
+    usuario_id   = Column(Integer, ForeignKey("usuarios.id"),  nullable=False)
+    tipo         = Column(Enum(TipoMovimiento), nullable=False)
+    cantidad     = Column(Float, nullable=False)
+    motivo       = Column(String(300), nullable=True)
+    registrado_en = Column(DateTime, default=datetime.utcnow)
 
-    # Relaciones
-    insumo = relationship("Insumo", back_populates="movimientos")
+    insumo  = relationship("Insumo",  back_populates="movimientos")
     usuario = relationship("Usuario", back_populates="movimientos")
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "insumo_id": self.insumo_id,
-            "cantidad": self.cantidad,
-            "tipo": self.tipo,
-            "fecha": self.fecha.isoformat() if self.fecha else None
+            "id":            self.id,
+            "insumo_id":     self.insumo_id,
+            "usuario_id":    self.usuario_id,
+            "tipo":          self.tipo,
+            "cantidad":      self.cantidad,
+            "motivo":        self.motivo,
+            "registrado_en": self.registrado_en.isoformat() if self.registrado_en else None,
         }

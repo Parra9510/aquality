@@ -1,57 +1,63 @@
 """
 app/domain/usuario.py
-Modelo ORM de Usuario con roles y autenticación por hash SHA-256.
+Modelo ORM de Usuario con soporte multi-tenant (finca_id) y rol SUPERADMIN.
+
+Reglas:
+  - SUPERADMIN: vm.parra10@ciaf.edu.co — acceso total, sin restricción de finca.
+  - ADMIN: administrador de su propia finca.
+  - OPERADOR: usuario estándar de su finca.
+  - Un usuario sin finca_id solo puede existir si es SUPERADMIN.
 """
 from __future__ import annotations
-import hashlib
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+import enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
-class RolUsuario:
-    ADMINISTRADOR = "administrador"
-    SUPERVISOR    = "supervisor"
-    OPERARIO      = "operario"
-    TODOS         = [ADMINISTRADOR, SUPERVISOR, OPERARIO]
+SUPERADMIN_EMAIL = "vm.parra10@ciaf.edu.co"
+
+
+class RolUsuario(str, enum.Enum):
+    SUPERADMIN = "superadmin"
+    ADMIN      = "admin"
+    OPERADOR   = "operador"
+
 
 class Usuario(Base):
     __tablename__ = "usuarios"
 
-    # Definición de Columnas
-    id            = Column(Integer, primary_key=True, index=True)
-    nombre        = Column(String(100), nullable=False)
-    email         = Column(String(150), unique=True, nullable=False, index=True)
-    password_hash = Column(String(64), nullable=False)  # columna real en la BD
-    rol           = Column(String(20), nullable=False, default=RolUsuario.OPERARIO)
-    creado_en     = Column(DateTime, default=datetime.utcnow)
+    id          = Column(Integer, primary_key=True, index=True)
+    email       = Column(String(150), unique=True, nullable=False, index=True)
+    nombre      = Column(String(100), nullable=False)
+    hashed_pwd  = Column(String(256), nullable=False)
+    rol         = Column(Enum(RolUsuario), default=RolUsuario.OPERADOR, nullable=False)
+    activo      = Column(Boolean, default=True)
+    creado_en   = Column(DateTime, default=datetime.utcnow)
 
-    # --- RELACIONES SINCRONIZADAS ---
-    lecturas          = relationship("Lectura", back_populates="usuario")
-    movimientos       = relationship("Movimiento", back_populates="usuario")
-    personal_asignado = relationship("Personal", back_populates="usuario_responsable")
+    # FK a Finca — NULL solo para SUPERADMIN
+    finca_id    = Column(Integer, ForeignKey("fincas.id"), nullable=True, index=True)
+    finca       = relationship("Finca", back_populates="usuarios")
 
-    def __init__(self, nombre: str, email: str, password: str,
-                 rol: str = RolUsuario.OPERARIO) -> None:
-        self.nombre = nombre
-        self.email  = email
-        self.rol    = rol
-        self.password_hash = self._hash_password(password)
+    # Relaciones existentes
+    lecturas         = relationship("Lectura",   back_populates="usuario")
+    movimientos      = relationship("Movimiento", back_populates="usuario")
+    personal_asignado = relationship("Personal",  back_populates="usuario_responsable")
 
-    def _hash_password(self, password: str) -> str:
-        if len(password) < 6:
-            raise ValueError("La contraseña debe tener al menos 6 caracteres.")
-        return hashlib.sha256(password.encode()).hexdigest()
+    @property
+    def es_superadmin(self) -> bool:
+        return self.rol == RolUsuario.SUPERADMIN or self.email == SUPERADMIN_EMAIL
 
-    def verificar_password(self, password: str) -> bool:
-        """Compara una contraseña plana con el hash almacenado."""
-        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+    @property
+    def es_admin(self) -> bool:
+        return self.rol in (RolUsuario.ADMIN, RolUsuario.SUPERADMIN)
 
     def to_dict(self) -> dict:
         return {
-            "id":        self.id,
-            "nombre":    self.nombre,
-            "email":     self.email,
-            "rol":       self.rol,
-            "creado_en": self.creado_en.isoformat() if self.creado_en else None,
+            "id":       self.id,
+            "email":    self.email,
+            "nombre":   self.nombre,
+            "rol":      self.rol,
+            "activo":   self.activo,
+            "finca_id": self.finca_id,
         }
