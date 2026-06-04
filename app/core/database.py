@@ -13,6 +13,9 @@ engine = create_engine(
     db_url,
     connect_args=_connect_args,
     pool_pre_ping=True,   # detecta conexiones caídas antes de usarlas
+    pool_size=1,          # mínimo para funciones serverless
+    max_overflow=0,       # sin conexiones extra
+    pool_recycle=300,     # recicla cada 5 min
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -33,5 +36,4 @@ def get_db():
 def init_db() -> None:
     """Crea todas las tablas si no existen."""
     from app.domain import finca, usuario, lectura, inventario, personal, estanque  # noqa: F401
-    from app.domain import biomasa  # noqa: F401  ← tablas siembras y alimentacion
     Base.metadata.create_all(bind=engine)
