@@ -101,8 +101,8 @@ def require_superadmin(
 # ─── Helpers de aislamiento ─────────────────────────────────────────────────
 
 def get_finca_id_or_raise(user: Usuario) -> int:
-    if user.es_superadmin:
-        return None
+    if user.es_superadmin and user.finca_id:
+        return user.finca_id
     if user.finca_id is None:
         raise HTTPException(
             status_code=400,
