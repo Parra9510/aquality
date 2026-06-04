@@ -1,7 +1,6 @@
 """
 app/routers/estanques.py
 CRUD de estanques con aislamiento por finca.
-Cada usuario solo ve/modifica los estanques de su propia finca.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -20,16 +19,17 @@ router = APIRouter(prefix="/estanques", tags=["Estanques"])
 # ─── Schemas ────────────────────────────────────────────────────────────────
 
 class EstanqueCreate(BaseModel):
-    codigo:      Optional[str]   = None
-    nombre:      str
-    etapa:       Optional[str]   = None   # frontend envía "Alevinaje", "Incubación", etc.
-    largo:       Optional[float] = None
-    ancho:       Optional[float] = None
-    profundidad: Optional[float] = None
+    codigo:           Optional[str]   = None
+    nombre:           str
+    etapa:            Optional[str]   = None
+    largo:            Optional[float] = None
+    ancho:            Optional[float] = None
+    profundidad:      Optional[float] = None
     capacidad_kg:     Optional[float] = None
-    capacidad_litros: Optional[float] = None  # compatibilidad con nombre viejo
-    ubicacion:   Optional[str]   = None
-    finca_id:    Optional[int]   = None
+    capacidad_litros: Optional[float] = None
+    ubicacion:        Optional[str]   = None
+    finca_id:         Optional[int]   = None
+
 
 class EstanqueUpdate(BaseModel):
     nombre:           Optional[str]             = None
@@ -40,6 +40,18 @@ class EstanqueUpdate(BaseModel):
 
 
 # ─── Endpoints ──────────────────────────────────────────────────────────────
+
+@router.get("/", summary="Listar estanques de mi finca")
+def listar_estanques(
+    db:           Session  = Depends(get_db),
+    current_user: Usuario  = Depends(get_current_active_user),
+):
+    q = db.query(Estanque)
+    if not current_user.es_superadmin:
+        q = q.filter(Estanque.finca_id == current_user.finca_id)
+    estanques = q.order_by(Estanque.id).all()
+    return [e.to_dict() for e in estanques]
+
 
 @router.post("/", summary="Crear estanque en mi finca")
 def crear_estanque(
@@ -54,61 +66,29 @@ def crear_estanque(
     else:
         finca_id = get_finca_id_or_raise(current_user)
 
-    # Capacidad: acepta ambos nombres
     capacidad = body.capacidad_kg or body.capacidad_litros or 0
     if capacidad <= 0:
         raise HTTPException(400, "La capacidad debe ser mayor a cero")
 
-    # Normalizar etapa a minúsculas para que coincida con el Enum
     etapa_valor = None
     if body.etapa:
         etapa_map = {
-            "incubación": "alevinaje",  # mapear si no existe en enum
-            "incubacion": "alevinaje",
-            "alevinaje":  "alevinaje",
-            "dedinos":    "levante",
-            "engorde":    "engorde",
-            "cosecha":    "cosecha",
+            "incubacion": "alevinaje", "incubación": "alevinaje",
+            "alevinaje": "alevinaje", "dedinos": "levante",
+            "engorde": "engorde", "cosecha": "cosecha", "descanso": "descanso",
         }
-        etapa_lower = body.etapa.lower().strip()
-        etapa_valor = etapa_map.get(etapa_lower)
-        if etapa_valor:
-            try:
-                etapa_valor = EtapaProductiva(etapa_valor)
-            except ValueError:
-                etapa_valor = None
+        clave = body.etapa.lower().strip()
+        try:
+            etapa_valor = EtapaProductiva(etapa_map.get(clave, clave))
+        except ValueError:
+            etapa_valor = None
 
     count = db.query(Estanque).filter(Estanque.finca_id == finca_id).count()
-    codigo = body.codigo or f"EST-{count + 1:02d}"
-
     nuevo = Estanque(
-        codigo       = codigo,
+        codigo       = body.codigo or f"EST-{count + 1:02d}",
         nombre       = body.nombre,
         capacidad_kg = capacidad,
         etapa        = etapa_valor,
-        finca_id     = finca_id,
-    )
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
-    return nuevo.to_dict()
-
-    # Determinar finca destino
-    if current_user.es_superadmin and body.finca_id:
-        finca_id = body.finca_id
-        if not db.get(Finca, finca_id):
-            raise HTTPException(404, "Finca no encontrada")
-    else:
-        finca_id = get_finca_id_or_raise(current_user)
-
-    if body.capacidad_litros <= 0:
-        raise HTTPException(400, "La capacidad debe ser mayor a cero")
-
-    count = db.query(Estanque).filter(Estanque.finca_id == finca_id).count()
-    nuevo = Estanque(
-        codigo       = f"EST-{count + 1:02d}",
-        nombre       = body.nombre,
-        capacidad_kg = body.capacidad_litros,
         finca_id     = finca_id,
     )
     db.add(nuevo)
